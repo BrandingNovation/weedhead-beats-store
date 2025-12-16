@@ -1,25 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-declare const process: any;
-
-const getEnvVar = (key: string) => {
-  // Try process.env (polyfilled by Vite config)
-  try {
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key];
-    }
-  } catch (e) {
-    // Ignore
-  }
-
-  return '';
-};
-
-const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
-const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
+// Vite exposes environment variables via import.meta.env
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("⚠️ Supabase credentials missing! Check your .env file.");
+  console.error("⚠️ Supabase credentials missing!");
+  console.error("VITE_SUPABASE_URL:", supabaseUrl ? "Set" : "MISSING");
+  console.error("VITE_SUPABASE_ANON_KEY:", supabaseAnonKey ? "Set" : "MISSING");
+  console.error("Please check your environment variables in Coolify.");
 }
 
 export const supabase = createClient(
