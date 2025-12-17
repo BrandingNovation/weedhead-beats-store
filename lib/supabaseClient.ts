@@ -1,14 +1,18 @@
-// lib/supabaseClient.ts
+/// <reference types="../vite-env.d.ts" />
 import { createClient } from '@supabase/supabase-js';
 
-// Set up Supabase client using environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Vite exposes environment variables via import.meta.env
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing required environment variables: "VITE_SUPABASE_URL" and/or "VITE_SUPABASE_ANON_KEY". Please ensure these are set in your environment configuration. Refer to the documentation for redeployment instructions.'
-  );
+  console.error("⚠️ Supabase credentials missing!");
+  console.error("VITE_SUPABASE_URL:", supabaseUrl ? "Set" : "MISSING");
+  console.error("VITE_SUPABASE_ANON_KEY:", supabaseAnonKey ? "Set" : "MISSING");
+  console.error("Please check your environment variables in Coolify.");
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  supabaseUrl || 'http://localhost:54321', 
+  supabaseAnonKey || 'placeholder-key'
+);
