@@ -35,6 +35,8 @@ WHERE id = (SELECT id FROM auth.users WHERE email = 'your-email@example.com');
 
 **Replace `'your-email@example.com'` with your actual email address.**
 
+**Important:** The `profiles` table doesn't have an `email` column. We need to look up the user ID from `auth.users` first, which is what the subquery does.
+
 3. **Verify it worked:**
 
 ```sql
@@ -68,28 +70,30 @@ WHERE email = 'your-email@example.com';
 ```sql
 UPDATE profiles 
 SET is_admin = true 
-WHERE email = 'your-email@example.com';
+WHERE id = (SELECT id FROM auth.users WHERE email = 'your-email@example.com');
 ```
 
 ### Remove admin status:
 ```sql
 UPDATE profiles 
 SET is_admin = false 
-WHERE email = 'your-email@example.com';
+WHERE id = (SELECT id FROM auth.users WHERE email = 'your-email@example.com');
 ```
 
 ### List all admins:
 ```sql
-SELECT email, name, is_admin 
-FROM profiles 
-WHERE is_admin = true;
+SELECT u.email, p.name, p.is_admin 
+FROM profiles p
+JOIN auth.users u ON p.id = u.id
+WHERE p.is_admin = true;
 ```
 
 ### Check if a user is admin:
 ```sql
-SELECT email, is_admin 
-FROM profiles 
-WHERE email = 'your-email@example.com';
+SELECT u.email, p.is_admin 
+FROM profiles p
+JOIN auth.users u ON p.id = u.id
+WHERE u.email = 'your-email@example.com';
 ```
 
 ---
