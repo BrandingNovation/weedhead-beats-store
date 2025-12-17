@@ -418,81 +418,84 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                             </div>
                         </form>
                     ) : (
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        {error && (
-                            <div className="bg-red-900/20 border border-red-900/50 text-red-400 text-xs p-3 rounded">
-                                {error}
-                            </div>
-                        )}
-                        {!isLogin && (
-                            <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase text-brand-teal ml-1">Artist Name</label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-3.5 text-brand-teal" size={18} />
-                                    <input 
-                                        type="text" 
-                                        placeholder="Producer Name" 
-                                        className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
-                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
-                                        value={name}
-                                        onChange={e => setName(e.target.value)}
-                                        required
-                                    />
+                        <>
+                            <form onSubmit={handleSubmit} className="space-y-5">
+                                {error && (
+                                    <div className="bg-red-900/20 border border-red-900/50 text-red-400 text-xs p-3 rounded">
+                                        {error}
+                                    </div>
+                                )}
+                                {!isLogin && (
+                                    <div className="space-y-1">
+                                        <label className="text-xs font-bold uppercase text-brand-teal ml-1">Artist Name</label>
+                                        <div className="relative">
+                                            <User className="absolute left-3 top-3.5 text-brand-teal" size={18} />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Producer Name" 
+                                                className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
+                                                style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                                value={name}
+                                                onChange={e => setName(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase text-brand-teal ml-1">Email</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-3.5 text-brand-teal" size={18} />
+                                        <input 
+                                            type="email" 
+                                            placeholder="name@example.com" 
+                                            className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
+                                            style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                            value={email}
+                                            onChange={e => setEmail(e.target.value)}
+                                            required
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-brand-teal ml-1">Email</label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-3.5 text-brand-teal" size={18} />
-                                <input 
-                                    type="email" 
-                                    placeholder="name@example.com" 
-                                    className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
-                                    style={{ color: '#000000', caretColor: '#0D5F11' }}
-                                    value={email}
-                                    onChange={e => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-xs font-bold uppercase text-brand-teal ml-1">Password</label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3.5 text-brand-teal" size={18} />
-                                <input 
-                                    type="password" 
-                                    placeholder="••••••••" 
-                                    className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
-                                    style={{ color: '#000000', caretColor: '#0D5F11' }}
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        
-                        <div className="space-y-3 pt-2">
-                            <button disabled={loading} type="submit" className="w-full py-4 bg-brand-green text-white font-bold uppercase tracking-wider rounded-lg hover:bg-brand-green/80 transition-colors shadow-lg shadow-green-900/20 flex justify-center items-center gap-2">
-                                {loading && <RefreshCw className="animate-spin" size={16} />}
-                                {isLogin ? 'Sign In' : 'Create Account'}
-                            </button>
-                            
-                        </div>
-                    </form>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-bold uppercase text-brand-teal ml-1">Password</label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-3.5 text-brand-teal" size={18} />
+                                        <input 
+                                            type="password" 
+                                            placeholder="••••••••" 
+                                            className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
+                                            style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-3 pt-2">
+                                    <button disabled={loading} type="submit" className="w-full py-4 bg-brand-green text-white font-bold uppercase tracking-wider rounded-lg hover:bg-brand-green/80 transition-colors shadow-lg shadow-green-900/20 flex justify-center items-center gap-2">
+                                        {loading && <RefreshCw className="animate-spin" size={16} />}
+                                        {isLogin ? 'Sign In' : 'Create Account'}
+                                    </button>
+                                    
+                                </div>
+                            </form>
 
-                    <div className="mt-8 text-center text-sm border-t border-brand-slate pt-6">
-                        <button 
-                            onClick={() => setIsLogin(!isLogin)}
-                            className="text-brand-teal hover:text-white transition-colors"
-                        >
-                            {isLogin ? (
-                                <span>Don't have an account? <span className="text-brand-green font-bold">Sign Up</span></span>
-                            ) : (
-                                <span>Already have an account? <span className="text-brand-green font-bold">Login</span></span>
-                            )}
-                        </button>
-                    </div>
+                            <div className="mt-8 text-center text-sm border-t border-brand-slate pt-6">
+                                <button 
+                                    onClick={() => setIsLogin(!isLogin)}
+                                    className="text-brand-teal hover:text-white transition-colors"
+                                >
+                                    {isLogin ? (
+                                        <span>Don't have an account? <span className="text-brand-green font-bold">Sign Up</span></span>
+                                    ) : (
+                                        <span>Already have an account? <span className="text-brand-green font-bold">Login</span></span>
+                                    )}
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
