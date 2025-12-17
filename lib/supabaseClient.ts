@@ -9,7 +9,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error("⚠️ Supabase credentials missing!");
   console.error("VITE_SUPABASE_URL:", supabaseUrl ? "Set" : "MISSING");
   console.error("VITE_SUPABASE_ANON_KEY:", supabaseAnonKey ? "Set" : "MISSING");
-  console.error("Please check your environment variables in Coolify.");
+  console.error("");
+  console.error("🔧 To fix this locally:");
+  console.error("   1. Run: ./setup-env.sh");
+  console.error("   2. Or manually create .env file with your Supabase credentials");
+  console.error("   3. Get values from Coolify → Your App → Environment Variables");
+  console.error("   4. Restart dev server after creating .env");
 }
 
 export const supabase = createClient(
