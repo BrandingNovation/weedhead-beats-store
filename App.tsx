@@ -1717,7 +1717,16 @@ const App = () => {
   const fetchProfile = async (authUser: any) => {
     try {
         // Attempt to fetch profile details from Supabase 'profiles' table
-        const { data } = await supabase.from('profiles').select('*').eq('id', authUser.id).single();
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+        
+        // If error, log it but continue with fallback
+        if (error) {
+            console.warn('Profile fetch error (using fallback):', error);
+        }
         
         const isAdminUser = authUser.email?.toLowerCase().includes('admin');
 
@@ -1726,20 +1735,23 @@ const App = () => {
             email: authUser.email!,
             name: data?.name || authUser.email?.split('@')[0] || 'User',
             avatar: data?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.email}`,
-            isPro: data?.is_pro || !isAdminUser,
-            isAdmin: data?.is_admin || isAdminUser, // Fallback to email check if DB isn't set up yet
+            isPro: data?.is_pro ?? true,
+            // Use database value if available, otherwise check email
+            isAdmin: data?.is_admin ?? isAdminUser,
             orders: 0
         };
         setUser(newUser);
     } catch (error) {
+        console.error('Profile fetch failed, using fallback:', error);
         // Fallback user creation in state if DB fetch fails
+        const isAdminUser = authUser.email?.toLowerCase().includes('admin');
         const newUser: UserProfile = {
             id: authUser.id,
             email: authUser.email!,
             name: authUser.email?.split('@')[0] || 'User',
             avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${authUser.email}`,
             isPro: true,
-            isAdmin: authUser.email?.toLowerCase().includes('admin'),
+            isAdmin: isAdminUser,
             orders: 0
         };
         setUser(newUser);
