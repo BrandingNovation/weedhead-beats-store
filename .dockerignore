@@ -1,0 +1,6 @@
+# Existing patterns in the .dockerignore file
+**/node_modules
+**/npm-debug.log
+
+# Added rule to exclude environment files
+.env
