@@ -2,25 +2,22 @@ import { GoogleGenAI } from "@google/genai";
 import type { Chat, GenerateContentResponse } from "@google/genai";
 import { AppConfig } from "../types";
 
-declare const process: any;
-
+// Vite exposes environment variables via import.meta.env
 const getApiKey = () => {
-  try {
-    if (typeof process !== 'undefined' && process.env && process.env.VITE_API_KEY) {
-      return process.env.VITE_API_KEY;
-    }
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      return process.env.API_KEY;
-    }
-  } catch (e) {
-    // Ignore
+  // Try import.meta.env first (Vite way)
+  if (import.meta.env.VITE_API_KEY) {
+    return import.meta.env.VITE_API_KEY;
+  }
+  // Fallback to process.env (for compatibility)
+  if (typeof process !== 'undefined' && process.env && process.env.VITE_API_KEY) {
+    return process.env.VITE_API_KEY;
   }
   return '';
 };
 
 const apiKey = getApiKey();
 if (!apiKey) {
-  console.warn("⚠️ Gemini API key missing! Check your .env file for VITE_API_KEY.");
+  console.warn("⚠️ Gemini API key missing! Check your environment variables in Coolify for VITE_API_KEY.");
 }
 
 const ai = new GoogleGenAI({ apiKey });
