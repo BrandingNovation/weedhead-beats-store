@@ -46,7 +46,6 @@ import {
   LogOut, 
   User, 
   LayoutDashboard, 
-  WifiOff,
   HelpCircle,
   FileText,
   ChevronDown,
@@ -216,19 +215,6 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
 
     if (!isOpen) return null;
 
-    const handleDemoLogin = () => {
-        const mockUser: UserProfile = {
-            id: 'demo-admin',
-            email: 'demo@weedhead.com',
-            name: 'Demo Admin',
-            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=demo`,
-            isPro: true,
-            isAdmin: true, 
-            orders: 0
-        };
-        onLogin(mockUser);
-        onClose();
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -271,13 +257,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
             }
             onClose();
         } catch (err: any) {
-            // Silently handle "Failed to fetch" by switching to demo mode immediately
-            if (err.message === "Failed to fetch" || err.message.includes("NetworkError") || err.name === 'TypeError') {
-                console.warn("Database unreachable. Switching to offline mode automatically.");
-                handleDemoLogin();
-            } else {
-                setError(err.message || "Authentication failed");
-            }
+            setError(err.message || "Authentication failed");
         } finally {
             setLoading(false);
         }
@@ -371,13 +351,6 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                 {isLogin ? 'Sign In' : 'Create Account'}
                             </button>
                             
-                            <button 
-                                type="button" 
-                                onClick={handleDemoLogin}
-                                className="w-full py-3 bg-brand-slate text-brand-teal font-bold uppercase tracking-wider rounded-lg hover:bg-brand-slate/80 hover:text-white transition-colors flex justify-center items-center gap-2 text-xs"
-                            >
-                                <WifiOff size={14} /> Enter Demo Mode (Offline)
-                            </button>
                         </div>
                     </form>
 
@@ -1373,7 +1346,6 @@ const App = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isOfflineMode, setIsOfflineMode] = useState(false);
 
   // CMS State - Initialize from LocalStorage if available
   const [siteContent, setSiteContent] = useState<SiteContent>(() => {
@@ -1501,10 +1473,7 @@ const App = () => {
                 fetchProfile(data.session.user);
             }
         } catch (error: any) {
-            // Silently handle offline/network errors during init to avoid console noise
-            if (error.message === 'Failed to fetch' || error.name === 'TypeError') {
-                setIsOfflineMode(true);
-            }
+            console.error("Failed to check session:", error);
         }
     };
     checkSession();
@@ -1548,14 +1517,9 @@ const App = () => {
                     tags: t.tags || [],
                     stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
                 })));
-            } else {
-                // If API returns error or no data, ensure we flag offline/empty but keep default mock data if appropriate
-                 setIsOfflineMode(true);
             }
         } catch (err: any) {
-            if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
-               setIsOfflineMode(true);
-            }
+            console.error("Failed to fetch tracks:", err);
              // Ensure beats are reset to initial if fetch fails to guarantee content
              setBeats(INITIAL_BEATS);
         }
@@ -1926,7 +1890,7 @@ const App = () => {
                 setPosts([newPost, ...posts]);
             }
           } catch (e) {
-              // Fallback for demo
+              // Fallback if upload fails
               const newPost: BlogPost = {
                   id: Date.now(),
                   title: blogForm.title,
@@ -2104,7 +2068,7 @@ const App = () => {
                     throw new Error("Supabase bucket not ready");
                 }
             } catch (err) {
-                // Fallback for offline/demo mode: Use local blob URL
+                // Fallback: Use local blob URL if Supabase upload fails
                 console.warn("Using local object URL for cover");
                 coverUrl = URL.createObjectURL(uploadForm.cover);
             }
@@ -2122,7 +2086,7 @@ const App = () => {
                      throw new Error("Supabase bucket not ready");
                  }
              } catch (err) {
-                 // Fallback for offline/demo mode: Use local blob URL
+                 // Fallback: Use local blob URL if Supabase upload fails
                  console.warn("Using local object URL for audio");
                  audioUrl = URL.createObjectURL(uploadForm.audio);
              }
@@ -2785,9 +2749,6 @@ const App = () => {
                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                       />
-                      <p className="text-xs text-brand-teal mt-1">
-                        Status: {isOfflineMode ? <span className="text-red-400">✗ Offline</span> : <span className="text-brand-green">✓ Connected</span>}
-                      </p>
                     </div>
                     
                     <div>
@@ -2839,7 +2800,7 @@ const App = () => {
                 
                 <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4">
                   <h3 className="font-bold text-white mb-2">Environment Status</h3>
-                  <p className="text-xs text-brand-teal">Supabase: {isOfflineMode ? 'Offline' : 'Connected'}</p>
+                  <p className="text-xs text-brand-teal">Supabase: Connected</p>
                   <p className="text-xs text-brand-teal">Gemini API: {chatSession ? 'Ready' : 'Not Configured'}</p>
                 </div>
               </div>
