@@ -12,5 +12,16 @@ export default defineConfig(({ mode }) => {
       // Define process.env to allow accessing environment variables like process.env.API_KEY
       'process.env': env
     },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
+    },
+    base: '/'
   };
 });
