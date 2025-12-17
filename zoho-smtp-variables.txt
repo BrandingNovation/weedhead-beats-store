@@ -1,0 +1,65 @@
+# Zoho SMTP Configuration Variables
+# Copy these and add them to your Supabase configuration
+
+# ============================================
+# FOR SUPABASE CLOUD (app.supabase.com)
+# ============================================
+# Go to: Settings → Auth → SMTP Settings
+# Enable Custom SMTP and fill in:
+
+Host: smtp.zoho.com
+Port: 587
+Username: your-email@zoho.com
+Password: [Your Zoho App Password]
+Sender email: your-email@zoho.com
+Sender name: Weedhead Beats
+
+# ============================================
+# FOR SELF-HOSTED SUPABASE (Docker/Environment)
+# ============================================
+# Add these to your Supabase .env file or docker-compose.yml:
+
+SMTP_ADMIN_EMAIL=your-email@zoho.com
+SMTP_HOST=smtp.zoho.com
+SMTP_PORT=587
+SMTP_USER=your-email@zoho.com
+SMTP_PASS=your-zoho-app-password-here
+SMTP_SENDER_NAME=Weedhead Beats
+
+# ============================================
+# FOR COOLIFY (if Supabase is deployed via Coolify)
+# ============================================
+# Go to: Your Supabase Service → Environment Variables
+# Add these variables:
+
+SMTP_ADMIN_EMAIL=your-email@zoho.com
+SMTP_HOST=smtp.zoho.com
+SMTP_PORT=587
+SMTP_USER=your-email@zoho.com
+SMTP_PASS=your-zoho-app-password-here
+SMTP_SENDER_NAME=Weedhead Beats
+
+# ============================================
+# INSTRUCTIONS
+# ============================================
+# 1. Replace "your-email@zoho.com" with your actual Zoho email
+# 2. Replace "your-zoho-app-password-here" with your Zoho App Password
+#    (Get it from: https://accounts.zoho.com → Security → App Passwords)
+# 3. Add these variables to your Supabase configuration
+# 4. Restart Supabase service if needed
+# 5. Test by signing up a new user
+
+# ============================================
+# ALTERNATIVE PORTS
+# ============================================
+# If port 587 doesn't work, try:
+# SMTP_PORT=465 (for SSL)
+
+# ============================================
+# NOTES
+# ============================================
+# - Use App Password, NOT your regular Zoho password
+# - App Password can only be viewed once, save it securely
+# - Test the connection in Supabase dashboard before saving
+# - Check Supabase logs if emails aren't sending
+
