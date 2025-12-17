@@ -212,6 +212,9 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [needsVerification, setNeedsVerification] = useState(false);
+    const [verificationCode, setVerificationCode] = useState('');
+    const [verifying, setVerifying] = useState(false);
 
     if (!isOpen) return null;
 
@@ -243,6 +246,14 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                 });
                 if (error) throw error;
                 
+                // Check if email confirmation is required
+                if (data.user && !data.session) {
+                    // Email confirmation required
+                    setNeedsVerification(true);
+                    setLoading(false);
+                    return;
+                }
+                
                 // Manual profile insertion if signup successful to ensure data exists
                 if (data.user) {
                     await supabase.from('profiles').insert([{
@@ -260,6 +271,56 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
             setError(err.message || "Authentication failed");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleVerifyEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setVerifying(true);
+
+        try {
+            const { data, error } = await supabase.auth.verifyOtp({
+                email,
+                token: verificationCode,
+                type: 'signup'
+            });
+            
+            if (error) throw error;
+            
+            if (data.user) {
+                // Create profile after verification
+                await supabase.from('profiles').insert([{
+                    id: data.user.id,
+                    email: email,
+                    name: name || email.split('@')[0],
+                    avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+                    is_admin: email.toLowerCase().includes('admin'),
+                    updated_at: new Date()
+                }]).select();
+                
+                setNeedsVerification(false);
+                onClose();
+            }
+        } catch (err: any) {
+            setError(err.message || "Verification failed. Please check your code.");
+        } finally {
+            setVerifying(false);
+        }
+    };
+
+    const handleResendCode = async () => {
+        setError('');
+        try {
+            const { error } = await supabase.auth.resend({
+                type: 'signup',
+                email: email
+            });
+            if (error) throw error;
+            setError('Verification code resent! Check your email.');
+            setTimeout(() => setError(''), 3000);
+        } catch (err: any) {
+            setError(err.message || "Failed to resend code");
         }
     };
 
@@ -291,6 +352,72 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                         </p>
                     </div>
 
+                    {needsVerification ? (
+                        <form onSubmit={handleVerifyEmail} className="space-y-5">
+                            <div className="mb-4">
+                                <p className="text-brand-teal text-sm mb-2">
+                                    We sent a verification code to <strong className="text-white">{email}</strong>
+                                </p>
+                                <p className="text-xs text-brand-teal/70">
+                                    Enter the code from your email to verify your account.
+                                </p>
+                            </div>
+                            
+                            {error && (
+                                <div className={`text-xs p-3 rounded ${error.includes('resent') ? 'bg-green-900/20 border border-green-900/50 text-green-400' : 'bg-red-900/20 border border-red-900/50 text-red-400'}`}>
+                                    {error}
+                                </div>
+                            )}
+                            
+                            <div className="space-y-1">
+                                <label className="text-xs font-bold uppercase text-brand-teal ml-1">Verification Code</label>
+                                <div className="relative">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Enter 6-digit code" 
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        value={verificationCode}
+                                        onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        required
+                                        maxLength={6}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <button 
+                                type="submit"
+                                disabled={verifying || verificationCode.length !== 6}
+                                className="w-full py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {verifying ? 'Verifying...' : 'Verify Email'}
+                            </button>
+                            
+                            <div className="text-center">
+                                <button
+                                    type="button"
+                                    onClick={handleResendCode}
+                                    className="text-xs text-brand-teal hover:text-brand-green transition-colors"
+                                >
+                                    Didn't receive code? Resend
+                                </button>
+                            </div>
+                            
+                            <div className="text-center">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setNeedsVerification(false);
+                                        setVerificationCode('');
+                                        setError('');
+                                    }}
+                                    className="text-xs text-brand-teal hover:text-brand-green transition-colors"
+                                >
+                                    ← Back to sign up
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {error && (
                             <div className="bg-red-900/20 border border-red-900/50 text-red-400 text-xs p-3 rounded">
