@@ -3244,6 +3244,38 @@ const App = () => {
                       </div>
                     )}
                   </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
+                    <input
+                      type="file"
+                      accept=".zip,application/zip"
+                      onChange={e => handleFileChange(e, 'stems')}
+                      className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                    />
+                    <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
+                      <p className="text-brand-green font-bold mb-1">📦 Stems File Specifications:</p>
+                      <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
+                        <li><strong>Format:</strong> ZIP file containing individual stem files</li>
+                        <li><strong>Stem Files:</strong> WAV or MP3 format (one file per instrument/element)</li>
+                        <li><strong>File Size:</strong> Under 100MB (recommended: 20-50MB)</li>
+                        <li><strong>Contents:</strong> Drums, Melody, Bass, Vocals, etc. as separate files</li>
+                        <li><strong>Note:</strong> Available for Premium Lease and Unlimited licenses only</li>
+                      </ul>
+                    </div>
+                    {uploadForm.stemsName && (
+                      <div className="mt-3">
+                        <p className="text-xs text-brand-teal font-bold">Selected: {uploadForm.stemsName}</p>
+                        {uploadForm.stems instanceof File && (
+                          <p className="text-xs text-brand-teal mt-1">
+                            Size: {(uploadForm.stems.size / 1024 / 1024).toFixed(2)} MB
+                            {uploadForm.stems.size > 100 * 1024 * 1024 && (
+                              <span className="text-yellow-400 ml-2">⚠️ File is larger than recommended (100MB)</span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-4">
                   <button
