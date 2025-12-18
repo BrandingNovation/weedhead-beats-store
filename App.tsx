@@ -888,8 +888,11 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                     {/* Thank You Message */}
                     <div className="mt-8 pt-6 border-t border-gray-300 text-center">
                         <p className="text-lg font-semibold text-black mb-2">Thank You For Your Purchase!</p>
-                        <p className="text-sm text-gray-600">
-                            Your order has been confirmed. A receipt has been sent to your email.
+                        <p className="text-sm text-gray-600 font-medium">
+                            Your order has been confirmed and a receipt has been sent to your email.
+                        </p>
+                        <p className="text-sm text-gray-600 mt-2">
+                            Please check your inbox (and spam folder) for your receipt with download links.
                         </p>
                         <p className="text-sm text-gray-600 mt-2">
                             We appreciate your business and hope you enjoy your music!
