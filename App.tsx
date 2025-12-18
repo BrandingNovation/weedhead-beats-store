@@ -1401,44 +1401,68 @@ const PricingTier = ({ title, price, features, recommended }: any) => (
   </div>
 );
 
-const BlogPostCard = ({ post, onClick }: any) => (
-  <article className="group cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 hover:border-brand-green/50 rounded-lg p-6 transition-all" onClick={onClick}>
-    {post.image && (
-        <div className="aspect-video overflow-hidden mb-4 bg-brand-black border border-brand-slate rounded-lg lg:group-hover:border-brand-green/50 transition-colors">
-            <img 
-                src={post.image} 
-                alt={post.title} 
-                className="w-full h-full object-cover transition-transform duration-700 lg:grayscale lg:group-hover:grayscale-0 lg:group-hover:scale-105" 
-            />
-        </div>
-    )}
-    <div className="flex items-center gap-2 text-xs text-brand-teal font-mono mb-2">
-      <span>{post.date}</span>
-      <span>•</span>
-      <span>{post.isAiGenerated ? 'AI Daily Brief' : 'Education'}</span>
-    </div>
-    <h3 className="text-xl font-bold text-white mb-2 lg:group-hover:text-brand-green transition-colors leading-tight">
-      {post.title}
-    </h3>
-    <div className="text-brand-teal text-sm leading-relaxed mb-4 line-clamp-3">
-        {post.isAiGenerated ? (
-            <ReactMarkdown components={{
-                a: ({node, ...props}: any) => <span className="text-brand-green" {...props} />
-            }}>{post.excerpt}</ReactMarkdown>
-        ) : post.excerpt}
-    </div>
-    <div className="flex items-center gap-2 text-white text-sm font-bold uppercase tracking-wider lg:group-hover:underline decoration-brand-green underline-offset-4">
-      Read Article <ArrowRight size={16} className="text-brand-green" />
-    </div>
-  </article>
-);
+const BlogPostCard = ({ post, onClick }: any) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClick();
+  };
+  
+  return (
+    <article 
+      className="group cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 hover:border-brand-green/50 rounded-lg p-6 transition-all" 
+      onClick={handleClick}
+    >
+      {post.image && (
+          <div className="aspect-video overflow-hidden mb-4 bg-brand-black border border-brand-slate rounded-lg lg:group-hover:border-brand-green/50 transition-colors">
+              <img 
+                  src={post.image} 
+                  alt={post.title} 
+                  className="w-full h-full object-cover transition-transform duration-700 lg:grayscale lg:group-hover:grayscale-0 lg:group-hover:scale-105" 
+              />
+          </div>
+      )}
+      <div className="flex items-center gap-2 text-xs text-brand-teal font-mono mb-2">
+        <span>{post.date}</span>
+        <span>•</span>
+        <span>{post.isAiGenerated ? 'AI Daily Brief' : 'Education'}</span>
+      </div>
+      <h3 className="text-xl font-bold text-white mb-2 lg:group-hover:text-brand-green transition-colors leading-tight">
+        {post.title}
+      </h3>
+      <div className="text-brand-teal text-sm leading-relaxed mb-4 line-clamp-3">
+          {post.isAiGenerated ? (
+              <ReactMarkdown components={{
+                  a: ({node, ...props}: any) => <span className="text-brand-green" {...props} onClick={(e: any) => e.stopPropagation()} />
+              }}>{post.excerpt}</ReactMarkdown>
+          ) : post.excerpt}
+      </div>
+      <div className="flex items-center gap-2 text-white text-sm font-bold uppercase tracking-wider lg:group-hover:underline decoration-brand-green underline-offset-4">
+        Read Article <ArrowRight size={16} className="text-brand-green" />
+      </div>
+    </article>
+  );
+};
 
 const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpen: boolean, onClose: () => void }) => {
   if (!isOpen || !post) return null;
   
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    // Only close if clicking directly on the backdrop, not on the modal content
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+  
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto" onClick={onClose}>
-      <div className="bg-white border border-gray-200 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-auto" onClick={e => e.stopPropagation()}>
+    <div 
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto" 
+      onClick={handleBackdropClick}
+    >
+      <div 
+        className="bg-white border border-gray-200 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-auto" 
+        onClick={e => e.stopPropagation()}
+      >
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-start z-10">
           <div className="flex-1">
             <div className="flex items-center gap-2 text-xs text-gray-500 font-mono mb-2">
@@ -3931,13 +3955,11 @@ const App = () => {
         total={cartTotal}
       />
 
-      {selectedPost && (
-        <BlogPostModal 
-          post={selectedPost}
-          isOpen={!!selectedPost}
-          onClose={() => setSelectedPost(null)}
-        />
-      )}
+      <BlogPostModal 
+        post={selectedPost}
+        isOpen={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+      />
 
       <ExportModal
         isOpen={isExportModalOpen}
