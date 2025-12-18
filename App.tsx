@@ -1531,28 +1531,98 @@ const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpe
   );
 };
 
-const NewsletterForm = () => (
-    <div className="bg-gradient-to-br from-brand-black to-brand-slate/40 border border-brand-slate p-8 text-center rounded-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/10 blur-3xl rounded-full"></div>
-        <div className="relative z-10">
-            <Mail className="mx-auto text-brand-green mb-4" size={32} />
-            <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Join the Inner Circle</h3>
-            <p className="text-brand-teal mb-6 max-w-sm mx-auto text-sm">Get exclusive free beats, plugin deals, and mixing tips delivered to your inbox.</p>
-            <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={e => { e.preventDefault(); alert("Subscribed!"); }}>
-                <input 
-                    type="email" 
-                    placeholder="Enter your email" 
-                    required 
-                    className="flex-1 bg-brand-black border border-brand-slate p-3 rounded focus:border-brand-green outline-none placeholder:text-zinc-500" 
-                    style={{ color: '#ffffff', caretColor: '#0D5F11' }}
-                />
-                <button type="submit" className="bg-brand-green hover:bg-brand-green/80 text-white font-bold uppercase tracking-wider px-6 py-3 rounded transition-colors">
-                    Subscribe
-                </button>
-            </form>
+const NewsletterForm = () => {
+    const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setStatus('loading');
+        setMessage('');
+
+        try {
+            const { data, error } = await supabase
+                .from('newsletter_subscribers')
+                .insert([{
+                    email: email.trim().toLowerCase(),
+                    name: name.trim() || null,
+                    is_active: true,
+                    source: 'website'
+                }])
+                .select();
+
+            if (error) {
+                // Check if it's a duplicate email error
+                if (error.code === '23505' || error.message?.includes('unique')) {
+                    setMessage('You are already subscribed!');
+                    setStatus('error');
+                } else {
+                    throw error;
+                }
+            } else {
+                setMessage('Successfully subscribed! Check your email for confirmation.');
+                setStatus('success');
+                setEmail('');
+                setName('');
+            }
+        } catch (err: any) {
+            console.error('Newsletter subscription error:', err);
+            setMessage(err.message || 'Failed to subscribe. Please try again.');
+            setStatus('error');
+        } finally {
+            setTimeout(() => {
+                setStatus('idle');
+                setMessage('');
+            }, 5000);
+        }
+    };
+
+    return (
+        <div className="bg-gradient-to-br from-brand-black to-brand-slate/40 border border-brand-slate p-8 text-center rounded-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/10 blur-3xl rounded-full"></div>
+            <div className="relative z-10">
+                <Mail className="mx-auto text-brand-green mb-4" size={32} />
+                <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Join the Inner Circle</h3>
+                <p className="text-brand-teal mb-6 max-w-sm mx-auto text-sm">Get exclusive free beats, plugin deals, and mixing tips delivered to your inbox.</p>
+                <form className="flex flex-col gap-3 max-w-md mx-auto" onSubmit={handleSubmit}>
+                    <input 
+                        type="text" 
+                        placeholder="Your name (optional)" 
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500" 
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                    />
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <input 
+                            type="email" 
+                            placeholder="Enter your email" 
+                            required 
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500" 
+                            style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                        <button 
+                            type="submit" 
+                            disabled={status === 'loading'}
+                            className="bg-brand-green hover:bg-brand-green/80 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wider px-6 py-3 rounded transition-colors"
+                        >
+                            {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+                        </button>
+                    </div>
+                    {message && (
+                        <p className={`text-sm mt-2 ${status === 'success' ? 'text-brand-green' : status === 'error' ? 'text-red-400' : 'text-brand-teal'}`}>
+                            {message}
+                        </p>
+                    )}
+                </form>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 // --- Main App Component ---
 
