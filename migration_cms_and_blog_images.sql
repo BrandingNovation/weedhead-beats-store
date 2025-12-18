@@ -79,6 +79,10 @@ END $$;
 -- Enable RLS on site_content
 ALTER TABLE site_content ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Public can view site content" ON site_content;
+DROP POLICY IF EXISTS "Authenticated users can manage site content" ON site_content;
+
 -- Everyone can read site content (public pages)
 CREATE POLICY "Public can view site content"
     ON site_content FOR SELECT
@@ -94,6 +98,7 @@ CREATE POLICY "Authenticated users can manage site content"
 -- 4. UPDATE TRIGGER
 -- ============================================
 -- Auto-update updated_at timestamp
+DROP TRIGGER IF EXISTS update_site_content_updated_at ON site_content;
 CREATE TRIGGER update_site_content_updated_at
     BEFORE UPDATE ON site_content
     FOR EACH ROW
