@@ -1565,22 +1565,25 @@ const App = () => {
           .select('key_name, key_value, is_active')
           .eq('is_active', true);
         
-        // Handle 404 (table doesn't exist) gracefully
+        // Handle 404 (table doesn't exist) gracefully - completely silent
         if (error) {
           // Check for 404 in various ways (Supabase can return 404 in different formats)
           const is404 = error.code === 'PGRST116' || 
+                       error.code === '42P01' || // relation does not exist
                        error.message?.includes('404') || 
                        error.message?.includes('does not exist') ||
                        error.message?.includes('relation') ||
+                       error.message?.includes('not found') ||
                        (error as any)?.status === 404 ||
                        (error as any)?.statusCode === 404;
           
           if (is404) {
             // Table doesn't exist yet - this is fine, just use empty keys
-            // Don't log to console to avoid noise
+            // Completely silent - no logging, no errors
             setApiKeysLoaded(true);
             return;
           }
+          // Only throw non-404 errors
           throw error;
         }
         
@@ -1595,16 +1598,19 @@ const App = () => {
       } catch (e: any) {
         // Only log non-404 errors
         const is404 = e?.code === 'PGRST116' || 
+                     e?.code === '42P01' ||
                      e?.message?.includes('404') || 
                      e?.message?.includes('does not exist') ||
                      e?.message?.includes('relation') ||
+                     e?.message?.includes('not found') ||
                      e?.status === 404 ||
                      e?.statusCode === 404;
         
         if (!is404) {
           console.warn('Failed to load API keys:', e);
         }
-        setApiKeysLoaded(true); // Set to true even on error to hide spinner
+        // Always set loaded to true to hide spinner, even on 404
+        setApiKeysLoaded(true);
       }
     };
     
