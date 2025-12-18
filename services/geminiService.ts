@@ -87,8 +87,9 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
     try {
         // Using premium models available with paid account
         // Try image generation models first, then fallback to text models
+        // Model names need -latest or -001 suffix for v1beta API
         const imageModels = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
-        const textModels = ['gemini-1.5-pro', 'gemini-1.5-flash'];
+        const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001'];
         
         // Try image generation models first
         for (const modelName of imageModels) {
@@ -127,8 +128,8 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
 export const generateSEOContent = async (topic: string): Promise<string> => {
     try {
         // Using premium models available with paid account
-        // Try gemini-1.5-pro first (best for content generation), then fallback to flash
-        const modelsToTry = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'];
+        // Model names need -latest or -001 suffix for v1beta API
+        const modelsToTry = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001', 'gemini-2.0-flash-exp'];
         let response: any = null;
         let lastError: any = null;
         
@@ -142,26 +143,35 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                     Task:
                     1. Search for the trending news today related to: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
                     2. Choose the most high-impact story for an independent producer trying to make it.
-                    3. RECREATE this story as a blog post.
+                    3. Write a professional blog post following standard blog formatting protocol.
                     
                     Tone & Style Guide (CRITICAL):
                     - **Target Audience**: 18-35 year old bedroom producers, beatmakers, and songwriters.
                     - **Voice**: Authentic, street-smart, knowledgeable, "big brother" vibes.
                     - **Slang**: Use terms naturally (e.g., "secure the bag", "placement ready", "cook up", "sauce", "the mix", "industry standard").
-                    - **Formatting**: Short paragraphs, punchy sentences. High readability.
+                    - **Formatting**: Short paragraphs (2-4 sentences max), punchy sentences. High readability.
                     
                     SEO Requirements:
                     - Focus Keyword: "${topic}" + "Beats" or "Producer".
                     - Include keywords: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips".
                     
-                    Structure:
-                    1. **Hype Title (H1)**: Click-worthy, uses keywords.
-                    2. **The Drop (Intro)**: Hook the reader immediately.
-                    3. **The Cook Up (Body)**: The core news/tips using H2 headers.
-                    4. **Key Gems (Bullet Points)**: Actionable takeaways.
-                    5. **Outro**: Call to action to check out the store's latest beats.
+                    Standard Blog Format Protocol:
+                    1. **Title (H1)**: One clear, SEO-optimized headline. Click-worthy, uses keywords naturally.
+                    2. **Introduction Paragraph**: 2-3 sentences that hook the reader and introduce the topic. End with what they'll learn.
+                    3. **Body Sections (H2 headers)**: Each section should be 2-4 paragraphs. Use descriptive H2 headers.
+                    4. **Subsections (H3 headers)**: Break down complex topics with H3 headers when needed.
+                    5. **Bullet Points or Numbered Lists**: Use for actionable takeaways, tips, or key points.
+                    6. **Conclusion Paragraph**: 2-3 sentences summarizing key points and call to action.
                     
-                    Output strictly as Markdown.`,
+                    Formatting Rules:
+                    - Use proper Markdown: # for H1, ## for H2, ### for H3
+                    - Bold important terms: **term**
+                    - Use bullet points (-) or numbered lists (1.) for lists
+                    - Keep paragraphs short (2-4 sentences)
+                    - Use line breaks between sections
+                    - Include a call-to-action at the end
+                    
+                    Output strictly as Markdown following this structure.`,
                     config: {
                         tools: [{ googleSearch: {} }]
                     }
@@ -184,26 +194,35 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
                         
                         Task:
-                        Write a blog post about: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
+                        Write a professional blog post about: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
                         
                         Tone & Style Guide (CRITICAL):
                         - **Target Audience**: 18-35 year old bedroom producers, beatmakers, and songwriters.
                         - **Voice**: Authentic, street-smart, knowledgeable, "big brother" vibes.
                         - **Slang**: Use terms naturally (e.g., "secure the bag", "placement ready", "cook up", "sauce", "the mix", "industry standard").
-                        - **Formatting**: Short paragraphs, punchy sentences. High readability.
+                        - **Formatting**: Short paragraphs (2-4 sentences max), punchy sentences. High readability.
                         
                         SEO Requirements:
                         - Focus Keyword: "${topic}" + "Beats" or "Producer".
                         - Include keywords: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips".
                         
-                        Structure:
-                        1. **Hype Title (H1)**: Click-worthy, uses keywords.
-                        2. **The Drop (Intro)**: Hook the reader immediately.
-                        3. **The Cook Up (Body)**: The core news/tips using H2 headers.
-                        4. **Key Gems (Bullet Points)**: Actionable takeaways.
-                        5. **Outro**: Call to action to check out the store's latest beats.
+                        Standard Blog Format Protocol:
+                        1. **Title (H1)**: One clear, SEO-optimized headline. Click-worthy, uses keywords naturally.
+                        2. **Introduction Paragraph**: 2-3 sentences that hook the reader and introduce the topic. End with what they'll learn.
+                        3. **Body Sections (H2 headers)**: Each section should be 2-4 paragraphs. Use descriptive H2 headers.
+                        4. **Subsections (H3 headers)**: Break down complex topics with H3 headers when needed.
+                        5. **Bullet Points or Numbered Lists**: Use for actionable takeaways, tips, or key points.
+                        6. **Conclusion Paragraph**: 2-3 sentences summarizing key points and call to action.
                         
-                        Output strictly as Markdown.`
+                        Formatting Rules:
+                        - Use proper Markdown: # for H1, ## for H2, ### for H3
+                        - Bold important terms: **term**
+                        - Use bullet points (-) or numbered lists (1.) for lists
+                        - Keep paragraphs short (2-4 sentences)
+                        - Use line breaks between sections
+                        - Include a call-to-action at the end
+                        
+                        Output strictly as Markdown following this structure.`
                     });
                     // Success! Break out of loop
                     break;
