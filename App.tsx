@@ -1945,18 +1945,35 @@ const App = () => {
 
   // Audio Playback
   useEffect(() => {
-    if (audioRef.current) {
-      if (currentTrack) {
-        audioRef.current.src = currentTrack.audio;
-        audioRef.current.load();
-      }
+    if (currentTrack && audioRef.current) {
+        // Only set src if it's a valid URL (not a blob URL that might be invalid)
+        if (currentTrack.audio && (currentTrack.audio.startsWith('http') || currentTrack.audio.startsWith('https') || currentTrack.audio.startsWith('blob:'))) {
+          try {
+            audioRef.current.src = currentTrack.audio;
+            audioRef.current.load();
+          } catch (e) {
+            console.warn('Failed to load audio:', e);
+            setIsPlaying(false); // Stop playback if audio fails to load
+          }
+        } else if (!currentTrack.audio) {
+          // No audio URL - stop playback
+          setIsPlaying(false);
+        }
     }
   }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
-        audioRef.current.play().catch(e => console.log("Playback failed", e));
+        // Only try to play if we have a valid src
+        if (audioRef.current.src && audioRef.current.src !== '') {
+          audioRef.current.play().catch(e => {
+            console.log("Playback failed", e);
+            setIsPlaying(false); // Stop trying to play if it fails
+          });
+        } else {
+          setIsPlaying(false); // No audio source, stop playback
+        }
       } else {
         audioRef.current.pause();
       }
