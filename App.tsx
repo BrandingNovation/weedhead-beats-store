@@ -1653,7 +1653,8 @@ const App = () => {
   // Load Newsletter Subscribers (admin only)
   useEffect(() => {
     const loadSubscribers = async () => {
-      if (!user?.isAdmin || adminTab !== 'newsletter') return;
+      if (!user?.isAdmin) return;
+      if (adminTab !== 'newsletter') return;
       
       try {
         const { data, error } = await supabase
