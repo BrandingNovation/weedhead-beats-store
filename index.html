@@ -103,35 +103,37 @@
       
       /* Print Styles for Receipt */
       @media print {
-        /* Hide everything by default */
-        body > #root > * {
-          display: none !important;
+        /* Universal approach: hide everything, show only receipt */
+        * {
+          visibility: hidden;
         }
         
-        /* Show ONLY the receipt container */
-        body > #root > .receipt-print-container {
-          display: block !important;
+        /* Show receipt container and ALL descendants */
+        .receipt-print-container,
+        .receipt-print-container * {
+          visibility: visible !important;
         }
         
-        /* Position and style receipt container */
+        /* Position receipt at top of page */
         .receipt-print-container {
-          position: absolute !important;
+          position: fixed !important;
           top: 0 !important;
           left: 0 !important;
           width: 100% !important;
+          height: 100% !important;
           margin: 0 !important;
           padding: 0 !important;
           background: white !important;
           z-index: 999999 !important;
+          overflow: visible !important;
         }
         
-        /* Style receipt content - ensure it's visible */
+        /* Style receipt content */
         .receipt-print {
-          display: block !important;
           position: relative !important;
           width: 100% !important;
           max-width: 100% !important;
-          margin: 0 !important;
+          margin: 0 auto !important;
           padding: 20mm !important;
           background: white !important;
           color: #000000 !important;
@@ -141,20 +143,6 @@
           page-break-inside: avoid !important;
         }
         
-        /* Ensure all child elements are visible */
-        .receipt-print * {
-          display: block !important;
-          visibility: visible !important;
-          color: #000000 !important;
-        }
-        
-        /* Inline elements */
-        .receipt-print span,
-        .receipt-print strong,
-        .receipt-print em {
-          display: inline !important;
-        }
-        
         /* Hide buttons and download links */
         .receipt-print button,
         .receipt-print a[href*="track"],
@@ -162,22 +150,31 @@
         .receipt-print .print\\:hidden,
         .receipt-print svg {
           display: none !important;
+          visibility: hidden !important;
         }
         
-        /* Text color overrides */
-        .receipt-print .text-brand-teal {
-          color: #333333 !important;
-        }
-        
-        .receipt-print .text-white {
+        /* Force text colors */
+        .receipt-print,
+        .receipt-print * {
           color: #000000 !important;
         }
         
-        .receipt-print .text-brand-green {
+        .receipt-print .text-brand-teal,
+        .receipt-print .text-brand-teal * {
+          color: #333333 !important;
+        }
+        
+        .receipt-print .text-white,
+        .receipt-print .text-white * {
+          color: #000000 !important;
+        }
+        
+        .receipt-print .text-brand-green,
+        .receipt-print .text-brand-green * {
           color: #0D5F11 !important;
         }
         
-        /* Remove all backgrounds */
+        /* Remove backgrounds */
         .receipt-print .bg-brand-black,
         .receipt-print .bg-brand-slate,
         .receipt-print .bg-brand-slate\\/20,
