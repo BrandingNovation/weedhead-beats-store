@@ -1650,31 +1650,6 @@ const App = () => {
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
   const [cmsLoaded, setCmsLoaded] = useState(false);
 
-  // Load Newsletter Subscribers (admin only)
-  useEffect(() => {
-    const loadSubscribers = async () => {
-      if (!user?.isAdmin) return;
-      if (adminTab !== 'newsletter') return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('newsletter_subscribers')
-          .select('*')
-          .order('subscribed_at', { ascending: false });
-        
-        if (error) throw error;
-        setSubscribers(data || []);
-      } catch (e: any) {
-        console.error('Failed to load subscribers:', e);
-        setSubscribers([]);
-      } finally {
-        setSubscribersLoaded(true);
-      }
-    };
-    
-    loadSubscribers();
-  }, [user?.isAdmin, adminTab]);
-  
   // Load API Keys from Supabase (admin only)
   useEffect(() => {
     const loadApiKeys = async () => {
