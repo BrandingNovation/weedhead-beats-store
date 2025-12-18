@@ -4475,31 +4475,118 @@ const App = () => {
                               alert('Please enter an API key');
                               return;
                             }
+                            
+                            // Check admin status first
+                            if (!user?.isAdmin) {
+                              alert('You must be logged in as an admin to save API keys.');
+                              return;
+                            }
+                            
                             setSavingKey('gemini');
                             try {
-                              const { error } = await supabase
+                              console.log('Saving Gemini API key...');
+                              
+                              // Get current user ID for updated_by
+                              const { data: userData } = await supabase.auth.getUser();
+                              const userId = userData?.user?.id || null;
+                              
+                              // Try upsert first
+                              const { data: upsertData, error: upsertError } = await supabase
                                 .from('api_keys')
                                 .upsert({
                                   key_name: 'gemini',
                                   key_value: apiKeys.gemini.trim(),
                                   description: 'Google Gemini API Key for AI features',
-                                  is_active: true
-                                }, { onConflict: 'key_name' });
+                                  is_active: true,
+                                  updated_by: userId
+                                }, { 
+                                  onConflict: 'key_name',
+                                  ignoreDuplicates: false
+                                })
+                                .select();
                               
-                              if (error) {
-                                if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+                              if (upsertError) {
+                                console.error('Upsert error:', upsertError);
+                                
+                                // Check for table not found
+                                if (upsertError.code === 'PGRST116' || 
+                                    upsertError.code === '42P01' ||
+                                    upsertError.message?.includes('404') || 
+                                    upsertError.message?.includes('does not exist') ||
+                                    upsertError.message?.includes('relation')) {
                                   alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
                                   return;
                                 }
-                                throw error;
+                                
+                                // Check for permission denied
+                                if (upsertError.code === '42501' || 
+                                    upsertError.message?.includes('permission denied') ||
+                                    upsertError.message?.includes('policy')) {
+                                  alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                                  return;
+                                }
+                                
+                                // If upsert fails due to duplicate, try update
+                                if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
+                                  console.log('Key exists, trying update instead...');
+                                  const { error: updateError } = await supabase
+                                    .from('api_keys')
+                                    .update({
+                                      key_value: apiKeys.gemini.trim(),
+                                      description: 'Google Gemini API Key for AI features',
+                                      is_active: true,
+                                      updated_by: userId
+                                    })
+                                    .eq('key_name', 'gemini');
+                                  
+                                  if (updateError) {
+                                    throw updateError;
+                                  }
+                                  alert('Gemini API key updated successfully!');
+                                  // Reload keys
+                                  const { data: reloadData } = await supabase
+                                    .from('api_keys')
+                                    .select('key_name, key_value')
+                                    .eq('key_name', 'gemini')
+                                    .eq('is_active', true)
+                                    .single();
+                                  if (reloadData) {
+                                    setApiKeys({ ...apiKeys, gemini: reloadData.key_value });
+                                  }
+                                  return;
+                                }
+                                
+                                throw upsertError;
                               }
+                              
+                              console.log('Successfully saved Gemini API key');
                               alert('Gemini API key saved successfully!');
+                              
+                              // Reload keys to show updated value
+                              if (upsertData && upsertData.length > 0) {
+                                setApiKeys({ ...apiKeys, gemini: upsertData[0].key_value });
+                              }
                             } catch (e: any) {
                               console.error('Failed to save API key:', e);
-                              if (e?.code === 'PGRST116' || e?.message?.includes('404') || e?.message?.includes('does not exist')) {
+                              console.error('Error details:', {
+                                code: e?.code,
+                                message: e?.message,
+                                details: e?.details,
+                                hint: e?.hint
+                              });
+                              
+                              if (e?.code === 'PGRST116' || 
+                                  e?.code === '42P01' ||
+                                  e?.message?.includes('404') || 
+                                  e?.message?.includes('does not exist') ||
+                                  e?.message?.includes('relation')) {
                                 alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                              } else if (e?.code === '42501' || 
+                                         e?.message?.includes('permission denied') ||
+                                         e?.message?.includes('policy')) {
+                                alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
                               } else {
-                                alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                                alert(`Failed to save: ${e?.message || 'Unknown error'}\n\nCheck the browser console for details.`);
                               }
                             } finally {
                               setSavingKey(null);
@@ -4543,31 +4630,118 @@ const App = () => {
                               alert('Please enter an API key');
                               return;
                             }
+                            
+                            // Check admin status first
+                            if (!user?.isAdmin) {
+                              alert('You must be logged in as an admin to save API keys.');
+                              return;
+                            }
+                            
                             setSavingKey('stripe');
                             try {
-                              const { error } = await supabase
+                              console.log('Saving Stripe API key...');
+                              
+                              // Get current user ID for updated_by
+                              const { data: userData } = await supabase.auth.getUser();
+                              const userId = userData?.user?.id || null;
+                              
+                              // Try upsert first
+                              const { data: upsertData, error: upsertError } = await supabase
                                 .from('api_keys')
                                 .upsert({
                                   key_name: 'stripe',
                                   key_value: apiKeys.stripe.trim(),
                                   description: 'Stripe Publishable Key for payments',
-                                  is_active: true
-                                }, { onConflict: 'key_name' });
+                                  is_active: true,
+                                  updated_by: userId
+                                }, { 
+                                  onConflict: 'key_name',
+                                  ignoreDuplicates: false
+                                })
+                                .select();
                               
-                              if (error) {
-                                if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+                              if (upsertError) {
+                                console.error('Upsert error:', upsertError);
+                                
+                                // Check for table not found
+                                if (upsertError.code === 'PGRST116' || 
+                                    upsertError.code === '42P01' ||
+                                    upsertError.message?.includes('404') || 
+                                    upsertError.message?.includes('does not exist') ||
+                                    upsertError.message?.includes('relation')) {
                                   alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
                                   return;
                                 }
-                                throw error;
+                                
+                                // Check for permission denied
+                                if (upsertError.code === '42501' || 
+                                    upsertError.message?.includes('permission denied') ||
+                                    upsertError.message?.includes('policy')) {
+                                  alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                                  return;
+                                }
+                                
+                                // If upsert fails due to duplicate, try update
+                                if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
+                                  console.log('Key exists, trying update instead...');
+                                  const { error: updateError } = await supabase
+                                    .from('api_keys')
+                                    .update({
+                                      key_value: apiKeys.stripe.trim(),
+                                      description: 'Stripe Publishable Key for payments',
+                                      is_active: true,
+                                      updated_by: userId
+                                    })
+                                    .eq('key_name', 'stripe');
+                                  
+                                  if (updateError) {
+                                    throw updateError;
+                                  }
+                                  alert('Stripe API key updated successfully!');
+                                  // Reload keys
+                                  const { data: reloadData } = await supabase
+                                    .from('api_keys')
+                                    .select('key_name, key_value')
+                                    .eq('key_name', 'stripe')
+                                    .eq('is_active', true)
+                                    .single();
+                                  if (reloadData) {
+                                    setApiKeys({ ...apiKeys, stripe: reloadData.key_value });
+                                  }
+                                  return;
+                                }
+                                
+                                throw upsertError;
                               }
-                              alert('Stripe key saved successfully!');
+                              
+                              console.log('Successfully saved Stripe API key');
+                              alert('Stripe API key saved successfully!');
+                              
+                              // Reload keys to show updated value
+                              if (upsertData && upsertData.length > 0) {
+                                setApiKeys({ ...apiKeys, stripe: upsertData[0].key_value });
+                              }
                             } catch (e: any) {
                               console.error('Failed to save API key:', e);
-                              if (e?.code === 'PGRST116' || e?.message?.includes('404') || e?.message?.includes('does not exist')) {
+                              console.error('Error details:', {
+                                code: e?.code,
+                                message: e?.message,
+                                details: e?.details,
+                                hint: e?.hint
+                              });
+                              
+                              if (e?.code === 'PGRST116' || 
+                                  e?.code === '42P01' ||
+                                  e?.message?.includes('404') || 
+                                  e?.message?.includes('does not exist') ||
+                                  e?.message?.includes('relation')) {
                                 alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                              } else if (e?.code === '42501' || 
+                                         e?.message?.includes('permission denied') ||
+                                         e?.message?.includes('policy')) {
+                                alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
                               } else {
-                                alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                                alert(`Failed to save: ${e?.message || 'Unknown error'}\n\nCheck the browser console for details.`);
                               }
                             } finally {
                               setSavingKey(null);
@@ -4608,31 +4782,118 @@ const App = () => {
                               alert('Please enter an API key');
                               return;
                             }
+                            
+                            // Check admin status first
+                            if (!user?.isAdmin) {
+                              alert('You must be logged in as an admin to save API keys.');
+                              return;
+                            }
+                            
                             setSavingKey('paypal');
                             try {
-                              const { error } = await supabase
+                              console.log('Saving PayPal API key...');
+                              
+                              // Get current user ID for updated_by
+                              const { data: userData } = await supabase.auth.getUser();
+                              const userId = userData?.user?.id || null;
+                              
+                              // Try upsert first
+                              const { data: upsertData, error: upsertError } = await supabase
                                 .from('api_keys')
                                 .upsert({
                                   key_name: 'paypal',
                                   key_value: apiKeys.paypal.trim(),
                                   description: 'PayPal Client ID for payments',
-                                  is_active: true
-                                }, { onConflict: 'key_name' });
+                                  is_active: true,
+                                  updated_by: userId
+                                }, { 
+                                  onConflict: 'key_name',
+                                  ignoreDuplicates: false
+                                })
+                                .select();
                               
-                              if (error) {
-                                if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+                              if (upsertError) {
+                                console.error('Upsert error:', upsertError);
+                                
+                                // Check for table not found
+                                if (upsertError.code === 'PGRST116' || 
+                                    upsertError.code === '42P01' ||
+                                    upsertError.message?.includes('404') || 
+                                    upsertError.message?.includes('does not exist') ||
+                                    upsertError.message?.includes('relation')) {
                                   alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
                                   return;
                                 }
-                                throw error;
+                                
+                                // Check for permission denied
+                                if (upsertError.code === '42501' || 
+                                    upsertError.message?.includes('permission denied') ||
+                                    upsertError.message?.includes('policy')) {
+                                  alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                                  return;
+                                }
+                                
+                                // If upsert fails due to duplicate, try update
+                                if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
+                                  console.log('Key exists, trying update instead...');
+                                  const { error: updateError } = await supabase
+                                    .from('api_keys')
+                                    .update({
+                                      key_value: apiKeys.paypal.trim(),
+                                      description: 'PayPal Client ID for payments',
+                                      is_active: true,
+                                      updated_by: userId
+                                    })
+                                    .eq('key_name', 'paypal');
+                                  
+                                  if (updateError) {
+                                    throw updateError;
+                                  }
+                                  alert('PayPal API key updated successfully!');
+                                  // Reload keys
+                                  const { data: reloadData } = await supabase
+                                    .from('api_keys')
+                                    .select('key_name, key_value')
+                                    .eq('key_name', 'paypal')
+                                    .eq('is_active', true)
+                                    .single();
+                                  if (reloadData) {
+                                    setApiKeys({ ...apiKeys, paypal: reloadData.key_value });
+                                  }
+                                  return;
+                                }
+                                
+                                throw upsertError;
                               }
-                              alert('PayPal key saved successfully!');
+                              
+                              console.log('Successfully saved PayPal API key');
+                              alert('PayPal API key saved successfully!');
+                              
+                              // Reload keys to show updated value
+                              if (upsertData && upsertData.length > 0) {
+                                setApiKeys({ ...apiKeys, paypal: upsertData[0].key_value });
+                              }
                             } catch (e: any) {
                               console.error('Failed to save API key:', e);
-                              if (e?.code === 'PGRST116' || e?.message?.includes('404') || e?.message?.includes('does not exist')) {
+                              console.error('Error details:', {
+                                code: e?.code,
+                                message: e?.message,
+                                details: e?.details,
+                                hint: e?.hint
+                              });
+                              
+                              if (e?.code === 'PGRST116' || 
+                                  e?.code === '42P01' ||
+                                  e?.message?.includes('404') || 
+                                  e?.message?.includes('does not exist') ||
+                                  e?.message?.includes('relation')) {
                                 alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                              } else if (e?.code === '42501' || 
+                                         e?.message?.includes('permission denied') ||
+                                         e?.message?.includes('policy')) {
+                                alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
                               } else {
-                                alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                                alert(`Failed to save: ${e?.message || 'Unknown error'}\n\nCheck the browser console for details.`);
                               }
                             } finally {
                               setSavingKey(null);
