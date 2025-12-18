@@ -818,26 +818,51 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                         <h3 className="font-bold text-white uppercase tracking-wider text-sm border-b border-brand-slate pb-2 mb-4 flex items-center gap-2">
                             <Download size={16} className="text-brand-green" /> Digital Downloads
                         </h3>
-                        {cart.filter(item => !hasPhysicalItems || item.category === 'beat').map((item, i) => (
-                            <div key={i} className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-3">
-                                    <FileAudio className="text-brand-green" size={20} />
-                                    <div>
-                                        <div className="text-white text-sm font-bold">{item.title}</div>
-                                        <div className="text-[10px] text-brand-teal">{item.selectedLicense?.name}</div>
+                        {cart.filter(item => !hasPhysicalItems || item.category === 'beat').map((item, i) => {
+                            const hasStems = (item.selectedLicense?.name === 'Premium Lease' || item.selectedLicense?.name === 'Unlimited') && item.stemsUrl;
+                            return (
+                                <div key={i} className="space-y-2">
+                                    <div className="flex items-center justify-between py-2">
+                                        <div className="flex items-center gap-3">
+                                            <FileAudio className="text-brand-green" size={20} />
+                                            <div>
+                                                <div className="text-white text-sm font-bold">{item.title}</div>
+                                                <div className="text-[10px] text-brand-teal">{item.selectedLicense?.name}</div>
+                                            </div>
+                                        </div>
+                                        <a 
+                                            href={item.audio} 
+                                            download 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-xs bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors font-bold uppercase"
+                                        >
+                                            <Download size={12} /> Audio
+                                        </a>
                                     </div>
+                                    {hasStems && (
+                                        <div className="flex items-center justify-between py-2 pl-8 border-l-2 border-brand-green/30">
+                                            <div className="flex items-center gap-3">
+                                                <Package className="text-brand-green" size={20} />
+                                                <div>
+                                                    <div className="text-white text-sm font-bold">Stems (ZIP)</div>
+                                                    <div className="text-[10px] text-brand-teal">Trackout files</div>
+                                                </div>
+                                            </div>
+                                            <a 
+                                                href={item.stemsUrl} 
+                                                download 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-xs bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors font-bold uppercase"
+                                            >
+                                                <Download size={12} /> Stems
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
-                                <a 
-                                    href={item.audio} 
-                                    download 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-xs bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded flex items-center gap-2 transition-colors font-bold uppercase"
-                                >
-                                    <Download size={12} /> Download
-                                </a>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     
                     {/* Physical Items / Tracking Section */}
@@ -1830,9 +1855,11 @@ const App = () => {
     description: '',
     youtubeUrl: '',
     cover: null as File | null,
-    audio: null as File | null, 
+    audio: null as File | null,
+    stems: null as File | null,
     coverPreview: null as string | null,
     audioName: '',
+    stemsName: '',
     spotifyUrl: '',
     appleMusicUrl: '',
     amazonUrl: ''
@@ -1926,6 +1953,7 @@ const App = () => {
                     amazonUrl: t.amazon_url,
                     cover: t.cover,
                     audio: t.audio,
+                    stemsUrl: t.stems_url || undefined,
                     tags: t.tags || [],
                     stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
                 })));
@@ -2675,7 +2703,7 @@ const App = () => {
 
   // --- Dashboard Logic ---
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'audio') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'audio' | 'stems') => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       if (type === 'cover') {
@@ -2684,6 +2712,8 @@ const App = () => {
       } else if (type === 'audio') {
         const audioUrl = URL.createObjectURL(file);
         setUploadForm({ ...uploadForm, audio: file, audioName: file.name });
+      } else if (type === 'stems') {
+        setUploadForm({ ...uploadForm, stems: file, stemsName: file.name });
       }
     }
   };
@@ -2738,6 +2768,24 @@ const App = () => {
         // Use placeholder if upload failed/not provided for mock purposes if Supabase buckets aren't ready
         if(!audioUrl) audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
 
+        // Upload Stems (ZIP file)
+        let stemsUrl: string | null = null;
+        if (uploadForm.stems instanceof File) {
+            try {
+                const fileName = `stems-${Date.now()}-${uploadForm.stems.name}`;
+                const { data, error } = await supabase.storage.from('audio').upload(fileName, uploadForm.stems);
+                if (!error && data) {
+                    const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
+                    stemsUrl = publicUrl;
+                } else {
+                    throw new Error("Supabase bucket not ready");
+                }
+            } catch (err) {
+                console.warn("Failed to upload stems, skipping");
+                stemsUrl = null;
+            }
+        }
+
         const trackData = {
             title: uploadForm.title,
             bpm: Number(uploadForm.bpm),
@@ -2752,6 +2800,7 @@ const App = () => {
             amazon_url: uploadForm.amazonUrl || null,
             cover: coverUrl,
             audio: audioUrl as string,
+            stems_url: stemsUrl || null,
         };
 
         if (editingTrackId) {
@@ -2899,8 +2948,10 @@ const App = () => {
           amazonUrl: '',
           cover: null,
           audio: null,
+          stems: null,
           coverPreview: null,
-          audioName: ''
+          audioName: '',
+          stemsName: ''
         });
         setAdminTab('inventory');
 
