@@ -84,23 +84,29 @@ export const sendOrderConfirmationEmail = async (emailData: OrderEmailData): Pro
     const emailHtml = generateOrderEmailHTML(emailData);
 
     // Call Supabase Edge Function to send email
-    // Note: You'll need to create this Edge Function in Supabase
-    const { data, error } = await supabase.functions.invoke('send-email', {
-      body: {
-        to: emailData.to,
-        subject: `Order Confirmation - ${emailData.orderNumber}`,
-        html: emailHtml,
-        smtp_settings: settings
-      }
-    });
+    try {
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          to: emailData.to,
+          subject: `Order Confirmation - ${emailData.orderNumber}`,
+          html: emailHtml,
+          smtp_settings: settings
+        }
+      });
 
-    if (error) {
-      console.error('Error sending email via Edge Function:', error);
+      if (error) {
+        console.error('Error sending email via Edge Function:', error);
+        // Fallback: Try direct API call if Edge Function doesn't exist
+        return await sendEmailViaAPI(emailData, settings as EmailSettings);
+      }
+
+      console.log('✅ Order confirmation email sent successfully');
+      return true;
+    } catch (edgeFunctionError: any) {
+      console.warn('Edge Function not available or failed:', edgeFunctionError?.message || edgeFunctionError);
       // Fallback: Try direct API call if Edge Function doesn't exist
       return await sendEmailViaAPI(emailData, settings as EmailSettings);
     }
-
-    return true;
   } catch (error) {
     console.error('Error in sendOrderConfirmationEmail:', error);
     return false;
