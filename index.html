@@ -103,34 +103,36 @@
       
       /* Print Styles for Receipt */
       @media print {
-        /* Hide everything except receipt */
-        body * {
-          visibility: hidden;
+        /* Hide everything by default */
+        body > *:not(.receipt-print-container) {
+          display: none !important;
         }
         
-        /* Show receipt container and all its children */
-        .receipt-print-container,
-        .receipt-print-container * {
-          visibility: visible;
-        }
-        
-        /* Position receipt at top left */
+        /* Show receipt container */
         .receipt-print-container {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          margin: 0;
-          padding: 0;
-          background: white;
+          display: block !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          z-index: 99999 !important;
+          overflow: visible !important;
         }
         
         /* Receipt content styling */
         .receipt-print {
+          display: block !important;
+          position: relative !important;
           background: white !important;
           color: #000000 !important;
           padding: 20mm !important;
-          margin: 0 !important;
+          margin: 0 auto !important;
           width: 100% !important;
           max-width: 100% !important;
           border: none !important;
@@ -139,20 +141,12 @@
           page-break-inside: auto !important;
         }
         
-        /* Hide screen-only elements */
-        .receipt-print .print\\:hidden,
-        .receipt-print button,
-        .receipt-print a[download],
-        .receipt-print svg {
-          display: none !important;
-          visibility: hidden !important;
-        }
-        
-        /* Force black text for all receipt content */
+        /* Make sure all text is visible and black */
         .receipt-print,
         .receipt-print * {
           color: #000000 !important;
-          background: transparent !important;
+          visibility: visible !important;
+          display: block !important;
         }
         
         .receipt-print h1,
@@ -160,8 +154,35 @@
         .receipt-print h3,
         .receipt-print p,
         .receipt-print div,
-        .receipt-print span {
+        .receipt-print span,
+        .receipt-print strong {
           color: #000000 !important;
+          visibility: visible !important;
+        }
+        
+        /* Inline elements */
+        .receipt-print span,
+        .receipt-print strong,
+        .receipt-print em {
+          display: inline !important;
+        }
+        
+        /* Flex containers */
+        .receipt-print .flex {
+          display: flex !important;
+        }
+        
+        /* Hide screen-only elements */
+        .receipt-print .print\\:hidden,
+        .receipt-print button,
+        .receipt-print a[download] {
+          display: none !important;
+          visibility: hidden !important;
+        }
+        
+        /* Hide icons */
+        .receipt-print svg {
+          display: none !important;
         }
         
         /* Borders for print */
@@ -171,7 +192,17 @@
           border-color: #000000 !important;
         }
         
-        /* Print page settings - allow multiple pages */
+        /* Background colors for print */
+        .receipt-print .bg-white,
+        .receipt-print .bg-gray-50 {
+          background: white !important;
+        }
+        
+        .receipt-print .bg-green-50 {
+          background: #f0fdf4 !important;
+        }
+        
+        /* Print page settings */
         @page {
           margin: 10mm;
           size: auto;
