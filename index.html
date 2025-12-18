@@ -103,31 +103,41 @@
       
       /* Print Styles for Receipt */
       @media print {
-        /* Hide everything except the receipt */
-        body * {
-          visibility: hidden;
+        /* Hide everything by default */
+        body > *:not(.receipt-print-container) {
+          display: none !important;
         }
         
-        /* Show only the receipt modal */
-        .receipt-print,
-        .receipt-print * {
-          visibility: visible;
+        /* Show only the receipt modal container */
+        .receipt-print-container {
+          display: block !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          z-index: 9999 !important;
         }
         
-        /* Position receipt at top of page */
+        /* Show the receipt content */
         .receipt-print {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 100%;
-          max-width: 100%;
-          margin: 0;
-          padding: 20px;
+          display: block !important;
+          position: relative !important;
+          left: auto !important;
+          top: auto !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 !important;
+          padding: 20mm !important;
           background: white !important;
           color: #000000 !important;
           border: none !important;
           box-shadow: none !important;
-          page-break-after: always;
+          page-break-after: auto !important;
+          page-break-inside: avoid !important;
         }
         
         /* Hide buttons and non-essential elements */
