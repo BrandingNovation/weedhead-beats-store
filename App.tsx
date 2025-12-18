@@ -978,7 +978,12 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                         </button>
                         <button 
                             type="button" 
-                            onClick={() => window.print()}
+                            onClick={() => {
+                                // Small delay to ensure DOM is ready
+                                setTimeout(() => {
+                                    window.print();
+                                }, 100);
+                            }}
                             className="px-6 py-4 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
                         >
                             Print Receipt
