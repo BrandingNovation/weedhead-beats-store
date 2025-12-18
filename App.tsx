@@ -5041,8 +5041,39 @@ const App = () => {
                     
                     <button
                       onClick={async () => {
+                        // Check admin status first
+                        if (!user?.isAdmin) {
+                          alert('You must be logged in as an admin to save email settings.');
+                          return;
+                        }
+                        
                         try {
                           setSavingEmailSetting('all');
+                          console.log('Saving email settings...');
+                          
+                          // Verify admin status
+                          const { data: userData, error: userError } = await supabase.auth.getUser();
+                          if (userError || !userData.user) {
+                            throw new Error('You must be logged in to save email settings');
+                          }
+                          
+                          const { data: profileData, error: profileError } = await supabase
+                            .from('profiles')
+                            .select('is_admin')
+                            .eq('id', userData.user.id)
+                            .single();
+                          
+                          if (profileError) {
+                            console.error('Profile error:', profileError);
+                            throw new Error('Could not verify admin status. Please ensure you are logged in as an admin.');
+                          }
+                          
+                          if (!profileData?.is_admin) {
+                            throw new Error('You must be an admin to save email settings. Your account is not an admin.');
+                          }
+                          
+                          console.log('Admin status verified');
+                          
                           const settingsToSave = [
                             { setting_name: 'smtp_host', setting_value: emailSettings.smtp_host, description: 'SMTP server host' },
                             { setting_name: 'smtp_port', setting_value: emailSettings.smtp_port || '587', description: 'SMTP port' },
@@ -5053,28 +5084,100 @@ const App = () => {
                             { setting_name: 'use_tls', setting_value: emailSettings.use_tls || 'true', description: 'Use TLS encryption' }
                           ];
                           
+                          // Save each setting using upsert with better error handling
                           for (const setting of settingsToSave) {
-                            const { error } = await supabase
+                            console.log(`Saving setting: ${setting.setting_name} = ${setting.setting_value}`);
+                            
+                            // Use upsert - this handles both insert and update
+                            const { data: upsertData, error: upsertError } = await supabase
                               .from('email_settings')
                               .upsert({
                                 setting_name: setting.setting_name,
                                 setting_value: setting.setting_value,
                                 description: setting.description,
                                 is_active: true
-                              }, { onConflict: 'setting_name' });
+                              }, {
+                                onConflict: 'setting_name',
+                                ignoreDuplicates: false
+                              })
+                              .select();
                             
-                            if (error && !error.message?.includes('does not exist')) {
-                              throw error;
+                            if (upsertError) {
+                              console.error(`Error saving ${setting.setting_name}:`, upsertError);
+                              console.error('Error code:', upsertError.code);
+                              console.error('Error message:', upsertError.message);
+                              console.error('Error details:', upsertError.details);
+                              console.error('Error hint:', upsertError.hint);
+                              
+                              // Check for table not found
+                              if (upsertError.code === 'PGRST116' || 
+                                  upsertError.code === '42P01' ||
+                                  upsertError.message?.includes('404') || 
+                                  upsertError.message?.includes('does not exist') ||
+                                  upsertError.message?.includes('relation')) {
+                                alert('Email settings table not found. Please run migration_add_email_settings.sql in Supabase first.');
+                                return;
+                              }
+                              
+                              // Check for permission denied
+                              if (upsertError.code === '42501' || 
+                                  upsertError.message?.includes('permission denied') ||
+                                  upsertError.message?.includes('policy')) {
+                                alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                                return;
+                              }
+                              
+                              // If upsert fails, try insert then update
+                              if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
+                                // Already exists, try update
+                                console.log(`Key exists, trying update for ${setting.setting_name}...`);
+                                const { error: updateError } = await supabase
+                                  .from('email_settings')
+                                  .update({
+                                    setting_value: setting.setting_value,
+                                    description: setting.description,
+                                    is_active: true
+                                  })
+                                  .eq('setting_name', setting.setting_name);
+                                
+                                if (updateError) {
+                                  console.error(`Update also failed for ${setting.setting_name}:`, updateError);
+                                  throw updateError;
+                                }
+                                console.log(`Successfully updated ${setting.setting_name} (via update)`);
+                              } else {
+                                throw upsertError;
+                              }
+                            } else {
+                              console.log(`Successfully saved ${setting.setting_name}`, upsertData);
                             }
                           }
                           
+                          console.log('All email settings saved successfully!');
                           alert('Email settings saved successfully!');
                         } catch (e: any) {
                           console.error('Failed to save email settings:', e);
-                          if (e?.message?.includes('does not exist')) {
+                          console.error('Error details:', {
+                            message: e?.message,
+                            code: e?.code,
+                            details: e?.details,
+                            hint: e?.hint
+                          });
+                          
+                          if (e?.code === 'PGRST116' || 
+                              e?.code === '42P01' ||
+                              e?.message?.includes('404') || 
+                              e?.message?.includes('does not exist') ||
+                              e?.message?.includes('relation')) {
                             alert('Email settings table not found. Please run migration_add_email_settings.sql in Supabase first.');
+                          } else if (e?.message?.includes('permission denied') || 
+                                     e?.code === '42501' ||
+                                     e?.message?.includes('policy')) {
+                            alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                          } else if (e?.message?.includes('admin')) {
+                            alert('You must be logged in as an admin to save email settings.');
                           } else {
-                            alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                            alert(`Failed to save: ${e?.message || 'Unknown error'}\n\nCheck the browser console for details.`);
                           }
                         } finally {
                           setSavingEmailSetting(null);
