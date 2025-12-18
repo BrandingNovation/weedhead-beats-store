@@ -824,7 +824,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
         
         return (
             <div className="receipt-print-container fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto">
-                 <div className="receipt-print w-full max-w-2xl bg-white border border-gray-300 rounded-lg shadow-xl p-8 my-auto" onClick={(e) => e.stopPropagation()}>
+                 <div className="receipt-print w-full max-w-2xl bg-white border border-gray-300 rounded-lg shadow-xl p-8 my-auto" style={{ pageBreakInside: 'auto' }} onClick={(e) => e.stopPropagation()}>
                     {/* Screen View - Success Icon */}
                     <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 print:hidden">
                         <CheckCircle size={40} className="text-green-500" />

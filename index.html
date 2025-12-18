@@ -135,6 +135,8 @@
           max-width: 100% !important;
           border: none !important;
           box-shadow: none !important;
+          page-break-after: auto !important;
+          page-break-inside: auto !important;
         }
         
         /* Hide screen-only elements */
@@ -169,15 +171,17 @@
           border-color: #000000 !important;
         }
         
-        /* Print page settings */
+        /* Print page settings - allow multiple pages */
         @page {
           margin: 10mm;
-          size: A4;
+          size: auto;
         }
         
-        /* Prevent page breaks inside receipt */
-        .receipt-print {
-          page-break-inside: avoid;
+        /* Allow content to flow across pages */
+        .receipt-print * {
+          page-break-inside: auto !important;
+          page-break-after: auto !important;
+          page-break-before: auto !important;
         }
       }
     </style>
