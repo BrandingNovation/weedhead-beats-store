@@ -85,8 +85,9 @@ export const sendMessageStream = async (
 
 export const generateBlogImage = async (prompt: string): Promise<string | null> => {
     try {
+        // Use free-tier model instead of premium
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
+            model: 'gemini-1.5-flash',
             contents: {
                 parts: [{ text: `Generate a high quality, cinematic, 4k digital art image for a hip-hop music producer blog post about: ${prompt}. Dark aesthetic, neon green accents, studio equipment, urban vibe. No text on image.` }]
             }
@@ -99,17 +100,20 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
             }
         }
         return null;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error generating image:", error);
+        if (error?.status === 429) {
+            console.warn("⚠️ Rate limit exceeded. Please wait a moment and try again.");
+        }
         return null; 
     }
 };
 
 export const generateSEOContent = async (topic: string): Promise<string> => {
     try {
-        // Using Gemini 3 Pro for advanced reasoning and search capabilities
+        // Using free-tier model (gemini-1.5-flash) instead of premium gemini-3-pro
         const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
+            model: 'gemini-1.5-flash',
             contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
             
             Task:
@@ -154,8 +158,11 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
         }
 
         return text;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error generating SEO content:", error);
+        if (error?.status === 429) {
+            return "## Rate Limit Exceeded\n\nYou've hit the API rate limit. Please wait a moment and try again. The free tier has usage limits.\n\n[Learn more about Gemini API quotas](https://ai.google.dev/gemini-api/docs/rate-limits)";
+        }
         return "## System Offline.\n\nThe studio AI is taking a break. Try again in a minute.";
     }
 }
