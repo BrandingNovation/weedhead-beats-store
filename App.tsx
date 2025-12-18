@@ -3671,7 +3671,12 @@ const App = () => {
 
       {/* Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-24">
-        {displayedBeats.length === 0 ? (
+        {!tracksLoaded ? (
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-brand-teal">Loading tracks...</p>
+          </div>
+        ) : displayedBeats.length === 0 ? (
             <div className="text-center py-20 text-brand-teal">
                 <p>No items found in this section.</p>
             </div>
