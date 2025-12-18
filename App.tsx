@@ -1967,7 +1967,37 @@ const App = () => {
             // Clear previous src to avoid conflicts
             audioRef.current.src = '';
             audioRef.current.src = currentTrack.audio;
+            
+            // Add error handler
+            const handleError = () => {
+              console.warn('Audio failed to load:', currentTrack.audio);
+              setIsPlaying(false);
+              if (audioRef.current) {
+                audioRef.current.src = '';
+              }
+            };
+            
+            // Add loadeddata handler to start playing when ready
+            const handleLoadedData = () => {
+              if (isPlaying && audioRef.current) {
+                audioRef.current.play().catch(e => {
+                  console.warn('Playback failed:', e);
+                  setIsPlaying(false);
+                });
+              }
+            };
+            
+            audioRef.current.addEventListener('error', handleError);
+            audioRef.current.addEventListener('loadeddata', handleLoadedData);
             audioRef.current.load();
+            
+            // Cleanup
+            return () => {
+              if (audioRef.current) {
+                audioRef.current.removeEventListener('error', handleError);
+                audioRef.current.removeEventListener('loadeddata', handleLoadedData);
+              }
+            };
           } catch (e) {
             console.warn('Failed to load audio:', e);
             setIsPlaying(false); // Stop playback if audio fails to load
@@ -1986,23 +2016,25 @@ const App = () => {
     } else if (!currentTrack && audioRef.current) {
       // Clear audio when no track is selected
       audioRef.current.src = '';
+      setIsPlaying(false);
     }
-  }, [currentTrack]);
+  }, [currentTrack, isPlaying]);
 
   useEffect(() => {
-    if (audioRef.current) {
+    if (audioRef.current && currentTrack) {
       if (isPlaying) {
         // Only try to play if we have a valid src and it's not a blob URL
         const src = audioRef.current.src;
-        if (src && src !== '' && !src.startsWith('blob:')) {
+        if (src && src !== '' && !src.startsWith('blob:') && audioRef.current.readyState >= 2) {
+          // readyState 2 = HAVE_CURRENT_DATA, 3 = HAVE_FUTURE_DATA, 4 = HAVE_ENOUGH_DATA
           audioRef.current.play().catch(e => {
             // Don't log common playback errors to reduce console noise
-            if (!e.message?.includes('play()') && !e.message?.includes('user gesture')) {
-              console.log("Playback failed", e);
+            if (!e.message?.includes('play()') && !e.message?.includes('user gesture') && !e.message?.includes('interrupted')) {
+              console.warn("Playback failed", e);
             }
             setIsPlaying(false); // Stop trying to play if it fails
           });
-        } else {
+        } else if (!src || src === '') {
           setIsPlaying(false); // No valid audio source, stop playback
         }
       } else {
@@ -2012,7 +2044,7 @@ const App = () => {
         audioRef.current.volume = volume;
       }
     }
-  }, [isPlaying, volume]);
+  }, [isPlaying, volume, currentTrack]);
 
   // AI Init
   useEffect(() => {
@@ -2081,11 +2113,18 @@ const App = () => {
   };
 
   const handlePlay = (beat: Track) => {
+    // Check if track has valid audio before playing
+    if (!beat.audio || beat.audio === '' || (!beat.audio.startsWith('http://') && !beat.audio.startsWith('https://'))) {
+      console.warn('Track has no valid audio URL:', beat.title);
+      return; // Don't play if no valid audio
+    }
+    
     if (currentTrack?.id === beat.id) {
       setIsPlaying(!isPlaying);
     } else {
       setCurrentTrack(beat);
-      setIsPlaying(true);
+      // Don't set isPlaying immediately - let the audio load first
+      // The useEffect will handle setting isPlaying when audio is ready
     }
   };
 
@@ -4272,7 +4311,7 @@ const App = () => {
       {/* Audio Element */}
       <audio
         ref={audioRef}
-        src={currentTrack?.audio}
+        src={currentTrack?.audio && (currentTrack.audio.startsWith('http://') || currentTrack.audio.startsWith('https://')) ? currentTrack.audio : ''}
         onTimeUpdate={(e) => {
           const audio = e.currentTarget;
           if (audio.duration) {
@@ -4281,6 +4320,25 @@ const App = () => {
           }
         }}
         onEnded={() => setIsPlaying(false)}
+        onError={(e) => {
+          console.warn('Audio playback error:', e);
+          setIsPlaying(false);
+          if (audioRef.current) {
+            audioRef.current.src = '';
+          }
+        }}
+        onLoadedData={() => {
+          // Audio is ready, can play now if isPlaying is true
+          if (isPlaying && audioRef.current && audioRef.current.readyState >= 2) {
+            audioRef.current.play().catch(e => {
+              // Silently handle play errors (user interaction, etc.)
+              if (!e.message?.includes('user gesture') && !e.message?.includes('interrupted')) {
+                console.warn('Playback failed:', e);
+              }
+              setIsPlaying(false);
+            });
+          }
+        }}
       />
 
       {/* Scroll to Top Button */}
