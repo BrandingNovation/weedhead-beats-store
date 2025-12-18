@@ -3014,8 +3014,25 @@ const App = () => {
                       onChange={e => handleFileChange(e, 'cover')}
                       className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
                     />
+                    <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
+                      <p className="text-brand-green font-bold mb-1">📐 Optimal Image Specifications:</p>
+                      <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
+                        <li><strong>Dimensions:</strong> 1200x1200px (square) or 1200x800px</li>
+                        <li><strong>Format:</strong> JPG, PNG, or WebP</li>
+                        <li><strong>File Size:</strong> Under 2MB (recommended: 500KB - 1MB)</li>
+                        <li><strong>Aspect Ratio:</strong> 1:1 (square) preferred</li>
+                        <li><strong>Resolution:</strong> 72-150 DPI (web optimized)</li>
+                      </ul>
+                    </div>
                     {uploadForm.coverPreview && (
-                      <img src={uploadForm.coverPreview} alt="Preview" className="mt-3 w-full h-32 object-cover rounded" />
+                      <div className="mt-3">
+                        <img src={uploadForm.coverPreview} alt="Preview" className="w-full h-32 object-cover rounded border border-brand-slate" />
+                        {uploadForm.cover && (
+                          <p className="mt-2 text-xs text-brand-teal">
+                            File: {uploadForm.cover.name} ({(uploadForm.cover.size / 1024 / 1024).toFixed(2)} MB)
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                   <div>
@@ -3026,8 +3043,28 @@ const App = () => {
                       onChange={e => handleFileChange(e, 'audio')}
                       className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
                     />
+                    <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
+                      <p className="text-brand-green font-bold mb-1">🎵 Optimal Audio Specifications:</p>
+                      <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
+                        <li><strong>Format:</strong> MP3 (recommended) or WAV</li>
+                        <li><strong>Bitrate:</strong> 192-320 kbps (MP3) or 16-bit/44.1kHz (WAV)</li>
+                        <li><strong>File Size:</strong> Under 10MB (recommended: 3-5MB for preview)</li>
+                        <li><strong>Duration:</strong> 30-60 seconds for previews</li>
+                        <li><strong>Quality:</strong> Stereo, normalized audio levels</li>
+                      </ul>
+                    </div>
                     {uploadForm.audioName && (
-                      <p className="mt-3 text-xs text-brand-teal">{uploadForm.audioName}</p>
+                      <div className="mt-3">
+                        <p className="text-xs text-brand-teal font-bold">{uploadForm.audioName}</p>
+                        {uploadForm.audio instanceof File && (
+                          <p className="text-xs text-brand-teal mt-1">
+                            Size: {(uploadForm.audio.size / 1024 / 1024).toFixed(2)} MB
+                            {uploadForm.audio.size > 10 * 1024 * 1024 && (
+                              <span className="text-yellow-400 ml-2">⚠️ File is larger than recommended (10MB)</span>
+                            )}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
