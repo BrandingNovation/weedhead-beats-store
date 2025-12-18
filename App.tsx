@@ -1618,6 +1618,49 @@ const NewsletterForm = () => {
                             {message}
                         </p>
                     )}
+                    <div className="mt-4 pt-4 border-t border-brand-slate/30">
+                        <a
+                            href={`#unsubscribe?email=${encodeURIComponent(email)}`}
+                            onClick={async (e) => {
+                                e.preventDefault();
+                                if (!email.trim()) {
+                                    alert('Please enter your email address to unsubscribe');
+                                    return;
+                                }
+                                if (!confirm(`Are you sure you want to unsubscribe ${email}?`)) return;
+                                
+                                try {
+                                    const { error } = await supabase
+                                        .from('newsletter_subscribers')
+                                        .update({
+                                            is_active: false,
+                                            unsubscribed_at: new Date().toISOString()
+                                        })
+                                        .eq('email', email.trim().toLowerCase());
+                                    
+                                    if (error) {
+                                        if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
+                                            alert('You are not subscribed to our newsletter.');
+                                        } else {
+                                            throw error;
+                                        }
+                                    } else {
+                                        setMessage('Successfully unsubscribed. You will no longer receive emails from us.');
+                                        setStatus('success');
+                                        setEmail('');
+                                        setName('');
+                                    }
+                                } catch (err: any) {
+                                    console.error('Unsubscribe error:', err);
+                                    setMessage(err.message || 'Failed to unsubscribe. Please try again.');
+                                    setStatus('error');
+                                }
+                            }}
+                            className="text-xs text-brand-teal hover:text-red-400 transition-colors underline"
+                        >
+                            Unsubscribe
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
@@ -1906,6 +1949,19 @@ const App = () => {
   // Newsletter Subscribers State
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [subscribersLoaded, setSubscribersLoaded] = useState(false);
+  
+  // Email Settings State
+  const [emailSettings, setEmailSettings] = useState<Record<string, string>>({
+    smtp_host: '',
+    smtp_port: '587',
+    smtp_username: '',
+    smtp_password: '',
+    from_email: '',
+    from_name: 'Weedhead Beats',
+    use_tls: 'true'
+  });
+  const [emailSettingsLoaded, setEmailSettingsLoaded] = useState(false);
+  const [savingEmailSetting, setSavingEmailSetting] = useState<string | null>(null);
   
   // API Keys Management State
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({
@@ -3858,6 +3914,178 @@ const App = () => {
                       <li>Add your keys: <code className="bg-brand-slate/50 px-1 rounded">VITE_API_KEY=your-key-here</code></li>
                       <li>Restart the development server</li>
                     </ol>
+                  </div>
+                </div>
+                
+                <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                  <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                    <Mail size={20} className="text-brand-green" /> Email/SMTP Configuration
+                  </h3>
+                  <p className="text-xs text-brand-teal mb-4">
+                    Configure SMTP settings for sending transactional emails (order confirmations, newsletters, etc.)
+                  </p>
+                  
+                  {!emailSettingsLoaded && (
+                    <div className="text-center py-4">
+                      <div className="w-8 h-8 border-2 border-brand-green border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                          SMTP Host
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="smtp.zoho.com"
+                          value={emailSettings.smtp_host || ''}
+                          onChange={(e) => setEmailSettings({ ...emailSettings, smtp_host: e.target.value })}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                          SMTP Port
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="587"
+                          value={emailSettings.smtp_port || '587'}
+                          onChange={(e) => setEmailSettings({ ...emailSettings, smtp_port: e.target.value })}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        SMTP Username (Email)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="your-email@zoho.com"
+                        value={emailSettings.smtp_username || ''}
+                        onChange={(e) => setEmailSettings({ ...emailSettings, smtp_username: e.target.value })}
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        SMTP Password (App Password)
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Use App Password, not regular password"
+                        value={emailSettings.smtp_password || ''}
+                        onChange={(e) => setEmailSettings({ ...emailSettings, smtp_password: e.target.value })}
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                      <p className="text-xs text-yellow-400 mt-1">⚠️ Use App Password, not your regular email password</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                          From Email
+                        </label>
+                        <input
+                          type="email"
+                          placeholder="noreply@weedheadbeats.com"
+                          value={emailSettings.from_email || ''}
+                          onChange={(e) => setEmailSettings({ ...emailSettings, from_email: e.target.value })}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                          From Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Weedhead Beats"
+                          value={emailSettings.from_name || ''}
+                          onChange={(e) => setEmailSettings({ ...emailSettings, from_name: e.target.value })}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="flex items-center gap-2 text-xs font-bold uppercase text-brand-teal mb-2">
+                        <input
+                          type="checkbox"
+                          checked={emailSettings.use_tls === 'true'}
+                          onChange={(e) => setEmailSettings({ ...emailSettings, use_tls: e.target.checked ? 'true' : 'false' })}
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        Use TLS Encryption (Port 587 = TLS, Port 465 = SSL)
+                      </label>
+                    </div>
+                    
+                    <button
+                      onClick={async () => {
+                        try {
+                          setSavingEmailSetting('all');
+                          const settingsToSave = [
+                            { setting_name: 'smtp_host', setting_value: emailSettings.smtp_host, description: 'SMTP server host' },
+                            { setting_name: 'smtp_port', setting_value: emailSettings.smtp_port || '587', description: 'SMTP port' },
+                            { setting_name: 'smtp_username', setting_value: emailSettings.smtp_username, description: 'SMTP username' },
+                            { setting_name: 'smtp_password', setting_value: emailSettings.smtp_password, description: 'SMTP password' },
+                            { setting_name: 'from_email', setting_value: emailSettings.from_email, description: 'Sender email' },
+                            { setting_name: 'from_name', setting_value: emailSettings.from_name || 'Weedhead Beats', description: 'Sender name' },
+                            { setting_name: 'use_tls', setting_value: emailSettings.use_tls || 'true', description: 'Use TLS encryption' }
+                          ];
+                          
+                          for (const setting of settingsToSave) {
+                            const { error } = await supabase
+                              .from('email_settings')
+                              .upsert({
+                                setting_name: setting.setting_name,
+                                setting_value: setting.setting_value,
+                                description: setting.description,
+                                is_active: true
+                              }, { onConflict: 'setting_name' });
+                            
+                            if (error && !error.message?.includes('does not exist')) {
+                              throw error;
+                            }
+                          }
+                          
+                          alert('Email settings saved successfully!');
+                        } catch (e: any) {
+                          console.error('Failed to save email settings:', e);
+                          if (e?.message?.includes('does not exist')) {
+                            alert('Email settings table not found. Please run migration_add_email_settings.sql in Supabase first.');
+                          } else {
+                            alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                          }
+                        } finally {
+                          setSavingEmailSetting(null);
+                        }
+                      }}
+                      disabled={savingEmailSetting === 'all'}
+                      className="w-full px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50"
+                    >
+                      {savingEmailSetting === 'all' ? 'Saving...' : 'Save All Email Settings'}
+                    </button>
+                    
+                    <div className="mt-4 p-3 bg-brand-black/50 border border-brand-slate rounded-lg">
+                      <h4 className="text-sm font-bold text-white mb-2">Common SMTP Providers:</h4>
+                      <ul className="text-xs text-brand-teal space-y-1">
+                        <li><strong>Zoho:</strong> smtp.zoho.com, Port 587 (TLS)</li>
+                        <li><strong>Gmail:</strong> smtp.gmail.com, Port 587 (TLS)</li>
+                        <li><strong>Outlook:</strong> smtp-mail.outlook.com, Port 587 (TLS)</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
                 
