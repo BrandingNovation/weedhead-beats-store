@@ -56,3 +56,4 @@ VITE_PAYPAL_CLIENT_ID=your-paypal-id
 4. Add environment variables
 5. Deploy!
 
+

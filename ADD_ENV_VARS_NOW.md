@@ -135,3 +135,4 @@ VITE_SUPABASE_URL=https://supabase.brandingnovations.com
 
 **Follow these steps and your app will work!** 🚀
 
+

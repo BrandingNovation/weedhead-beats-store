@@ -109,3 +109,4 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 **Fill in your `.env` file with values from Coolify, restart the dev server, and it should work!** 🚀
 
+

@@ -92,7 +92,10 @@ const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, isLoading }) => {
         )}
 
         <div className="relative flex items-end gap-2 bg-brand-slate/50 border border-brand-slate rounded-xl p-2 focus-within:ring-2 focus-within:ring-brand-green/50 focus-within:border-brand-green transition-all shadow-sm">
+          <label htmlFor="chat-file-input" className="sr-only">Attach image</label>
           <input
+            id="chat-file-input"
+            name="chat-file-input"
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
@@ -100,14 +103,19 @@ const InputArea: React.FC<InputAreaProps> = ({ onSendMessage, isLoading }) => {
             className="hidden"
           />
           <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
             className="p-2 text-brand-teal hover:text-brand-green hover:bg-brand-slate rounded-lg transition-colors"
             title="Attach image"
+            aria-label="Attach image"
           >
             <ImageIcon size={20} />
           </button>
 
+          <label htmlFor="chat-message-input" className="sr-only">Ask anything</label>
           <textarea
+            id="chat-message-input"
+            name="chat-message-input"
             ref={textareaRef}
             value={text}
             onChange={handleTextChange}

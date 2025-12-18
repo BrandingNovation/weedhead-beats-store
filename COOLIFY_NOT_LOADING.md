@@ -182,3 +182,4 @@ env | grep VITE
 
 **If still not working, share the logs from Coolify and I'll help debug!**
 
+

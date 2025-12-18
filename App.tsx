@@ -370,9 +370,11 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                             )}
                             
                             <div className="space-y-1">
-                                <label className="text-xs font-bold uppercase text-brand-teal ml-1">Verification Code</label>
+                                <label htmlFor="verification-code" className="text-xs font-bold uppercase text-brand-teal ml-1">Verification Code</label>
                                 <div className="relative">
                                     <input 
+                                        id="verification-code"
+                                        name="verification-code"
                                         type="text" 
                                         placeholder="Enter 6-digit code" 
                                         className="w-full bg-white/90 border border-gray-300 p-3 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
@@ -381,6 +383,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                         onChange={e => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                         required
                                         maxLength={6}
+                                        autoComplete="one-time-code"
                                     />
                                 </div>
                             </div>
@@ -427,10 +430,12 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                 )}
                                 {!isLogin && (
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold uppercase text-brand-teal ml-1">Artist Name</label>
+                                        <label htmlFor="signup-name" className="text-xs font-bold uppercase text-brand-teal ml-1">Artist Name</label>
                                         <div className="relative">
                                             <User className="absolute left-3 top-3.5 text-brand-teal" size={18} />
                                             <input 
+                                                id="signup-name"
+                                                name="name"
                                                 type="text" 
                                                 placeholder="Producer Name" 
                                                 className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
@@ -438,15 +443,18 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                                 value={name}
                                                 onChange={e => setName(e.target.value)}
                                                 required
+                                                autoComplete="name"
                                             />
                                         </div>
                                     </div>
                                 )}
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold uppercase text-brand-teal ml-1">Email</label>
+                                    <label htmlFor={isLogin ? "login-email" : "signup-email"} className="text-xs font-bold uppercase text-brand-teal ml-1">Email</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-3.5 text-brand-teal" size={18} />
                                         <input 
+                                            id={isLogin ? "login-email" : "signup-email"}
+                                            name="email"
                                             type="email" 
                                             placeholder="name@example.com" 
                                             className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
@@ -454,14 +462,17 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                             value={email}
                                             onChange={e => setEmail(e.target.value)}
                                             required
+                                            autoComplete="email"
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-xs font-bold uppercase text-brand-teal ml-1">Password</label>
+                                    <label htmlFor={isLogin ? "login-password" : "signup-password"} className="text-xs font-bold uppercase text-brand-teal ml-1">Password</label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3.5 text-brand-teal" size={18} />
                                         <input 
+                                            id={isLogin ? "login-password" : "signup-password"}
+                                            name="password"
                                             type="password" 
                                             placeholder="••••••••" 
                                             className="w-full bg-white/90 border border-gray-300 p-3 pl-10 rounded-lg focus:border-brand-green outline-none focus:bg-white transition-all placeholder:text-gray-500"
@@ -469,6 +480,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                             value={password}
                                             onChange={e => setPassword(e.target.value)}
                                             required
+                                            autoComplete={isLogin ? "current-password" : "new-password"}
                                         />
                                     </div>
                                 </div>
@@ -745,13 +757,16 @@ const StripePaymentForm = ({ total, onSuccess }: { total: string, onSuccess: () 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-                <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Email Address</label>
+                <label htmlFor="newsletter-email" className="block text-xs font-bold uppercase text-brand-teal mb-2">Email Address</label>
                 <input 
+                    id="newsletter-email"
+                    name="newsletter-email"
                     type="email" 
                     required 
                     placeholder="producer@example.com" 
                     className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500" 
-                    style={{ color: '#ffffff', caretColor: '#0D5F11' }} 
+                    style={{ color: '#ffffff', caretColor: '#0D5F11' }}
+                    autoComplete="email"
                 />
             </div>
 
@@ -901,8 +916,10 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Name *</label>
+                                    <label htmlFor="shipping-name" className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Name *</label>
                                     <input
+                                        id="shipping-name"
+                                        name="shipping-name"
                                         type="text"
                                         required
                                         value={shippingAddress.name}
@@ -910,11 +927,14 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                                         placeholder="John Doe"
+                                        autoComplete="name"
                                     />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Street Address *</label>
+                                    <label htmlFor="shipping-street" className="block text-xs font-bold uppercase text-brand-teal mb-2">Street Address *</label>
                                     <input
+                                        id="shipping-street"
+                                        name="shipping-street"
                                         type="text"
                                         required
                                         value={shippingAddress.street}
@@ -922,11 +942,14 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                                         placeholder="123 Main St"
+                                        autoComplete="street-address"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">City *</label>
+                                    <label htmlFor="shipping-city" className="block text-xs font-bold uppercase text-brand-teal mb-2">City *</label>
                                     <input
+                                        id="shipping-city"
+                                        name="shipping-city"
                                         type="text"
                                         required
                                         value={shippingAddress.city}
@@ -934,11 +957,14 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                                         placeholder="Los Angeles"
+                                        autoComplete="address-level2"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">State/Province *</label>
+                                    <label htmlFor="shipping-state" className="block text-xs font-bold uppercase text-brand-teal mb-2">State/Province *</label>
                                     <input
+                                        id="shipping-state"
+                                        name="shipping-state"
                                         type="text"
                                         required
                                         value={shippingAddress.state}
@@ -946,11 +972,14 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                                         placeholder="CA"
+                                        autoComplete="address-level1"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">ZIP/Postal Code *</label>
+                                    <label htmlFor="shipping-zip" className="block text-xs font-bold uppercase text-brand-teal mb-2">ZIP/Postal Code *</label>
                                     <input
+                                        id="shipping-zip"
+                                        name="shipping-zip"
                                         type="text"
                                         required
                                         value={shippingAddress.zip}
@@ -958,11 +987,14 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                                         placeholder="90001"
+                                        autoComplete="postal-code"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Country *</label>
+                                    <label htmlFor="shipping-country" className="block text-xs font-bold uppercase text-brand-teal mb-2">Country *</label>
                                     <input
+                                        id="shipping-country"
+                                        name="shipping-country"
                                         type="text"
                                         required
                                         value={shippingAddress.country}
@@ -973,14 +1005,17 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Phone Number</label>
+                                    <label htmlFor="shipping-phone" className="block text-xs font-bold uppercase text-brand-teal mb-2">Phone Number</label>
                                     <input
+                                        id="shipping-phone"
+                                        name="shipping-phone"
                                         type="tel"
                                         value={shippingAddress.phone}
                                         onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
                                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                                         placeholder="+1 (555) 123-4567"
+                                        autoComplete="tel"
                                     />
                                 </div>
                             </div>
@@ -1869,16 +1904,23 @@ const NewsletterForm = () => {
                 <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Join the Inner Circle</h3>
                 <p className="text-brand-teal mb-6 max-w-sm mx-auto text-sm">Get exclusive free beats, plugin deals, and mixing tips delivered to your inbox.</p>
                 <form className="flex flex-col gap-3 max-w-md mx-auto" onSubmit={handleSubmit}>
+                    <label htmlFor="newsletter-name" className="sr-only">Your name (optional)</label>
                     <input 
+                        id="newsletter-name"
+                        name="newsletter-name"
                         type="text" 
                         placeholder="Your name (optional)" 
                         value={name}
                         onChange={e => setName(e.target.value)}
                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500" 
                         style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        autoComplete="name"
                     />
                     <div className="flex flex-col sm:flex-row gap-3">
+                        <label htmlFor="newsletter-email-input" className="sr-only">Enter your email</label>
                         <input 
+                            id="newsletter-email-input"
+                            name="newsletter-email-input"
                             type="email" 
                             placeholder="Enter your email" 
                             required 
@@ -1886,6 +1928,7 @@ const NewsletterForm = () => {
                             onChange={e => setEmail(e.target.value)}
                             className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500" 
                             style={{ color: '#000000', caretColor: '#0D5F11' }}
+                            autoComplete="email"
                         />
                         <button 
                             type="submit" 
@@ -3616,8 +3659,10 @@ const App = () => {
               <form onSubmit={handleUploadSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Title *</label>
+                    <label htmlFor="upload-title" className="block text-xs font-bold uppercase text-brand-teal mb-2">Title *</label>
                     <input
+                      id="upload-title"
+                      name="upload-title"
                       type="text"
                       value={uploadForm.title}
                       onChange={e => setUploadForm({...uploadForm, title: e.target.value})}
@@ -3627,8 +3672,10 @@ const App = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">BPM</label>
+                    <label htmlFor="upload-bpm" className="block text-xs font-bold uppercase text-brand-teal mb-2">BPM</label>
                     <input
+                      id="upload-bpm"
+                      name="upload-bpm"
                       type="number"
                       value={uploadForm.bpm}
                       onChange={e => setUploadForm({...uploadForm, bpm: e.target.value})}
@@ -3637,8 +3684,10 @@ const App = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Key</label>
+                    <label htmlFor="upload-key" className="block text-xs font-bold uppercase text-brand-teal mb-2">Key</label>
                     <input
+                      id="upload-key"
+                      name="upload-key"
                       type="text"
                       value={uploadForm.key}
                       onChange={e => setUploadForm({...uploadForm, key: e.target.value})}
@@ -3647,8 +3696,10 @@ const App = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Price</label>
+                    <label htmlFor="upload-price" className="block text-xs font-bold uppercase text-brand-teal mb-2">Price</label>
                     <input
+                      id="upload-price"
+                      name="upload-price"
                       type="number"
                       step="0.01"
                       value={uploadForm.price}
@@ -3658,8 +3709,10 @@ const App = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Mood</label>
+                    <label htmlFor="upload-mood" className="block text-xs font-bold uppercase text-brand-teal mb-2">Mood</label>
                     <select
+                      id="upload-mood"
+                      name="upload-mood"
                       value={uploadForm.mood}
                       onChange={e => setUploadForm({...uploadForm, mood: e.target.value})}
                       className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none"
@@ -3669,8 +3722,10 @@ const App = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Category</label>
+                    <label htmlFor="upload-category" className="block text-xs font-bold uppercase text-brand-teal mb-2">Category</label>
                     <select
+                      id="upload-category"
+                      name="upload-category"
                       value={uploadForm.category}
                       onChange={e => setUploadForm({...uploadForm, category: e.target.value as ProductCategory})}
                       className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none"
@@ -3685,8 +3740,10 @@ const App = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Description</label>
+                  <label htmlFor="upload-description" className="block text-xs font-bold uppercase text-brand-teal mb-2">Description</label>
                   <textarea
+                    id="upload-description"
+                    name="upload-description"
                     value={uploadForm.description}
                     onChange={e => setUploadForm({...uploadForm, description: e.target.value})}
                     className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
@@ -3694,8 +3751,10 @@ const App = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase text-brand-teal mb-2">YouTube URL</label>
+                  <label htmlFor="upload-youtube" className="block text-xs font-bold uppercase text-brand-teal mb-2">YouTube URL</label>
                     <input
+                      id="upload-youtube"
+                      name="upload-youtube"
                       type="url"
                       value={uploadForm.youtubeUrl}
                       onChange={e => setUploadForm({...uploadForm, youtubeUrl: e.target.value})}
@@ -3706,8 +3765,10 @@ const App = () => {
                 {uploadForm.category === 'album' && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Spotify URL</label>
+                      <label htmlFor="upload-spotify" className="block text-xs font-bold uppercase text-brand-teal mb-2">Spotify URL</label>
                       <input
+                        id="upload-spotify"
+                        name="upload-spotify"
                         type="url"
                         value={uploadForm.spotifyUrl}
                         onChange={e => setUploadForm({...uploadForm, spotifyUrl: e.target.value})}
@@ -3717,8 +3778,10 @@ const App = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Apple Music URL</label>
+                      <label htmlFor="upload-apple-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Apple Music URL</label>
                       <input
+                        id="upload-apple-music"
+                        name="upload-apple-music"
                         type="url"
                         value={uploadForm.appleMusicUrl}
                         onChange={e => setUploadForm({...uploadForm, appleMusicUrl: e.target.value})}
@@ -3728,8 +3791,10 @@ const App = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Amazon Music URL</label>
+                      <label htmlFor="upload-amazon-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Amazon Music URL</label>
                       <input
+                        id="upload-amazon-music"
+                        name="upload-amazon-music"
                         type="url"
                         value={uploadForm.amazonUrl}
                         onChange={e => setUploadForm({...uploadForm, amazonUrl: e.target.value})}
@@ -3742,8 +3807,10 @@ const App = () => {
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
+                    <label htmlFor="upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
                     <input
+                      id="upload-cover"
+                      name="upload-cover"
                       type="file"
                       accept="image/*"
                       onChange={e => handleFileChange(e, 'cover')}
@@ -3771,8 +3838,10 @@ const App = () => {
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Audio File</label>
+                    <label htmlFor="upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">Audio File</label>
                     <input
+                      id="upload-audio"
+                      name="upload-audio"
                       type="file"
                       accept="audio/*"
                       onChange={e => handleFileChange(e, 'audio')}
@@ -4462,12 +4531,15 @@ const App = () => {
                       </label>
                       <div className="flex gap-2">
                         <input
+                          id="api-key-gemini"
+                          name="api-key-gemini"
                           type="password"
                           placeholder="Enter Gemini API Key (starts with AIza...)"
                           value={apiKeys.gemini || ''}
                           onChange={(e) => setApiKeys({ ...apiKeys, gemini: e.target.value })}
                           className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                           style={{ color: '#000000', caretColor: '#0D5F11' }}
+                          autoComplete="off"
                         />
                         <button
                           onClick={async () => {
@@ -4617,12 +4689,15 @@ const App = () => {
                       </label>
                       <div className="flex gap-2">
                         <input
+                          id="api-key-stripe"
+                          name="api-key-stripe"
                           type="password"
                           placeholder="Enter Stripe Publishable Key (starts with pk_...)"
                           value={apiKeys.stripe || ''}
                           onChange={(e) => setApiKeys({ ...apiKeys, stripe: e.target.value })}
                           className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                           style={{ color: '#000000', caretColor: '#0D5F11' }}
+                          autoComplete="off"
                         />
                         <button
                           onClick={async () => {
@@ -4769,12 +4844,15 @@ const App = () => {
                       </label>
                       <div className="flex gap-2">
                         <input
+                          id="api-key-paypal"
+                          name="api-key-paypal"
                           type="password"
                           placeholder="Enter PayPal Client ID"
                           value={apiKeys.paypal || ''}
                           onChange={(e) => setApiKeys({ ...apiKeys, paypal: e.target.value })}
                           className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                           style={{ color: '#000000', caretColor: '#0D5F11' }}
+                          autoComplete="off"
                         />
                         <button
                           onClick={async () => {
@@ -4942,10 +5020,12 @@ const App = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="smtp-host" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                           SMTP Host
                         </label>
                         <input
+                          id="smtp-host"
+                          name="smtp-host"
                           type="text"
                           placeholder="smtp.zoho.com"
                           value={emailSettings.smtp_host || ''}
@@ -4955,10 +5035,12 @@ const App = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="smtp-port" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                           SMTP Port
                         </label>
                         <input
+                          id="smtp-port"
+                          name="smtp-port"
                           type="text"
                           placeholder="587"
                           value={emailSettings.smtp_port || '587'}
@@ -4970,40 +5052,48 @@ const App = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label htmlFor="smtp-username" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                         SMTP Username (Email)
                       </label>
                       <input
+                        id="smtp-username"
+                        name="smtp-username"
                         type="email"
                         placeholder="your-email@zoho.com"
                         value={emailSettings.smtp_username || ''}
                         onChange={(e) => setEmailSettings({ ...emailSettings, smtp_username: e.target.value })}
                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                         style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        autoComplete="username"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label htmlFor="smtp-password" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                         SMTP Password (App Password)
                       </label>
                       <input
+                        id="smtp-password"
+                        name="smtp-password"
                         type="password"
                         placeholder="Use App Password, not regular password"
                         value={emailSettings.smtp_password || ''}
                         onChange={(e) => setEmailSettings({ ...emailSettings, smtp_password: e.target.value })}
                         className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                         style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        autoComplete="new-password"
                       />
                       <p className="text-xs text-yellow-400 mt-1">⚠️ Use App Password, not your regular email password</p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="from-email" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                           From Email
                         </label>
                         <input
+                          id="from-email"
+                          name="from-email"
                           type="email"
                           placeholder="noreply@weedheadbeats.com"
                           value={emailSettings.from_email || ''}
@@ -5013,10 +5103,12 @@ const App = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="from-name" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                           From Name
                         </label>
                         <input
+                          id="from-name"
+                          name="from-name"
                           type="text"
                           placeholder="Weedhead Beats"
                           value={emailSettings.from_name || ''}

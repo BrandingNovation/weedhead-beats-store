@@ -173,3 +173,4 @@ After running the migration:
 
 **Status**: ✅ Code changes complete, waiting for SQL migration to be run in Supabase.
 
+

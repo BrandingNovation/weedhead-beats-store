@@ -58,3 +58,4 @@ FROM profiles p
 JOIN auth.users u ON p.id = u.id
 WHERE u.email = 'info@brandingnovations.com';
 
+

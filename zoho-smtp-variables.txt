@@ -63,3 +63,4 @@ SMTP_SENDER_NAME=Weedhead Beats
 # - Test the connection in Supabase dashboard before saving
 # - Check Supabase logs if emails aren't sending
 
+

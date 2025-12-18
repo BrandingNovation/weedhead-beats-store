@@ -69,3 +69,4 @@ echo "✅ Configuration ready!"
 echo "Copy the variables above and add them to your Supabase configuration."
 echo ""
 
+

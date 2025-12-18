@@ -70,3 +70,4 @@ CREATE TRIGGER update_api_keys_updated_at
 -- 3. App will check database first, then fall back to environment variables
 -- ============================================
 
+

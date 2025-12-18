@@ -69,3 +69,4 @@ Click "Generate Default Nginx Configuration" if you want Coolify to create this 
 3. Configure your domain
 4. Deploy!
 
+

@@ -96,3 +96,4 @@ That's the URL you need to set as `SITE_URL` in Supabase!
 
 **Share your current app URL and I'll give you the exact values to add!** 🚀
 
+

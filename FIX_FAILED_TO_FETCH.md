@@ -137,3 +137,4 @@ This looks like an **internal Docker URL** that won't work from your browser. Yo
 
 **What URL do you use to access your Supabase dashboard? That's the URL you need to use in Coolify!**
 
+

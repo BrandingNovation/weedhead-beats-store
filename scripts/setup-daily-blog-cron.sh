@@ -44,3 +44,4 @@ echo "To view cron jobs: crontab -l"
 echo "To remove cron job: crontab -e (then delete the line)"
 echo "To test manually: node $DAILY_BLOG_SCRIPT"
 
+

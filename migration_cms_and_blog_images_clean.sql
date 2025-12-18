@@ -86,3 +86,4 @@ VALUES
     ('blog', '', '{}'::jsonb)
 ON CONFLICT (page) DO NOTHING;
 
+

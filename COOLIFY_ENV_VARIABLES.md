@@ -158,3 +158,4 @@ For EACH variable:
 
 You're all set! Add each variable one by one, and your app will connect to Supabase automatically! 🚀
 
+

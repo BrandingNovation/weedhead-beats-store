@@ -90,3 +90,4 @@
 
 **Get your key from https://aistudio.google.com/app/apikey, then add it to Coolify!** 🚀
 
+

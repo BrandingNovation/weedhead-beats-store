@@ -35,3 +35,4 @@ SELECT * FROM profiles WHERE id = 'f9022176-6007-43e1-9cd0-c54c4abbeaf4';
 -- Note: If you need admins to view all profiles, we'll need a different approach
 -- that doesn't cause recursion (like using a SECURITY DEFINER function)
 
+

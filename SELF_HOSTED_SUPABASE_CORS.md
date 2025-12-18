@@ -237,3 +237,4 @@ Even in self-hosted, some versions have a dashboard. Check:
 
 If you can share how your Supabase is set up (Docker, CLI, etc.), I can give more specific instructions!
 
+
