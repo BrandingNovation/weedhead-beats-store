@@ -794,7 +794,8 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
     });
 
     useEffect(() => {
-        if(isOpen) {
+        if(isOpen && status !== 'success') {
+            // Only reset if not showing receipt
             setStatus('idle');
             setShippingAddress({
                 name: '',
