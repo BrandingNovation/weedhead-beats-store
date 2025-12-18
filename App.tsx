@@ -812,126 +812,30 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
     if(!isOpen) return null;
 
     if (status === 'success') {
-        const orderNumber = `WH-${Date.now().toString().slice(-8)}`;
-        const totalAmount = parseFloat(total);
-        const orderDate = new Date().toLocaleDateString('en-US', { 
-            month: 'long', 
-            day: 'numeric', 
-            year: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-        
         return (
-            <div className="receipt-print-container fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto">
-                 <div className="receipt-print w-full max-w-2xl bg-white border border-gray-300 rounded-lg shadow-xl p-8 my-auto" style={{ pageBreakInside: 'auto' }} onClick={(e) => e.stopPropagation()}>
-                    {/* Screen View - Success Icon */}
-                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 print:hidden">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md">
+                <div className="bg-white border border-gray-300 rounded-lg shadow-xl p-12 text-center max-w-md">
+                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <CheckCircle size={40} className="text-green-500" />
                     </div>
-                    
-                    {/* Receipt Header */}
-                    <div className="text-center mb-8 border-b border-gray-300 pb-6">
-                        <h1 className="text-3xl font-black text-black uppercase tracking-tight mb-2">WEEDHEAD BEATS</h1>
-                        <h2 className="text-xl font-bold text-gray-700 mb-4">Order Receipt</h2>
-                        <div className="space-y-1 text-sm text-gray-600">
-                            <p><strong>Order Number:</strong> {orderNumber}</p>
-                            <p><strong>Date:</strong> {orderDate}</p>
-                        </div>
-                    </div>
-                    
-                    {/* Items Purchased */}
-                    <div className="mb-6">
-                        <h3 className="text-lg font-bold text-black uppercase mb-4 border-b border-gray-300 pb-2">Items Purchased</h3>
-                        <div className="space-y-3">
-                            {cart.map((item, i) => {
-                                // Calculate price: use license price if available, otherwise base price
-                                // Apply "buy 2 get 1 free" logic (every 3rd item is free)
-                                const isFree = (i + 1) % 3 === 0;
-                                let itemPrice: number;
-                                if (item.selectedLicense) {
-                                    itemPrice = isFree ? 0 : item.selectedLicense.price;
-                                } else {
-                                    itemPrice = typeof item.price === 'number' ? item.price : parseFloat(String(item.price));
-                                }
-                                
-                                return (
-                                    <div key={i} className="flex justify-between items-start py-2 border-b border-gray-200">
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-black text-base">{item.title}</p>
-                                            {item.selectedLicense && (
-                                                <p className="text-sm text-gray-600 mt-1">License: {item.selectedLicense.name}</p>
-                                            )}
-                                            {isFree && (
-                                                <span className="inline-block mt-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">FREE</span>
-                                            )}
-                                        </div>
-                                        <div className="text-right ml-4">
-                                            <p className={`font-bold text-base ${isFree ? 'text-green-600' : 'text-black'}`}>
-                                                {isFree ? 'FREE' : `$${itemPrice.toFixed(2)}`}
-                                            </p>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    
-                    {/* Total Amount */}
-                    <div className="mt-6 pt-4 border-t-2 border-gray-400">
-                        <div className="flex justify-between items-center">
-                            <span className="text-xl font-bold text-black uppercase">Total Amount:</span>
-                            <span className="text-2xl font-black text-black">${totalAmount.toFixed(2)}</span>
-                        </div>
-                    </div>
-                    
-                    {/* Thank You Message */}
-                    <div className="mt-8 pt-6 border-t border-gray-300 text-center">
-                        <p className="text-lg font-semibold text-black mb-2">Thank You For Your Purchase!</p>
-                        <p className="text-sm text-gray-600 font-medium">
-                            Your order has been confirmed and a receipt has been sent to your email.
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">
-                            Please check your inbox (and spam folder) for your receipt with download links.
-                        </p>
-                        <p className="text-sm text-gray-600 mt-2">
-                            We appreciate your business and hope you enjoy your music!
-                        </p>
-                    </div>
-                    
-                    {/* Download Links (Screen Only) */}
-                    <div className="mt-8 space-y-3 print:hidden">
-                        <h3 className="font-bold text-black uppercase text-sm mb-3">Digital Downloads</h3>
-                        {cart.filter(item => item.category === 'beat' && item.audio).map((item, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
-                                <div>
-                                    <p className="font-semibold text-black text-sm">{item.title}</p>
-                                    <p className="text-xs text-gray-600">{item.selectedLicense?.name || 'Standard License'}</p>
-                                </div>
-                                <a 
-                                    href={item.audio} 
-                                    download 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-xs bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded font-bold uppercase transition-colors"
-                                >
-                                    Download
-                                </a>
-                            </div>
-                        ))}
-                    </div>
-                    
-                    {/* Action Button (Screen Only) */}
-                    <div className="flex gap-4 mt-8">
-                        <button 
-                            type="button" 
-                            onClick={onClose} 
-                            className="w-full py-4 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
-                        >
-                            Continue Shopping
-                        </button>
-                    </div>
-                 </div>
+                    <h2 className="text-2xl font-black text-black uppercase mb-4">Payment Successful!</h2>
+                    <p className="text-gray-700 mb-2 font-medium">
+                        Your order has been confirmed and a receipt has been sent to your email.
+                    </p>
+                    <p className="text-sm text-gray-600 mb-6">
+                        Please check your inbox (and spam folder) for your receipt with download links.
+                    </p>
+                    <p className="text-sm text-gray-600 mb-6">
+                        Thank you for your purchase!
+                    </p>
+                    <button 
+                        type="button" 
+                        onClick={onClose} 
+                        className="w-full py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+                    >
+                        Continue Shopping
+                    </button>
+                </div>
             </div>
         )
     }
