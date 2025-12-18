@@ -1,8 +1,6 @@
 # Nixpacks configuration for Vite static site (Node.js project)
 # This forces Node.js detection instead of Deno (which gets detected from supabase/functions)
-
-[phases.setup]
-nixPkgs = ["nodejs"]
+# Node.js version is set via NIXPACKS_NODE_VERSION environment variable (set by Coolify)
 
 [phases.install]
 cmds = ["npm install"]
