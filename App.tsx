@@ -1146,47 +1146,72 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                         <Elements stripe={stripePromise}>
                             <StripePaymentForm total={total} onSuccess={async () => {
                                 // Save order with shipping address
+                                const orderNumber = `WH-${Date.now().toString().slice(-8)}`;
                                 const hasPhysicalItems = cart.some(item => item.category === 'album' || item.category === 'sample_pack' || item.category === 'merch');
-                                if (hasPhysicalItems && shippingAddress.name) {
-                                    try {
-                                        const orderNumber = `WH-${Date.now().toString().slice(-8)}`;
-                                        const { data: userData } = await supabase.auth.getUser();
-                                        const { data: orderData, error: orderError } = await supabase
-                                            .from('orders')
-                                            .insert([{
-                                                order_number: orderNumber,
-                                                total_amount: parseFloat(total),
-                                                payment_method: 'stripe',
-                                                payment_status: 'completed',
-                                                shipping_address: shippingAddress,
-                                                status: 'pending',
-                                                user_id: userData.user?.id || null
-                                            }])
-                                            .select();
-                                        
-                                        if (orderError) {
-                                            console.error('Failed to save order:', orderError);
-                                        } else if (orderData && orderData[0]) {
-                                            // Save order items
-                                            for (const item of cart) {
-                                                await supabase.from('order_items').insert([{
-                                                    order_id: orderData[0].id,
-                                                    track_id: typeof item.id === 'string' ? item.id : null,
-                                                    title: item.title,
-                                                    license_name: item.selectedLicense?.name || null,
-                                                    price: item.selectedLicense?.price || (typeof item.price === 'number' ? item.price : parseFloat(String(item.price))),
-                                                    size: item.category === 'merch' ? (item as any).size : null,
-                                                    color: item.category === 'merch' ? (item as any).color : null,
-                                                    quantity: 1,
-                                                    is_digital: item.category === 'beat',
-                                                    download_url: item.audio
-                                                }]);
-                                            }
-                                        }
-                                    } catch (e) {
-                                        console.error('Error saving order:', e);
+                                
+                                try {
+                                    const { data: userData } = await supabase.auth.getUser();
+                                    const orderPayload: any = {
+                                        order_number: orderNumber,
+                                        total_amount: parseFloat(total),
+                                        payment_method: 'stripe',
+                                        payment_status: 'completed',
+                                        status: 'pending',
+                                        user_id: userData.user?.id || null
+                                    };
+                                    
+                                    // Add shipping address if physical items
+                                    if (hasPhysicalItems && shippingAddress.name) {
+                                        orderPayload.shipping_address = shippingAddress;
                                     }
+                                    
+                                    const { data: orderData, error: orderError } = await supabase
+                                        .from('orders')
+                                        .insert([orderPayload])
+                                        .select();
+                                    
+                                    if (orderError) {
+                                        console.error('Failed to save order:', orderError);
+                                    } else if (orderData && orderData[0]) {
+                                        // Save order items
+                                        for (const item of cart) {
+                                            await supabase.from('order_items').insert([{
+                                                order_id: orderData[0].id,
+                                                track_id: typeof item.id === 'string' ? item.id : null,
+                                                title: item.title,
+                                                license_name: item.selectedLicense?.name || null,
+                                                price: item.selectedLicense?.price || (typeof item.price === 'number' ? item.price : parseFloat(String(item.price))),
+                                                size: item.category === 'merch' ? (item as any).size : null,
+                                                color: item.category === 'merch' ? (item as any).color : null,
+                                                quantity: 1,
+                                                is_digital: item.category === 'beat',
+                                                download_url: item.audio
+                                            }]);
+                                        }
+                                        
+                                        // Send order confirmation email (if configured)
+                                        try {
+                                            const { data: emailSettings } = await supabase
+                                                .from('email_settings')
+                                                .select('setting_name, setting_value')
+                                                .in('setting_name', ['send_order_confirmation_emails', 'from_email', 'from_name'])
+                                                .eq('is_active', true);
+                                            
+                                            const sendEmail = emailSettings?.find(s => s.setting_name === 'send_order_confirmation_emails')?.setting_value === 'true';
+                                            
+                                            if (sendEmail && userData.user?.email) {
+                                                // TODO: Implement email sending via SMTP
+                                                // For now, just log that email should be sent
+                                                console.log('Order confirmation email should be sent to:', userData.user.email);
+                                            }
+                                        } catch (emailError) {
+                                            console.error('Error checking email settings:', emailError);
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error('Error saving order:', e);
                                 }
+                                
                                 setStatus('success');
                             }} />
                         </Elements>
