@@ -2094,10 +2094,46 @@ const App = () => {
   const handleBlogSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       
+      // If image is base64, upload to Storage first
+      let imageUrl = blogForm.image;
+      if (blogForm.image && blogForm.image.startsWith('data:image/')) {
+        try {
+          const base64Data = blogForm.image.split(',')[1];
+          const mimeType = blogForm.image.match(/data:([^;]+);/)?.[1] || 'image/png';
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: mimeType });
+          const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+          const file = new File([blob], fileName, { type: mimeType });
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('covers')
+            .upload(fileName, file, { contentType: mimeType, upsert: false });
+          
+          if (!uploadError && uploadData) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('covers')
+              .getPublicUrl(fileName);
+            imageUrl = publicUrl;
+          } else {
+            console.warn('Failed to upload blog image to Storage, using base64 fallback', uploadError);
+            imageUrl = blogForm.image; // Keep base64 as fallback
+          }
+        } catch (err) {
+          console.error('Failed to upload blog image to Storage', err);
+          imageUrl = blogForm.image; // Keep base64 as fallback
+        }
+      }
+      
       const postData = {
           title: blogForm.title,
           excerpt: blogForm.excerpt,
-          image: blogForm.image,
+          image: imageUrl,
+          content: blogForm.excerpt, // Use excerpt as content for now
           is_ai_generated: false
       };
 
@@ -2107,7 +2143,7 @@ const App = () => {
               ...p,
               title: blogForm.title,
               excerpt: blogForm.excerpt,
-              image: blogForm.image
+              image: imageUrl
           } : p));
           // Update DB
           try {
@@ -2118,7 +2154,7 @@ const App = () => {
           // Insert DB
           try {
             const { data } = await supabase.from('posts').insert([postData]).select();
-            if (data) {
+            if (data && data[0]) {
                 const newPost: BlogPost = {
                     id: data[0].id,
                     title: data[0].title,
@@ -2130,13 +2166,14 @@ const App = () => {
                 setPosts([newPost, ...posts]);
             }
           } catch (e) {
+              console.error('Failed to save blog post', e);
               // Fallback if upload fails
               const newPost: BlogPost = {
                   id: Date.now(),
                   title: blogForm.title,
                   excerpt: blogForm.excerpt,
                   date: new Date().toLocaleDateString(),
-                  image: blogForm.image,
+                  image: imageUrl,
                   isAiGenerated: false
               };
               setPosts([newPost, ...posts]);
