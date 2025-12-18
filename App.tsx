@@ -1901,7 +1901,11 @@ const App = () => {
   const [isGeneratingNews, setIsGeneratingNews] = useState(false);
 
   // Dashboard Form State
-  const [adminTab, setAdminTab] = useState<'upload' | 'inventory' | 'cms' | 'blog' | 'settings'>('inventory');
+  const [adminTab, setAdminTab] = useState<'upload' | 'inventory' | 'cms' | 'blog' | 'settings' | 'newsletter'>('inventory');
+  
+  // Newsletter Subscribers State
+  const [subscribers, setSubscribers] = useState<any[]>([]);
+  const [subscribersLoaded, setSubscribersLoaded] = useState(false);
   
   // API Keys Management State
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({
@@ -3052,6 +3056,7 @@ const App = () => {
             { id: 'upload', label: 'Upload Track', icon: Upload },
             { id: 'cms', label: 'CMS', icon: Edit3 },
             { id: 'blog', label: 'Blog', icon: FileText },
+            { id: 'newsletter', label: 'Newsletter', icon: Mail },
             { id: 'settings', label: 'Settings', icon: Settings }
           ].map(tab => (
             <button
