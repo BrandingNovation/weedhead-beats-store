@@ -1567,9 +1567,17 @@ const App = () => {
         
         // Handle 404 (table doesn't exist) gracefully
         if (error) {
-          if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+          // Check for 404 in various ways (Supabase can return 404 in different formats)
+          const is404 = error.code === 'PGRST116' || 
+                       error.message?.includes('404') || 
+                       error.message?.includes('does not exist') ||
+                       error.message?.includes('relation') ||
+                       (error as any)?.status === 404 ||
+                       (error as any)?.statusCode === 404;
+          
+          if (is404) {
             // Table doesn't exist yet - this is fine, just use empty keys
-            console.log('API keys table not found. Run migration_api_keys.sql to enable admin key management.');
+            // Don't log to console to avoid noise
             setApiKeysLoaded(true);
             return;
           }
@@ -1586,7 +1594,14 @@ const App = () => {
         setApiKeysLoaded(true);
       } catch (e: any) {
         // Only log non-404 errors
-        if (e?.code !== 'PGRST116' && !e?.message?.includes('404') && !e?.message?.includes('does not exist')) {
+        const is404 = e?.code === 'PGRST116' || 
+                     e?.message?.includes('404') || 
+                     e?.message?.includes('does not exist') ||
+                     e?.message?.includes('relation') ||
+                     e?.status === 404 ||
+                     e?.statusCode === 404;
+        
+        if (!is404) {
           console.warn('Failed to load API keys:', e);
         }
         setApiKeysLoaded(true); // Set to true even on error to hide spinner
@@ -1946,38 +1961,56 @@ const App = () => {
   // Audio Playback
   useEffect(() => {
     if (currentTrack && audioRef.current) {
-        // Only set src if it's a valid URL (not a blob URL that might be invalid)
-        if (currentTrack.audio && (currentTrack.audio.startsWith('http') || currentTrack.audio.startsWith('https') || currentTrack.audio.startsWith('blob:'))) {
+        // Only set src if it's a valid HTTP/HTTPS URL (avoid blob URLs which can become invalid)
+        if (currentTrack.audio && (currentTrack.audio.startsWith('http://') || currentTrack.audio.startsWith('https://'))) {
           try {
+            // Clear previous src to avoid conflicts
+            audioRef.current.src = '';
             audioRef.current.src = currentTrack.audio;
             audioRef.current.load();
           } catch (e) {
             console.warn('Failed to load audio:', e);
             setIsPlaying(false); // Stop playback if audio fails to load
           }
-        } else if (!currentTrack.audio) {
+        } else if (currentTrack.audio && currentTrack.audio.startsWith('blob:')) {
+          // Blob URLs are temporary and can become invalid - don't use them
+          console.warn('Blob URL detected for audio - this may not work reliably. Use a permanent URL instead.');
+          setIsPlaying(false);
+        } else if (!currentTrack.audio || currentTrack.audio === '') {
           // No audio URL - stop playback
+          if (audioRef.current) {
+            audioRef.current.src = '';
+          }
           setIsPlaying(false);
         }
+    } else if (!currentTrack && audioRef.current) {
+      // Clear audio when no track is selected
+      audioRef.current.src = '';
     }
   }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {
       if (isPlaying) {
-        // Only try to play if we have a valid src
-        if (audioRef.current.src && audioRef.current.src !== '') {
+        // Only try to play if we have a valid src and it's not a blob URL
+        const src = audioRef.current.src;
+        if (src && src !== '' && !src.startsWith('blob:')) {
           audioRef.current.play().catch(e => {
-            console.log("Playback failed", e);
+            // Don't log common playback errors to reduce console noise
+            if (!e.message?.includes('play()') && !e.message?.includes('user gesture')) {
+              console.log("Playback failed", e);
+            }
             setIsPlaying(false); // Stop trying to play if it fails
           });
         } else {
-          setIsPlaying(false); // No audio source, stop playback
+          setIsPlaying(false); // No valid audio source, stop playback
         }
       } else {
         audioRef.current.pause();
       }
-      audioRef.current.volume = volume;
+      if (audioRef.current) {
+        audioRef.current.volume = volume;
+      }
     }
   }, [isPlaying, volume]);
 
