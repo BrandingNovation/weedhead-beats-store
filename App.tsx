@@ -793,18 +793,25 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
     if (status === 'success') {
         const orderNumber = `WH-${Date.now().toString().slice(-8)}`;
         const hasPhysicalItems = cart.some(item => item.category === 'album' || item.category === 'sample_pack');
+        const totalAmount = parseFloat(total);
         
         return (
             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto">
-                 <div className="w-full max-w-2xl bg-brand-black border border-brand-slate rounded-2xl overflow-hidden shadow-2xl p-8 text-center my-auto">
-                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                 <div className="receipt-print w-full max-w-2xl bg-brand-black border border-brand-slate rounded-2xl overflow-hidden shadow-2xl p-8 text-center my-auto">
+                    <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 print:hidden">
                         <CheckCircle size={40} className="text-green-500" />
                     </div>
-                    <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-2">Payment Successful!</h2>
-                    <p className="text-brand-teal mb-2">Order #{orderNumber}</p>
-                    <p className="text-brand-teal mb-8 text-sm">
-                        Thank you for your purchase. A receipt has been sent to your email.
-                    </p>
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-black text-white uppercase tracking-tighter mb-2 print:text-black">WEEDHEAD BEATS</h1>
+                        <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-2 print:text-black">Payment Successful!</h2>
+                        <p className="text-brand-teal mb-2 print:text-gray-700">Order #{orderNumber}</p>
+                        <p className="text-brand-teal mb-2 text-sm print:text-gray-600">
+                            Date: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <p className="text-brand-teal mb-8 text-sm print:hidden">
+                            Thank you for your purchase. A receipt has been sent to your email.
+                        </p>
+                    </div>
                     
                     {/* Downloads Section */}
                     <div className="space-y-4 mb-6 text-left bg-brand-slate/20 p-6 rounded-xl border border-brand-slate">
@@ -879,7 +886,27 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                         </div>
                     )}
                     
-                    <div className="flex gap-4">
+                    {/* Order Summary for Print */}
+                    <div className="mt-8 pt-6 border-t border-brand-slate print:border-gray-300">
+                        <div className="space-y-2 text-left">
+                            {cart.map((item, i) => (
+                                <div key={i} className="flex justify-between text-sm print:text-black">
+                                    <span className="print:text-gray-700">
+                                        {item.title} {item.selectedLicense ? `(${item.selectedLicense.name})` : ''}
+                                    </span>
+                                    <span className="font-bold print:text-black">
+                                        ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price.toString()).toFixed(2)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-brand-slate print:border-gray-300 flex justify-between items-center">
+                            <span className="text-lg font-bold text-white uppercase print:text-black">Total:</span>
+                            <span className="text-2xl font-black text-brand-green print:text-black">${totalAmount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    
+                    <div className="flex gap-4 mt-8 print:hidden">
                         <button 
                             type="button" 
                             onClick={onClose} 

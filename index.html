@@ -99,6 +99,85 @@
         -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
         box-shadow: 0 0 0px 1000px #ffffff inset !important;
       }
+      
+      /* Print Styles for Receipt */
+      @media print {
+        /* Hide everything except the receipt */
+        body * {
+          visibility: hidden;
+        }
+        
+        /* Show only the receipt modal */
+        .receipt-print,
+        .receipt-print * {
+          visibility: visible;
+        }
+        
+        /* Position receipt at top of page */
+        .receipt-print {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          max-width: 100%;
+          margin: 0;
+          padding: 20px;
+          background: white !important;
+          color: #000000 !important;
+          border: none !important;
+          box-shadow: none !important;
+          page-break-after: always;
+        }
+        
+        /* Hide buttons and non-essential elements */
+        .receipt-print button,
+        .receipt-print a[href*="track"],
+        .receipt-print a[download] {
+          display: none !important;
+        }
+        
+        /* Style text for print */
+        .receipt-print h2,
+        .receipt-print h3,
+        .receipt-print p,
+        .receipt-print div {
+          color: #000000 !important;
+        }
+        
+        .receipt-print .text-brand-teal {
+          color: #333333 !important;
+        }
+        
+        .receipt-print .text-white {
+          color: #000000 !important;
+        }
+        
+        .receipt-print .bg-brand-black,
+        .receipt-print .bg-brand-slate {
+          background: white !important;
+        }
+        
+        .receipt-print .border-brand-slate {
+          border-color: #cccccc !important;
+        }
+        
+        /* Remove backdrop and overlay */
+        .receipt-print::before {
+          display: none !important;
+        }
+        
+        /* Ensure proper spacing */
+        .receipt-print > div {
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        
+        /* Print-friendly layout */
+        @page {
+          margin: 1cm;
+          size: A4;
+        }
+      }
     </style>
 </head>
   <body>
