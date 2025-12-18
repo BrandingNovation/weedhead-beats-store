@@ -1746,7 +1746,8 @@ const App = () => {
   const [savedTracks, setSavedTracks] = useState<Track[]>([]);
   const [showQueue, setShowQueue] = useState(false);
   const [volume, setVolume] = useState(0.8);
-  const [beats, setBeats] = useState<Track[]>(INITIAL_BEATS);
+  const [beats, setBeats] = useState<Track[]>([]);
+  const [tracksLoaded, setTracksLoaded] = useState(false);
   const [posts, setPosts] = useState<BlogPost[]>(INITIAL_POSTS);
   
   // Blog Infinite Scroll State
@@ -1871,7 +1872,7 @@ const App = () => {
                 setBeats(data.map(t => ({
                     id: t.id,
                     title: t.title,
-                    producer: t.producer,
+                    producer: t.producer || 'Weedhead',
                     bpm: t.bpm,
                     key: t.key,
                     price: t.price,
@@ -1879,16 +1880,24 @@ const App = () => {
                     category: t.category,
                     description: t.description,
                     youtubeUrl: t.youtube_url,
+                    spotifyUrl: t.spotify_url,
+                    appleMusicUrl: t.apple_music_url,
+                    amazonUrl: t.amazon_url,
                     cover: t.cover,
                     audio: t.audio,
                     tags: t.tags || [],
                     stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
                 })));
+            } else {
+                // Only use INITIAL_BEATS if Supabase has no data (empty database)
+                setBeats(INITIAL_BEATS);
             }
         } catch (err: any) {
             console.error("Failed to fetch tracks:", err);
-             // Ensure beats are reset to initial if fetch fails to guarantee content
-             setBeats(INITIAL_BEATS);
+            // Only use INITIAL_BEATS as fallback if fetch fails
+            setBeats(INITIAL_BEATS);
+        } finally {
+            setTracksLoaded(true);
         }
     };
     
