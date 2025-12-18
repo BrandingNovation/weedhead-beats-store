@@ -918,25 +918,14 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                         ))}
                     </div>
                     
-                    {/* Action Buttons (Screen Only) */}
-                    <div className="flex gap-4 mt-8 print:hidden">
+                    {/* Action Button (Screen Only) */}
+                    <div className="flex gap-4 mt-8">
                         <button 
                             type="button" 
                             onClick={onClose} 
-                            className="flex-1 py-4 bg-gray-600 text-white font-bold uppercase tracking-wider rounded hover:bg-gray-700 transition-colors"
+                            className="w-full py-4 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
                         >
                             Continue Shopping
-                        </button>
-                        <button 
-                            type="button" 
-                            onClick={() => {
-                                setTimeout(() => {
-                                    window.print();
-                                }, 100);
-                            }}
-                            className="px-8 py-4 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
-                        >
-                            Print Receipt
                         </button>
                     </div>
                  </div>
