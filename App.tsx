@@ -2188,7 +2188,8 @@ const App = () => {
               const newPost: BlogPost = {
                   id: Date.now(),
                   title: blogForm.title,
-                  excerpt: blogForm.excerpt,
+                  excerpt: blogForm.excerpt || blogForm.content?.substring(0, 200) + '...',
+                  content: blogForm.content || blogForm.excerpt,
                   date: new Date().toLocaleDateString(),
                   image: imageUrl,
                   isAiGenerated: false
