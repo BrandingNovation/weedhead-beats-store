@@ -2358,7 +2358,9 @@ const App = () => {
           cover: null,
           coverPreview: track.cover,
           audio: null,
-          audioName: 'Existing Audio File'
+          stems: null,
+          audioName: 'Existing Audio File',
+          stemsName: ''
       });
       setAdminTab('upload');
   };
@@ -3267,8 +3269,10 @@ const App = () => {
                           amazonUrl: '',
                           cover: null,
                           audio: null,
+                          stems: null,
                           coverPreview: null,
-                          audioName: ''
+                          audioName: '',
+                          stemsName: ''
                         });
                       }}
                       className="px-8 py-3 bg-brand-slate text-white font-bold uppercase tracking-wider rounded hover:bg-brand-slate/80"
@@ -3940,8 +3944,10 @@ const App = () => {
                          amazonUrl: '',
                          cover: null,
                          audio: null,
+                         stems: null,
                          coverPreview: null,
-                         audioName: ''
+                         audioName: '',
+                         stemsName: ''
                        });
                      }}
                      className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider hover:bg-brand-green/80 transition-colors"
