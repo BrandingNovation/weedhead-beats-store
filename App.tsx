@@ -1958,7 +1958,7 @@ const App = () => {
     fetchPosts();
   }, []);
 
-  // Audio Playback
+  // Audio Playback - Load audio source when track changes
   useEffect(() => {
     if (currentTrack && audioRef.current) {
         // Only set src if it's a valid HTTP/HTTPS URL (avoid blob URLs which can become invalid)
@@ -1967,37 +1967,7 @@ const App = () => {
             // Clear previous src to avoid conflicts
             audioRef.current.src = '';
             audioRef.current.src = currentTrack.audio;
-            
-            // Add error handler
-            const handleError = () => {
-              console.warn('Audio failed to load:', currentTrack.audio);
-              setIsPlaying(false);
-              if (audioRef.current) {
-                audioRef.current.src = '';
-              }
-            };
-            
-            // Add loadeddata handler to start playing when ready
-            const handleLoadedData = () => {
-              if (isPlaying && audioRef.current) {
-                audioRef.current.play().catch(e => {
-                  console.warn('Playback failed:', e);
-                  setIsPlaying(false);
-                });
-              }
-            };
-            
-            audioRef.current.addEventListener('error', handleError);
-            audioRef.current.addEventListener('loadeddata', handleLoadedData);
             audioRef.current.load();
-            
-            // Cleanup
-            return () => {
-              if (audioRef.current) {
-                audioRef.current.removeEventListener('error', handleError);
-                audioRef.current.removeEventListener('loadeddata', handleLoadedData);
-              }
-            };
           } catch (e) {
             console.warn('Failed to load audio:', e);
             setIsPlaying(false); // Stop playback if audio fails to load
@@ -2018,7 +1988,7 @@ const App = () => {
       audioRef.current.src = '';
       setIsPlaying(false);
     }
-  }, [currentTrack, isPlaying]);
+  }, [currentTrack]);
 
   useEffect(() => {
     if (audioRef.current && currentTrack) {
@@ -2116,6 +2086,7 @@ const App = () => {
     // Check if track has valid audio before playing
     if (!beat.audio || beat.audio === '' || (!beat.audio.startsWith('http://') && !beat.audio.startsWith('https://'))) {
       console.warn('Track has no valid audio URL:', beat.title);
+      setIsPlaying(false);
       return; // Don't play if no valid audio
     }
     
@@ -2123,8 +2094,7 @@ const App = () => {
       setIsPlaying(!isPlaying);
     } else {
       setCurrentTrack(beat);
-      // Don't set isPlaying immediately - let the audio load first
-      // The useEffect will handle setting isPlaying when audio is ready
+      setIsPlaying(true); // Set to true, but audio will only play when loaded
     }
   };
 
