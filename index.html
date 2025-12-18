@@ -103,56 +103,56 @@
       
       /* Print Styles for Receipt */
       @media print {
-        /* Hide everything by default */
-        body > #root > *:not(.receipt-print-container) {
-          display: none !important;
+        /* Hide everything except receipt */
+        body * {
+          visibility: hidden;
         }
         
-        /* Show only the receipt modal container */
+        /* Show receipt container and all its children */
+        .receipt-print-container,
+        .receipt-print-container * {
+          visibility: visible;
+        }
+        
+        /* Position receipt at top left */
         .receipt-print-container {
-          display: block !important;
-          position: absolute !important;
-          top: 0 !important;
-          left: 0 !important;
-          width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          background: white !important;
-          z-index: 9999 !important;
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          background: white;
         }
         
-        /* Show the receipt content */
+        /* Receipt content styling */
         .receipt-print {
-          display: block !important;
-          position: relative !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          margin: 0 !important;
-          padding: 20mm !important;
           background: white !important;
           color: #000000 !important;
+          padding: 20mm !important;
+          margin: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
           border: none !important;
           box-shadow: none !important;
-          page-break-after: auto !important;
-          page-break-inside: avoid !important;
         }
         
-        /* Ensure all content inside receipt is visible */
-        .receipt-print * {
-          visibility: visible !important;
-        }
-        
-        /* Hide buttons and non-essential elements */
-        .receipt-print button,
-        .receipt-print a[href*="track"],
-        .receipt-print a[download],
+        /* Hide screen-only elements */
         .receipt-print .print\\:hidden,
+        .receipt-print button,
+        .receipt-print a[download],
         .receipt-print svg {
           display: none !important;
+          visibility: hidden !important;
         }
         
-        /* Style text for print */
+        /* Force black text for all receipt content */
         .receipt-print,
+        .receipt-print * {
+          color: #000000 !important;
+          background: transparent !important;
+        }
+        
         .receipt-print h1,
         .receipt-print h2,
         .receipt-print h3,
@@ -162,38 +162,22 @@
           color: #000000 !important;
         }
         
-        .receipt-print .text-brand-teal {
-          color: #333333 !important;
+        /* Borders for print */
+        .receipt-print .border-gray-300,
+        .receipt-print .border-gray-200,
+        .receipt-print .border-gray-400 {
+          border-color: #000000 !important;
         }
         
-        .receipt-print .text-white {
-          color: #000000 !important;
-        }
-        
-        .receipt-print .text-brand-green {
-          color: #0D5F11 !important;
-        }
-        
-        .receipt-print .bg-brand-black,
-        .receipt-print .bg-brand-slate,
-        .receipt-print .bg-brand-slate\\/20 {
-          background: transparent !important;
-        }
-        
-        .receipt-print .border-brand-slate {
-          border-color: #cccccc !important;
-        }
-        
-        /* Hide backdrop blur and overlay effects */
-        .receipt-print-container::before,
-        .receipt-print::before {
-          display: none !important;
-        }
-        
-        /* Print-friendly layout */
+        /* Print page settings */
         @page {
           margin: 10mm;
           size: A4;
+        }
+        
+        /* Prevent page breaks inside receipt */
+        .receipt-print {
+          page-break-inside: avoid;
         }
       }
     </style>
