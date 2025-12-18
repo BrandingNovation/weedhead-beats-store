@@ -1551,6 +1551,37 @@ const App = () => {
   const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
   const [cmsLoaded, setCmsLoaded] = useState(false);
 
+  // Load API Keys from Supabase (admin only)
+  useEffect(() => {
+    const loadApiKeys = async () => {
+      if (!user?.isAdmin) {
+        setApiKeysLoaded(true); // Set to true even if not admin to hide spinner
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('api_keys')
+          .select('key_name, key_value, is_active')
+          .eq('is_active', true);
+        
+        if (!error && data) {
+          const keys: Record<string, string> = {};
+          data.forEach((item: any) => {
+            keys[item.key_name] = item.key_value;
+          });
+          setApiKeys(keys);
+        }
+        setApiKeysLoaded(true);
+      } catch (e) {
+        console.warn('Failed to load API keys (table may not exist yet)', e);
+        setApiKeysLoaded(true); // Set to true even on error to hide spinner
+      }
+    };
+    
+    loadApiKeys();
+  }, [user?.isAdmin]); // Only depend on isAdmin, not the whole user object
+
   // Load CMS content from Supabase
   useEffect(() => {
     const loadCmsContent = async () => {
