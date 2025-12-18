@@ -3028,8 +3028,10 @@ const App = () => {
                             amazonUrl: beat.amazonUrl || '',
                             cover: null,
                             audio: null,
+                            stems: null,
                             coverPreview: beat.cover,
-                            audioName: ''
+                            audioName: '',
+                            stemsName: ''
                           });
                           setAdminTab('upload');
                         }}
@@ -3988,8 +3990,10 @@ const App = () => {
                             amazonUrl: beat.amazonUrl || '',
                             cover: null,
                             audio: null,
+                            stems: null,
                             coverPreview: beat.cover,
-                            audioName: ''
+                            audioName: '',
+                            stemsName: ''
                           });
                           setActiveTab('dashboard');
                           setAdminTab('upload');
