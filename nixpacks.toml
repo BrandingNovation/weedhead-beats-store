@@ -2,6 +2,10 @@
 # This forces Node.js detection instead of Deno (which gets detected from supabase/functions)
 # Node.js version is set via NIXPACKS_NODE_VERSION environment variable (set by Coolify)
 
+[phases.setup]
+nixPkgs = ["nodejs"]
+cmds = ["echo 'Using Node.js for this build'"]
+
 [phases.install]
 cmds = ["npm install"]
 
