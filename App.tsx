@@ -2019,16 +2019,19 @@ const App = () => {
 
   useEffect(() => {
     if (audioRef.current && currentTrack) {
+      // Only proceed if we have a valid audio URL
+      if (!currentTrack.audio || !currentTrack.audio.startsWith('http')) {
+        setIsPlaying(false);
+        return;
+      }
+      
       if (isPlaying) {
         // Only try to play if we have a valid src and it's not a blob URL
         const src = audioRef.current.src;
         if (src && src !== '' && !src.startsWith('blob:') && audioRef.current.readyState >= 2) {
           // readyState 2 = HAVE_CURRENT_DATA, 3 = HAVE_FUTURE_DATA, 4 = HAVE_ENOUGH_DATA
-          audioRef.current.play().catch(e => {
-            // Don't log common playback errors to reduce console noise
-            if (!e.message?.includes('play()') && !e.message?.includes('user gesture') && !e.message?.includes('interrupted')) {
-              console.warn("Playback failed", e);
-            }
+          audioRef.current.play().catch(() => {
+            // Silently handle playback errors - don't log to prevent spam
             setIsPlaying(false); // Stop trying to play if it fails
           });
         } else if (!src || src === '') {
