@@ -893,9 +893,12 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                 // Calculate price: use license price if available, otherwise base price
                                 // Apply "buy 2 get 1 free" logic (every 3rd item is free)
                                 const isFree = (i + 1) % 3 === 0;
-                                const itemPrice = item.selectedLicense 
-                                    ? (isFree ? 0 : item.selectedLicense.price)
-                                    : (typeof item.price === 'number' ? item.price : parseFloat(item.price.toString()));
+                                let itemPrice: number;
+                                if (item.selectedLicense) {
+                                    itemPrice = isFree ? 0 : item.selectedLicense.price;
+                                } else {
+                                    itemPrice = typeof item.price === 'number' ? item.price : parseFloat(String(item.price));
+                                }
                                 
                                 return (
                                     <div key={i} className="flex justify-between text-sm print:text-black">
@@ -907,7 +910,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                             {isFree && item.selectedLicense ? (
                                                 <span className="text-brand-green print:text-green-600">FREE</span>
                                             ) : (
-                                                `$${typeof itemPrice === 'number' ? itemPrice.toFixed(2) : parseFloat(itemPrice.toString()).toFixed(2)}`
+                                                `$${itemPrice.toFixed(2)}`
                                             )}
                                         </span>
                                     </div>
