@@ -85,21 +85,37 @@ export const sendMessageStream = async (
 
 export const generateBlogImage = async (prompt: string): Promise<string | null> => {
     try {
-        // Note: Image generation may not work with gemini-pro (text-only model)
-        // This is a limitation of the free tier
-        const response = await ai.models.generateContent({
-            model: 'gemini-pro',
-            contents: {
-                parts: [{ text: `Generate a high quality, cinematic, 4k digital art image for a hip-hop music producer blog post about: ${prompt}. Dark aesthetic, neon green accents, studio equipment, urban vibe. No text on image.` }]
-            }
-        });
+        // Try different model names - gemini-pro is deprecated, try newer models
+        // Image generation is limited on free tier
+        const modelsToTry = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp'];
+        let lastError: any = null;
+        
+        for (const modelName of modelsToTry) {
+            try {
+                const response = await ai.models.generateContent({
+                    model: modelName,
+                    contents: {
+                        parts: [{ text: `Generate a high quality, cinematic, 4k digital art image for a hip-hop music producer blog post about: ${prompt}. Dark aesthetic, neon green accents, studio equipment, urban vibe. No text on image.` }]
+                    }
+                });
 
-        // Extract base64 image data
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-            if (part.inlineData) {
-                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                // Extract base64 image data
+                for (const part of response.candidates?.[0]?.content?.parts || []) {
+                    if (part.inlineData) {
+                        return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                    }
+                }
+                // If we got here, model worked but no image returned
+                return null;
+            } catch (error: any) {
+                lastError = error;
+                console.warn(`Model ${modelName} failed, trying next...`, error.message);
+                continue;
             }
         }
+        
+        // All models failed
+        console.error("All image generation models failed:", lastError);
         return null;
     } catch (error: any) {
         console.error("Error generating image:", error);
@@ -112,70 +128,97 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
 
 export const generateSEOContent = async (topic: string): Promise<string> => {
     try {
-        // Try gemini-pro first (free tier), fallback to other models if needed
-        // Note: The @google/genai SDK may use different model names than the REST API
-        let response;
-        try {
-            response = await ai.models.generateContent({
-                model: 'gemini-pro',
-            contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
-            
-            Task:
-            1. Search for the trending news today related to: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
-            2. Choose the most high-impact story for an independent producer trying to make it.
-            3. RECREATE this story as a blog post.
-            
-            Tone & Style Guide (CRITICAL):
-            - **Target Audience**: 18-35 year old bedroom producers, beatmakers, and songwriters.
-            - **Voice**: Authentic, street-smart, knowledgeable, "big brother" vibes.
-            - **Slang**: Use terms naturally (e.g., "secure the bag", "placement ready", "cook up", "sauce", "the mix", "industry standard").
-            - **Formatting**: Short paragraphs, punchy sentences. High readability.
-            
-            SEO Requirements:
-            - Focus Keyword: "${topic}" + "Beats" or "Producer".
-            - Include keywords: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips".
-            
-            Structure:
-            1. **Hype Title (H1)**: Click-worthy, uses keywords.
-            2. **The Drop (Intro)**: Hook the reader immediately.
-            3. **The Cook Up (Body)**: The core news/tips using H2 headers.
-            4. **Key Gems (Bullet Points)**: Actionable takeaways.
-            5. **Outro**: Call to action to check out the store's latest beats.
-            
-            Output strictly as Markdown.`,
-                config: {
-                    tools: [{ googleSearch: {} }]
+        // Try different model names - gemini-pro is deprecated
+        // Try newer models that are available in v1beta API
+        const modelsToTry = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp'];
+        let response: any = null;
+        let lastError: any = null;
+        
+        // First, try with tools (googleSearch)
+        for (const modelName of modelsToTry) {
+            try {
+                response = await ai.models.generateContent({
+                    model: modelName,
+                    contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
+                    
+                    Task:
+                    1. Search for the trending news today related to: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
+                    2. Choose the most high-impact story for an independent producer trying to make it.
+                    3. RECREATE this story as a blog post.
+                    
+                    Tone & Style Guide (CRITICAL):
+                    - **Target Audience**: 18-35 year old bedroom producers, beatmakers, and songwriters.
+                    - **Voice**: Authentic, street-smart, knowledgeable, "big brother" vibes.
+                    - **Slang**: Use terms naturally (e.g., "secure the bag", "placement ready", "cook up", "sauce", "the mix", "industry standard").
+                    - **Formatting**: Short paragraphs, punchy sentences. High readability.
+                    
+                    SEO Requirements:
+                    - Focus Keyword: "${topic}" + "Beats" or "Producer".
+                    - Include keywords: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips".
+                    
+                    Structure:
+                    1. **Hype Title (H1)**: Click-worthy, uses keywords.
+                    2. **The Drop (Intro)**: Hook the reader immediately.
+                    3. **The Cook Up (Body)**: The core news/tips using H2 headers.
+                    4. **Key Gems (Bullet Points)**: Actionable takeaways.
+                    5. **Outro**: Call to action to check out the store's latest beats.
+                    
+                    Output strictly as Markdown.`,
+                    config: {
+                        tools: [{ googleSearch: {} }]
+                    }
+                });
+                // Success! Break out of loop
+                break;
+            } catch (error: any) {
+                lastError = error;
+                console.warn(`Model ${modelName} with tools failed, trying next...`, error.message);
+                continue;
+            }
+        }
+        
+        // If all models with tools failed, try without tools
+        if (!response) {
+            for (const modelName of modelsToTry) {
+                try {
+                    response = await ai.models.generateContent({
+                        model: modelName,
+                        contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
+                        
+                        Task:
+                        Write a blog post about: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
+                        
+                        Tone & Style Guide (CRITICAL):
+                        - **Target Audience**: 18-35 year old bedroom producers, beatmakers, and songwriters.
+                        - **Voice**: Authentic, street-smart, knowledgeable, "big brother" vibes.
+                        - **Slang**: Use terms naturally (e.g., "secure the bag", "placement ready", "cook up", "sauce", "the mix", "industry standard").
+                        - **Formatting**: Short paragraphs, punchy sentences. High readability.
+                        
+                        SEO Requirements:
+                        - Focus Keyword: "${topic}" + "Beats" or "Producer".
+                        - Include keywords: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips".
+                        
+                        Structure:
+                        1. **Hype Title (H1)**: Click-worthy, uses keywords.
+                        2. **The Drop (Intro)**: Hook the reader immediately.
+                        3. **The Cook Up (Body)**: The core news/tips using H2 headers.
+                        4. **Key Gems (Bullet Points)**: Actionable takeaways.
+                        5. **Outro**: Call to action to check out the store's latest beats.
+                        
+                        Output strictly as Markdown.`
+                    });
+                    // Success! Break out of loop
+                    break;
+                } catch (error: any) {
+                    lastError = error;
+                    console.warn(`Model ${modelName} without tools failed, trying next...`, error.message);
+                    continue;
                 }
-            });
-        } catch (modelError: any) {
-            // If gemini-pro fails, try without tools (some models don't support googleSearch)
-            console.warn("gemini-pro failed, trying without tools:", modelError);
-            response = await ai.models.generateContent({
-                model: 'gemini-pro',
-                contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
-                
-                Task:
-                Write a blog post about: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
-                
-                Tone & Style Guide (CRITICAL):
-                - **Target Audience**: 18-35 year old bedroom producers, beatmakers, and songwriters.
-                - **Voice**: Authentic, street-smart, knowledgeable, "big brother" vibes.
-                - **Slang**: Use terms naturally (e.g., "secure the bag", "placement ready", "cook up", "sauce", "the mix", "industry standard").
-                - **Formatting**: Short paragraphs, punchy sentences. High readability.
-                
-                SEO Requirements:
-                - Focus Keyword: "${topic}" + "Beats" or "Producer".
-                - Include keywords: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips".
-                
-                Structure:
-                1. **Hype Title (H1)**: Click-worthy, uses keywords.
-                2. **The Drop (Intro)**: Hook the reader immediately.
-                3. **The Cook Up (Body)**: The core news/tips using H2 headers.
-                4. **Key Gems (Bullet Points)**: Actionable takeaways.
-                5. **Outro**: Call to action to check out the store's latest beats.
-                
-                Output strictly as Markdown.`
-            });
+            }
+        }
+        
+        if (!response) {
+            throw lastError || new Error("All models failed");
         }
         
         let text = response.text || "";
