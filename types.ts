@@ -27,8 +27,8 @@ export interface Message {
 }
 
 export enum GeminiModel {
-  FLASH = 'gemini-1.5-flash-latest', // Latest flash model (free tier)
-  PRO = 'gemini-1.5-pro-latest', // Latest pro model (may require paid tier)
+  FLASH = 'gemini-1.5-flash', // Fast model (paid tier)
+  PRO = 'gemini-1.5-pro', // Best quality model (paid tier)
 }
 
 export interface AppConfig {

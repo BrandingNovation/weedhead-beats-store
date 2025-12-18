@@ -85,12 +85,13 @@ export const sendMessageStream = async (
 
 export const generateBlogImage = async (prompt: string): Promise<string | null> => {
     try {
-        // Try different model names - gemini-pro is deprecated, try newer models
-        // Image generation is limited on free tier
-        const modelsToTry = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp'];
-        let lastError: any = null;
+        // Using premium models available with paid account
+        // Try image generation models first, then fallback to text models
+        const imageModels = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
+        const textModels = ['gemini-1.5-pro', 'gemini-1.5-flash'];
         
-        for (const modelName of modelsToTry) {
+        // Try image generation models first
+        for (const modelName of imageModels) {
             try {
                 const response = await ai.models.generateContent({
                     model: modelName,
@@ -105,17 +106,14 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
                         return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
                     }
                 }
-                // If we got here, model worked but no image returned
-                return null;
             } catch (error: any) {
-                lastError = error;
-                console.warn(`Model ${modelName} failed, trying next...`, error.message);
+                console.warn(`Image model ${modelName} not available, trying next...`, error.message);
                 continue;
             }
         }
         
-        // All models failed
-        console.error("All image generation models failed:", lastError);
+        // If image models don't work, return null (text models can't generate images)
+        console.warn("Image generation models not available. Image generation requires specific image-capable models.");
         return null;
     } catch (error: any) {
         console.error("Error generating image:", error);
@@ -128,13 +126,13 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
 
 export const generateSEOContent = async (topic: string): Promise<string> => {
     try {
-        // Try different model names - gemini-pro is deprecated
-        // Try newer models that are available in v1beta API
-        const modelsToTry = ['gemini-1.5-flash-latest', 'gemini-1.5-pro-latest', 'gemini-2.0-flash-exp'];
+        // Using premium models available with paid account
+        // Try gemini-1.5-pro first (best for content generation), then fallback to flash
+        const modelsToTry = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-2.0-flash-exp'];
         let response: any = null;
         let lastError: any = null;
         
-        // First, try with tools (googleSearch)
+        // First, try with tools (googleSearch) for better results
         for (const modelName of modelsToTry) {
             try {
                 response = await ai.models.generateContent({
