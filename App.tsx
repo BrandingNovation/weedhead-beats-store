@@ -1734,6 +1734,15 @@ const App = () => {
 
   // Dashboard Form State
   const [adminTab, setAdminTab] = useState<'upload' | 'inventory' | 'cms' | 'blog' | 'settings'>('inventory');
+  
+  // API Keys Management State
+  const [apiKeys, setApiKeys] = useState<Record<string, string>>({
+    gemini: '',
+    stripe: '',
+    paypal: ''
+  });
+  const [apiKeysLoaded, setApiKeysLoaded] = useState(false);
+  const [savingKey, setSavingKey] = useState<string | null>(null);
   const [cmsPage, setCmsPage] = useState<keyof SiteContent>('store');
   const [editingTrackId, setEditingTrackId] = useState<string | number | null>(null);
   
@@ -3273,71 +3282,182 @@ const App = () => {
                     <ShieldCheck size={20} className="text-brand-green" /> API Keys & Credentials
                   </h3>
                   <p className="text-xs text-brand-teal mb-4">
-                    Add your API keys to enable AI features. These should be set in your <code className="bg-brand-black px-2 py-1 rounded">.env</code> file.
+                    Manage your API keys directly from the admin dashboard. Keys are stored securely in the database.
                   </p>
+                  
+                  {!apiKeysLoaded && (
+                    <div className="text-center py-4">
+                      <div className="w-8 h-8 border-2 border-brand-green border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    </div>
+                  )}
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Google Gemini API Key</label>
-                      <input
-                        type="password"
-                        placeholder="Enter VITE_API_KEY"
-                        value={typeof process !== 'undefined' && process.env?.VITE_API_KEY ? '••••••••••••' : ''}
-                        disabled
-                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                        style={{ color: '#000000', caretColor: '#0D5F11' }}
-                      />
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        Google Gemini API Key
+                        <span className="text-gray-500 ml-2">(for AI features)</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          placeholder="Enter Gemini API Key (starts with AIza...)"
+                          value={apiKeys.gemini || ''}
+                          onChange={(e) => setApiKeys({ ...apiKeys, gemini: e.target.value })}
+                          className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                        <button
+                          onClick={async () => {
+                            if (!apiKeys.gemini.trim()) {
+                              alert('Please enter an API key');
+                              return;
+                            }
+                            setSavingKey('gemini');
+                            try {
+                              const { error } = await supabase
+                                .from('api_keys')
+                                .upsert({
+                                  key_name: 'gemini',
+                                  key_value: apiKeys.gemini.trim(),
+                                  description: 'Google Gemini API Key for AI features',
+                                  is_active: true
+                                }, { onConflict: 'key_name' });
+                              
+                              if (error) throw error;
+                              alert('Gemini API key saved successfully!');
+                            } catch (e: any) {
+                              console.error('Failed to save API key:', e);
+                              alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                            } finally {
+                              setSavingKey(null);
+                            }
+                          }}
+                          disabled={savingKey === 'gemini'}
+                          className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50"
+                        >
+                          {savingKey === 'gemini' ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
                       <p className="text-xs text-brand-teal mt-1">
-                        Status: {chatSession ? <span className="text-brand-green">✓ Configured</span> : <span className="text-red-400">✗ Not Set</span>}
+                        Status: {apiKeys.gemini || import.meta.env.VITE_API_KEY ? (
+                          <span className="text-brand-green">✓ Configured</span>
+                        ) : (
+                          <span className="text-red-400">✗ Not Set</span>
+                        )}
+                        {import.meta.env.VITE_API_KEY && !apiKeys.gemini && (
+                          <span className="text-yellow-400 ml-2">(using env var)</span>
+                        )}
                       </p>
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Supabase URL</label>
-                      <input
-                        type="text"
-                        placeholder="Enter VITE_SUPABASE_URL"
-                        value={typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL ? process.env.VITE_SUPABASE_URL.substring(0, 30) + '...' : ''}
-                        disabled
-                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                        style={{ color: '#000000', caretColor: '#0D5F11' }}
-                      />
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        Stripe Publishable Key
+                        <span className="text-gray-500 ml-2">(for payments)</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          placeholder="Enter Stripe Publishable Key (starts with pk_...)"
+                          value={apiKeys.stripe || ''}
+                          onChange={(e) => setApiKeys({ ...apiKeys, stripe: e.target.value })}
+                          className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                        <button
+                          onClick={async () => {
+                            if (!apiKeys.stripe.trim()) {
+                              alert('Please enter an API key');
+                              return;
+                            }
+                            setSavingKey('stripe');
+                            try {
+                              const { error } = await supabase
+                                .from('api_keys')
+                                .upsert({
+                                  key_name: 'stripe',
+                                  key_value: apiKeys.stripe.trim(),
+                                  description: 'Stripe Publishable Key for payments',
+                                  is_active: true
+                                }, { onConflict: 'key_name' });
+                              
+                              if (error) throw error;
+                              alert('Stripe key saved successfully!');
+                            } catch (e: any) {
+                              console.error('Failed to save API key:', e);
+                              alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                            } finally {
+                              setSavingKey(null);
+                            }
+                          }}
+                          disabled={savingKey === 'stripe'}
+                          className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50"
+                        >
+                          {savingKey === 'stripe' ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-brand-teal mt-1">
+                        Status: {apiKeys.stripe || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? (
+                          <span className="text-brand-green">✓ Configured</span>
+                        ) : (
+                          <span className="text-red-400">✗ Not Set</span>
+                        )}
+                      </p>
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Supabase Anon Key</label>
-                      <input
-                        type="password"
-                        placeholder="Enter VITE_SUPABASE_ANON_KEY"
-                        value={typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY ? '••••••••••••' : ''}
-                        disabled
-                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                        style={{ color: '#000000', caretColor: '#0D5F11' }}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Stripe Publishable Key</label>
-                      <input
-                        type="password"
-                        placeholder="Enter VITE_STRIPE_PUBLISHABLE_KEY"
-                        value={typeof process !== 'undefined' && process.env?.VITE_STRIPE_PUBLISHABLE_KEY ? '••••••••••••' : ''}
-                        disabled
-                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                        style={{ color: '#000000', caretColor: '#0D5F11' }}
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">PayPal Client ID</label>
-                      <input
-                        type="password"
-                        placeholder="Enter VITE_PAYPAL_CLIENT_ID"
-                        value={typeof process !== 'undefined' && process.env?.VITE_PAYPAL_CLIENT_ID ? '••••••••••••' : ''}
-                        disabled
-                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                        style={{ color: '#000000', caretColor: '#0D5F11' }}
-                      />
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        PayPal Client ID
+                        <span className="text-gray-500 ml-2">(for payments)</span>
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          placeholder="Enter PayPal Client ID"
+                          value={apiKeys.paypal || ''}
+                          onChange={(e) => setApiKeys({ ...apiKeys, paypal: e.target.value })}
+                          className="flex-1 bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                        <button
+                          onClick={async () => {
+                            if (!apiKeys.paypal.trim()) {
+                              alert('Please enter an API key');
+                              return;
+                            }
+                            setSavingKey('paypal');
+                            try {
+                              const { error } = await supabase
+                                .from('api_keys')
+                                .upsert({
+                                  key_name: 'paypal',
+                                  key_value: apiKeys.paypal.trim(),
+                                  description: 'PayPal Client ID for payments',
+                                  is_active: true
+                                }, { onConflict: 'key_name' });
+                              
+                              if (error) throw error;
+                              alert('PayPal key saved successfully!');
+                            } catch (e: any) {
+                              console.error('Failed to save API key:', e);
+                              alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                            } finally {
+                              setSavingKey(null);
+                            }
+                          }}
+                          disabled={savingKey === 'paypal'}
+                          className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50"
+                        >
+                          {savingKey === 'paypal' ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-brand-teal mt-1">
+                        Status: {apiKeys.paypal || import.meta.env.VITE_PAYPAL_CLIENT_ID ? (
+                          <span className="text-brand-green">✓ Configured</span>
+                        ) : (
+                          <span className="text-red-400">✗ Not Set</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                   
