@@ -1572,37 +1572,65 @@ const App = () => {
     if (!cmsLoaded) return; // Don't save on initial load
     
     const saveCmsContent = async () => {
-      try {
-        // Save to Supabase
-        for (const [page, content] of Object.entries(siteContent)) {
-          await supabase
-            .from('site_content')
-            .upsert({
-              page,
-              hero_image: (content as PageConfig).heroImage || '',
-              content: { ...(content as any) }
-            }, { onConflict: 'page' });
+      // Only save to Supabase if user is authenticated (and preferably admin)
+      // If not authenticated, just save to localStorage
+      const isAuthenticated = user !== null;
+      
+      if (isAuthenticated) {
+        try {
+          // Save to Supabase
+          for (const [page, content] of Object.entries(siteContent)) {
+            const { error } = await supabase
+              .from('site_content')
+              .upsert({
+                page,
+                hero_image: (content as PageConfig).heroImage || '',
+                content: { ...(content as any) }
+              }, { onConflict: 'page' });
+            
+            if (error) {
+              // If unauthorized, user logged out - just use localStorage
+              if (error.code === 'PGRST301' || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+                console.log('User not authenticated, saving to localStorage only');
+                break; // Exit loop and save to localStorage
+              }
+              throw error;
+            }
+          }
+          
+          // Also save to localStorage as backup
+          try {
+            localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
+          } catch (e) {
+            console.warn('Failed to save CMS content to localStorage', e);
+          }
+        } catch (e: any) {
+          // If unauthorized, just use localStorage (user logged out)
+          if (e?.code === 'PGRST301' || e?.message?.includes('401') || e?.message?.includes('Unauthorized')) {
+            console.log('User not authenticated, saving to localStorage only');
+          } else {
+            console.error('Failed to save CMS content to Supabase', e);
+          }
+          
+          // Fallback to localStorage
+          try {
+            localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
+          } catch (err) {
+            console.error('Failed to save CMS content to localStorage', err);
+          }
         }
-        
-        // Also save to localStorage as backup
+      } else {
+        // User not authenticated - only save to localStorage
         try {
           localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
         } catch (e) {
           console.warn('Failed to save CMS content to localStorage', e);
         }
-      } catch (e) {
-        console.error('Failed to save CMS content to Supabase', e);
-        // Fallback to localStorage only
-        try {
-          localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
-        } catch (err) {
-          console.error('Failed to save CMS content to localStorage', err);
-        }
       }
     };
     
     saveCmsContent();
-  }, [siteContent, cmsLoaded]);
+  }, [siteContent, cmsLoaded, user]);
 
   // New States for Checkout/Licenses
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
