@@ -1413,18 +1413,20 @@ const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpe
             <img src={post.image} alt={post.title} className="w-full h-64 object-cover rounded-lg mb-6" />
           )}
           <div className="prose prose-lg max-w-none text-gray-700">
-            {post.isAiGenerated ? (
-              <ReactMarkdown components={{
-                h1: ({node, ...props}: any) => <h1 className="text-3xl font-black text-gray-900 mb-4" {...props} />,
-                h2: ({node, ...props}: any) => <h2 className="text-2xl font-bold text-gray-900 mb-3 mt-6" {...props} />,
-                p: ({node, ...props}: any) => <p className="mb-4 leading-relaxed" {...props} />,
-                a: ({node, ...props}: any) => <a className="text-brand-green hover:underline" {...props} />,
-                ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-4 space-y-2" {...props} />,
-                li: ({node, ...props}: any) => <li className="ml-4" {...props} />
-              }}>{post.excerpt}</ReactMarkdown>
-            ) : (
-              <p className="text-lg leading-relaxed">{post.excerpt}</p>
-            )}
+            <ReactMarkdown components={{
+              h1: ({node, ...props}: any) => <h1 className="text-3xl font-black text-gray-900 mb-4" {...props} />,
+              h2: ({node, ...props}: any) => <h2 className="text-2xl font-bold text-gray-900 mb-3 mt-6" {...props} />,
+              h3: ({node, ...props}: any) => <h3 className="text-xl font-bold text-gray-900 mb-2 mt-4" {...props} />,
+              p: ({node, ...props}: any) => <p className="mb-4 leading-relaxed text-gray-700" {...props} />,
+              a: ({node, ...props}: any) => <a className="text-brand-green hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+              ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-4 space-y-2 ml-4" {...props} />,
+              ol: ({node, ...props}: any) => <ol className="list-decimal list-inside mb-4 space-y-2 ml-4" {...props} />,
+              li: ({node, ...props}: any) => <li className="mb-1" {...props} />,
+              strong: ({node, ...props}: any) => <strong className="font-bold text-gray-900" {...props} />,
+              em: ({node, ...props}: any) => <em className="italic" {...props} />,
+              code: ({node, ...props}: any) => <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props} />,
+              blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-brand-green pl-4 italic my-4" {...props} />
+            }}>{post.content || post.excerpt}</ReactMarkdown>
           </div>
         </div>
       </div>
@@ -1663,6 +1665,7 @@ const App = () => {
   const [blogForm, setBlogForm] = useState({
       title: '',
       excerpt: '',
+      content: '', // Full blog content (markdown)
       image: ''
   });
 
@@ -1762,9 +1765,11 @@ const App = () => {
                     id: p.id,
                     title: p.title,
                     excerpt: p.excerpt,
+                    content: p.content || p.excerpt,
                     image: p.image,
                     date: new Date(p.created_at).toLocaleDateString(),
-                    isAiGenerated: p.is_ai_generated
+                    isAiGenerated: p.is_ai_generated,
+                    slug: p.slug
                 })));
             } else {
                  setPosts(INITIAL_POSTS);
@@ -2087,6 +2092,7 @@ const App = () => {
       setBlogForm({
           title: post.title,
           excerpt: post.excerpt,
+          content: post.content || post.excerpt, // Use content if available, fallback to excerpt
           image: post.image
       });
   };
@@ -2129,12 +2135,20 @@ const App = () => {
         }
       }
       
+      // Generate slug from title
+      const slug = blogForm.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      
       const postData = {
           title: blogForm.title,
-          excerpt: blogForm.excerpt,
+          excerpt: blogForm.excerpt || blogForm.content?.substring(0, 200) + '...', // Auto-generate excerpt if not provided
+          content: blogForm.content || blogForm.excerpt, // Full content
           image: imageUrl,
-          content: blogForm.excerpt, // Use excerpt as content for now
-          is_ai_generated: false
+          slug: slug,
+          is_ai_generated: false,
+          published: true
       };
 
       if(editingPostId) {
@@ -2142,7 +2156,8 @@ const App = () => {
           setPosts(posts.map(p => p.id === editingPostId ? {
               ...p,
               title: blogForm.title,
-              excerpt: blogForm.excerpt,
+              excerpt: blogForm.excerpt || blogForm.content?.substring(0, 200) + '...',
+              content: blogForm.content || blogForm.excerpt,
               image: imageUrl
           } : p));
           // Update DB
@@ -2159,9 +2174,11 @@ const App = () => {
                     id: data[0].id,
                     title: data[0].title,
                     excerpt: data[0].excerpt,
+                    content: data[0].content || data[0].excerpt,
                     date: new Date(data[0].created_at).toLocaleDateString(),
                     image: data[0].image,
-                    isAiGenerated: data[0].is_ai_generated
+                    isAiGenerated: data[0].is_ai_generated,
+                    slug: data[0].slug
                 };
                 setPosts([newPost, ...posts]);
             }
@@ -2332,13 +2349,21 @@ const App = () => {
           }
         }
 
-        // 3. Save post to Supabase
+        // 3. Generate slug and save post to Supabase
+        const cleanTitle = title.replace(/^\*+|\*+$/g, ''); // Clean markdown bolding from title
+        const slug = cleanTitle
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        
         const postData = {
-          title: title.replace(/^\*+|\*+$/g, ''), // Clean markdown bolding from title
+          title: cleanTitle,
           excerpt: textContent.substring(0, 200) + '...', // First 200 chars as excerpt
-          content: textContent, // Full content
+          content: textContent, // Full markdown content
           image: imageUrl,
-          is_ai_generated: true
+          slug: slug,
+          is_ai_generated: true,
+          published: true
         };
 
         try {
@@ -2348,9 +2373,11 @@ const App = () => {
               id: data[0].id,
               title: data[0].title,
               excerpt: data[0].excerpt || textContent.substring(0, 200) + '...',
+              content: data[0].content || textContent,
               date: new Date(data[0].created_at).toLocaleDateString(),
               image: data[0].image,
-              isAiGenerated: data[0].is_ai_generated
+              isAiGenerated: data[0].is_ai_generated,
+              slug: data[0].slug
             };
             setPosts([newPost, ...posts]);
           } else {
@@ -2359,6 +2386,7 @@ const App = () => {
               id: Date.now(),
               title: title.replace(/^\*+|\*+$/g, ''),
               excerpt: textContent.substring(0, 200) + '...',
+              content: textContent,
               date: new Date().toLocaleDateString(),
               image: imageUrl,
               isAiGenerated: true
@@ -2949,14 +2977,27 @@ const App = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Excerpt/Content</label>
+                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Excerpt (Short Summary)</label>
                     <textarea
                       value={blogForm.excerpt}
                       onChange={e => setBlogForm({...blogForm, excerpt: e.target.value})}
-                      className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none h-48 placeholder:text-zinc-500"
+                      placeholder="Brief summary (1-2 sentences) - shown in blog listing"
+                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
+                      style={{ color: '#000000', caretColor: '#0D5F11' }}
+                    />
+                    <p className="text-xs text-brand-teal mt-1">Leave empty to auto-generate from content</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Content (Markdown)</label>
+                    <textarea
+                      value={blogForm.content}
+                      onChange={e => setBlogForm({...blogForm, content: e.target.value})}
+                      placeholder="Full blog post content in Markdown format..."
+                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-96 font-mono text-sm placeholder:text-gray-500"
                       style={{ color: '#000000', caretColor: '#0D5F11' }}
                       required
                     />
+                    <p className="text-xs text-brand-teal mt-1">Supports Markdown: # Headers, **bold**, *italic*, - lists, [links](url)</p>
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Image URL</label>

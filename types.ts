@@ -78,9 +78,14 @@ export interface BlogPost {
   id: number | string;
   title: string;
   excerpt: string;
+  content?: string; // Full blog post content (markdown)
   date: string;
   image: string;
   isAiGenerated?: boolean;
+  slug?: string; // URL-friendly slug
+  author?: string; // Author name
+  tags?: string[]; // Blog post tags
+  published?: boolean; // Draft/published status
 }
 
 // --- CMS & Auth Types ---

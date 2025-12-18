@@ -24,16 +24,51 @@ CREATE TABLE IF NOT EXISTS site_content (
 CREATE INDEX IF NOT EXISTS idx_site_content_page ON site_content(page);
 
 -- ============================================
--- 2. ENSURE POSTS TABLE HAS CONTENT FIELD
+-- 2. ENSURE POSTS TABLE HAS ALL REQUIRED FIELDS
 -- ============================================
--- Add content field if it doesn't exist (for full blog post content)
+-- Add missing fields for better blog post management
 DO $$ 
 BEGIN
+    -- Add content field if it doesn't exist (for full blog post content)
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.columns 
         WHERE table_name = 'posts' AND column_name = 'content'
     ) THEN
         ALTER TABLE posts ADD COLUMN content TEXT;
+    END IF;
+    
+    -- Add slug field for URL-friendly blog post links
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'slug'
+    ) THEN
+        ALTER TABLE posts ADD COLUMN slug TEXT;
+        CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);
+    END IF;
+    
+    -- Add published field for draft/published status
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'published'
+    ) THEN
+        ALTER TABLE posts ADD COLUMN published BOOLEAN DEFAULT true;
+        CREATE INDEX IF NOT EXISTS idx_posts_published ON posts(published);
+    END IF;
+    
+    -- Add author field
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'author'
+    ) THEN
+        ALTER TABLE posts ADD COLUMN author TEXT;
+    END IF;
+    
+    -- Add tags field (JSONB array)
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'posts' AND column_name = 'tags'
+    ) THEN
+        ALTER TABLE posts ADD COLUMN tags JSONB DEFAULT '[]'::jsonb;
     END IF;
 END $$;
 
