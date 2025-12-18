@@ -128,8 +128,8 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
 export const generateSEOContent = async (topic: string): Promise<string> => {
     try {
         // Using premium models available with paid account
-        // Model names need -latest or -001 suffix for v1beta API
-        const modelsToTry = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001', 'gemini-2.0-flash-exp'];
+        // Try newer 2.5 models first, then fallback to 1.5 models with -latest suffix
+        const modelsToTry = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001', 'gemini-2.0-flash-exp'];
         let response: any = null;
         let lastError: any = null;
         
