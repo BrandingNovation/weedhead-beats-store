@@ -4433,10 +4433,137 @@ const App = () => {
                   </div>
                 </div>
                 
+                <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                  <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                    <Globe size={20} className="text-brand-green" /> General Settings
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Site Name</label>
+                      <input
+                        type="text"
+                        defaultValue="Weedhead Beats"
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Site URL</label>
+                      <input
+                        type="url"
+                        placeholder="https://weedheadbeats.com"
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Contact Email</label>
+                      <input
+                        type="email"
+                        placeholder="info@weedheadbeats.com"
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Default Currency</label>
+                      <select className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none" style={{ color: '#000000', caretColor: '#0D5F11' }}>
+                        <option>USD ($)</option>
+                        <option>EUR (€)</option>
+                        <option>GBP (£)</option>
+                        <option>CAD ($)</option>
+                      </select>
+                    </div>
+                    <button className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors">
+                      Save General Settings
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                  <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                    <BarChart3 size={20} className="text-brand-green" /> Order & Payment Settings
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="flex items-center gap-2 text-sm text-white mb-2">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        Enable "Buy 2 Get 1 Free" promotion
+                      </label>
+                    </div>
+                    <div>
+                      <label className="flex items-center gap-2 text-sm text-white mb-2">
+                        <input
+                          type="checkbox"
+                          defaultChecked
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        Send order confirmation emails
+                      </label>
+                    </div>
+                    <div>
+                      <label className="flex items-center gap-2 text-sm text-white mb-2">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-gray-300"
+                        />
+                        Require account creation for checkout
+                      </label>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Tax Rate (%)</label>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                    </div>
+                    <button className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors">
+                      Save Payment Settings
+                    </button>
+                  </div>
+                </div>
+                
                 <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4">
                   <h3 className="font-bold text-white mb-2">Environment Status</h3>
-                  <p className="text-xs text-brand-teal">Supabase: Connected</p>
-                  <p className="text-xs text-brand-teal">Gemini API: {chatSession ? 'Ready' : 'Not Configured'}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-brand-teal">Supabase:</p>
+                      <span className="text-xs text-brand-green font-bold">✓ Connected</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-brand-teal">Gemini API:</p>
+                      <span className={`text-xs font-bold ${chatSession ? 'text-brand-green' : 'text-red-400'}`}>
+                        {chatSession ? '✓ Ready' : '✗ Not Configured'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-brand-teal">Email/SMTP:</p>
+                      <span className={`text-xs font-bold ${emailSettings.smtp_host ? 'text-brand-green' : 'text-red-400'}`}>
+                        {emailSettings.smtp_host ? '✓ Configured' : '✗ Not Set'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-brand-teal">Stripe:</p>
+                      <span className={`text-xs font-bold ${apiKeys.stripe || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? 'text-brand-green' : 'text-red-400'}`}>
+                        {apiKeys.stripe || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? '✓ Configured' : '✗ Not Set'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-brand-teal">PayPal:</p>
+                      <span className={`text-xs font-bold ${apiKeys.paypal || import.meta.env.VITE_PAYPAL_CLIENT_ID ? 'text-brand-green' : 'text-red-400'}`}>
+                        {apiKeys.paypal || import.meta.env.VITE_PAYPAL_CLIENT_ID ? '✓ Configured' : '✗ Not Set'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
