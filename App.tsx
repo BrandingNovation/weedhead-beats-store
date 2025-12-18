@@ -1565,7 +1565,18 @@ const App = () => {
           .select('key_name, key_value, is_active')
           .eq('is_active', true);
         
-        if (!error && data) {
+        // Handle 404 (table doesn't exist) gracefully
+        if (error) {
+          if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+            // Table doesn't exist yet - this is fine, just use empty keys
+            console.log('API keys table not found. Run migration_api_keys.sql to enable admin key management.');
+            setApiKeysLoaded(true);
+            return;
+          }
+          throw error;
+        }
+        
+        if (data) {
           const keys: Record<string, string> = {};
           data.forEach((item: any) => {
             keys[item.key_name] = item.key_value;
@@ -1573,8 +1584,11 @@ const App = () => {
           setApiKeys(keys);
         }
         setApiKeysLoaded(true);
-      } catch (e) {
-        console.warn('Failed to load API keys (table may not exist yet)', e);
+      } catch (e: any) {
+        // Only log non-404 errors
+        if (e?.code !== 'PGRST116' && !e?.message?.includes('404') && !e?.message?.includes('does not exist')) {
+          console.warn('Failed to load API keys:', e);
+        }
         setApiKeysLoaded(true); // Set to true even on error to hide spinner
       }
     };
@@ -3400,11 +3414,21 @@ const App = () => {
                                   is_active: true
                                 }, { onConflict: 'key_name' });
                               
-                              if (error) throw error;
+                              if (error) {
+                                if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+                                  alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                                  return;
+                                }
+                                throw error;
+                              }
                               alert('Gemini API key saved successfully!');
                             } catch (e: any) {
                               console.error('Failed to save API key:', e);
-                              alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                              if (e?.code === 'PGRST116' || e?.message?.includes('404') || e?.message?.includes('does not exist')) {
+                                alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                              } else {
+                                alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                              }
                             } finally {
                               setSavingKey(null);
                             }
@@ -3458,11 +3482,21 @@ const App = () => {
                                   is_active: true
                                 }, { onConflict: 'key_name' });
                               
-                              if (error) throw error;
+                              if (error) {
+                                if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+                                  alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                                  return;
+                                }
+                                throw error;
+                              }
                               alert('Stripe key saved successfully!');
                             } catch (e: any) {
                               console.error('Failed to save API key:', e);
-                              alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                              if (e?.code === 'PGRST116' || e?.message?.includes('404') || e?.message?.includes('does not exist')) {
+                                alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                              } else {
+                                alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                              }
                             } finally {
                               setSavingKey(null);
                             }
@@ -3513,11 +3547,21 @@ const App = () => {
                                   is_active: true
                                 }, { onConflict: 'key_name' });
                               
-                              if (error) throw error;
+                              if (error) {
+                                if (error.code === 'PGRST116' || error.message?.includes('404') || error.message?.includes('does not exist')) {
+                                  alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                                  return;
+                                }
+                                throw error;
+                              }
                               alert('PayPal key saved successfully!');
                             } catch (e: any) {
                               console.error('Failed to save API key:', e);
-                              alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                              if (e?.code === 'PGRST116' || e?.message?.includes('404') || e?.message?.includes('does not exist')) {
+                                alert('API keys table not found. Please run migration_api_keys.sql in Supabase first.');
+                              } else {
+                                alert(`Failed to save: ${e.message || 'Unknown error'}`);
+                              }
                             } finally {
                               setSavingKey(null);
                             }
