@@ -889,16 +889,30 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                     {/* Order Summary for Print */}
                     <div className="mt-8 pt-6 border-t border-brand-slate print:border-gray-300">
                         <div className="space-y-2 text-left">
-                            {cart.map((item, i) => (
-                                <div key={i} className="flex justify-between text-sm print:text-black">
-                                    <span className="print:text-gray-700">
-                                        {item.title} {item.selectedLicense ? `(${item.selectedLicense.name})` : ''}
-                                    </span>
-                                    <span className="font-bold print:text-black">
-                                        ${typeof item.price === 'number' ? item.price.toFixed(2) : parseFloat(item.price.toString()).toFixed(2)}
-                                    </span>
-                                </div>
-                            ))}
+                            {cart.map((item, i) => {
+                                // Calculate price: use license price if available, otherwise base price
+                                // Apply "buy 2 get 1 free" logic (every 3rd item is free)
+                                const isFree = (i + 1) % 3 === 0;
+                                const itemPrice = item.selectedLicense 
+                                    ? (isFree ? 0 : item.selectedLicense.price)
+                                    : (typeof item.price === 'number' ? item.price : parseFloat(item.price.toString()));
+                                
+                                return (
+                                    <div key={i} className="flex justify-between text-sm print:text-black">
+                                        <span className="print:text-gray-700">
+                                            {item.title} {item.selectedLicense ? `(${item.selectedLicense.name})` : ''}
+                                            {isFree && item.selectedLicense && <span className="text-brand-green print:text-green-600 ml-2">(FREE)</span>}
+                                        </span>
+                                        <span className="font-bold print:text-black">
+                                            {isFree && item.selectedLicense ? (
+                                                <span className="text-brand-green print:text-green-600">FREE</span>
+                                            ) : (
+                                                `$${typeof itemPrice === 'number' ? itemPrice.toFixed(2) : parseFloat(itemPrice.toString()).toFixed(2)}`
+                                            )}
+                                        </span>
+                                    </div>
+                                );
+                            })}
                         </div>
                         <div className="mt-4 pt-4 border-t border-brand-slate print:border-gray-300 flex justify-between items-center">
                             <span className="text-lg font-bold text-white uppercase print:text-black">Total:</span>
