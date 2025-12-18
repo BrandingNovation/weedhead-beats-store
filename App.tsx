@@ -712,7 +712,7 @@ const StripePaymentForm = ({ total, onSuccess }: { total: string, onSuccess: () 
             setCardError(error.message || 'Payment failed');
             setIsProcessing(false);
         } else {
-            console.log('[Stripe PaymentMethod]', paymentMethod);
+            // Payment successful
             setTimeout(() => {
                 setIsProcessing(false);
                 onSuccess();
@@ -1029,11 +1029,15 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                             });
                                         }}
                                         onApprove={async (data, actions) => {
-                                            if (actions.order) {
-                                                const order = await actions.order.capture();
-                                                console.log('[PayPal Order]', order);
+                                            try {
+                                                if (actions.order) {
+                                                    await actions.order.capture();
+                                                }
+                                                setStatus('success');
+                                            } catch (err) {
+                                                console.error('[PayPal Error]', err);
+                                                alert('PayPal payment failed. Please try again or use credit card.');
                                             }
-                                            setStatus('success');
                                         }}
                                         onError={(err) => {
                                             console.error('[PayPal Error]', err);
@@ -1741,7 +1745,7 @@ const App = () => {
         } catch (e: any) {
           // If unauthorized, just use localStorage (user logged out)
           if (e?.code === 'PGRST301' || e?.message?.includes('401') || e?.message?.includes('Unauthorized')) {
-            console.log('User not authenticated, saving to localStorage only');
+            // User not authenticated - silently use localStorage
           } else {
             console.error('Failed to save CMS content to Supabase', e);
           }
