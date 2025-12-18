@@ -2499,20 +2499,79 @@ const App = () => {
         if (editingTrackId) {
              // Update Existing
              try {
-                await supabase.from('tracks').update(trackData).eq('id', editingTrackId);
-             } catch(e) { console.error(e); }
-             
-             // Update local state for immediate feedback
-             setBeats(beats.map(b => b.id === editingTrackId ? { 
-               ...b, 
-               ...trackData, 
-               youtubeUrl: trackData.youtube_url,
-               spotifyUrl: trackData.spotify_url ?? undefined,
-               appleMusicUrl: trackData.apple_music_url ?? undefined,
-               amazonUrl: trackData.amazon_url ?? undefined
-             } as Track : b));
+                // Check if track exists in database (UUID) or is local only (number)
+                const isLocalOnly = typeof editingTrackId === 'number';
+                
+                if (isLocalOnly) {
+                    // Local track - convert to new track in database
+                    console.warn('Local track detected, creating new track in database instead of updating');
+                    const { data, error } = await supabase.from('tracks').insert([trackData]).select();
+                    if (!error && data && data[0]) {
+                        // Remove old local track and add new database track
+                        setBeats(beats.filter(b => b.id !== editingTrackId).concat([{
+                            id: data[0].id,
+                            title: data[0].title,
+                            producer: data[0].producer || 'Weedhead',
+                            bpm: data[0].bpm,
+                            key: data[0].key,
+                            price: data[0].price,
+                            mood: data[0].mood,
+                            category: data[0].category,
+                            description: data[0].description,
+                            youtubeUrl: data[0].youtube_url,
+                            spotifyUrl: data[0].spotify_url,
+                            appleMusicUrl: data[0].apple_music_url,
+                            amazonUrl: data[0].amazon_url,
+                            cover: data[0].cover,
+                            audio: data[0].audio,
+                            tags: data[0].tags || [],
+                            stats: { plays: data[0].stats_plays || 0, sales: data[0].stats_sales || 0, revenue: 0 }
+                        }]));
+                        alert("Track migrated to database and updated successfully!");
+                    } else {
+                        throw error || new Error('Failed to create track');
+                    }
+                } else {
+                    // Database track - update it
+                    const { data, error } = await supabase
+                        .from('tracks')
+                        .update(trackData)
+                        .eq('id', editingTrackId)
+                        .select();
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    if (data && data[0]) {
+                        // Update local state with database response
+                        setBeats(beats.map(b => b.id === editingTrackId ? {
+                            id: data[0].id,
+                            title: data[0].title,
+                            producer: data[0].producer || 'Weedhead',
+                            bpm: data[0].bpm,
+                            key: data[0].key,
+                            price: data[0].price,
+                            mood: data[0].mood,
+                            category: data[0].category,
+                            description: data[0].description,
+                            youtubeUrl: data[0].youtube_url,
+                            spotifyUrl: data[0].spotify_url,
+                            appleMusicUrl: data[0].apple_music_url,
+                            amazonUrl: data[0].amazon_url,
+                            cover: data[0].cover,
+                            audio: data[0].audio,
+                            tags: data[0].tags || [],
+                            stats: { plays: data[0].stats_plays || 0, sales: data[0].stats_sales || 0, revenue: 0 }
+                        } : b));
+                        alert("Track updated successfully!");
+                    }
+                }
+             } catch(e) { 
+                 console.error('Failed to update track:', e);
+                 alert(`Failed to update track: ${e instanceof Error ? e.message : 'Unknown error'}`);
+             }
              setEditingTrackId(null);
-             alert("Track updated successfully!");
         } else {
              // Create New
              try {
