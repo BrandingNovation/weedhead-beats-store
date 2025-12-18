@@ -1784,6 +1784,8 @@ const App = () => {
   const observerTarget = useRef(null);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const lastErrorUrlRef = useRef<string | null>(null); // Track last error URL to prevent spam
+  const errorCountRef = useRef<number>(0); // Track error count for same URL
 
   // Gemini / Sidebar State
   const [isAiOpen, setIsAiOpen] = useState(false);
@@ -1960,24 +1962,40 @@ const App = () => {
 
   // Audio Playback - Load audio source when track changes
   useEffect(() => {
+    // Reset error tracking when track changes
+    lastErrorUrlRef.current = null;
+    errorCountRef.current = 0;
+    
     if (currentTrack && audioRef.current) {
         // Only set src if it's a valid HTTP/HTTPS URL (avoid blob URLs which can become invalid)
         if (currentTrack.audio && (currentTrack.audio.startsWith('http://') || currentTrack.audio.startsWith('https://'))) {
           try {
             // Clear previous src to avoid conflicts
             audioRef.current.src = '';
-            audioRef.current.src = currentTrack.audio;
-            audioRef.current.load();
+            // Small delay to ensure previous src is cleared
+            setTimeout(() => {
+              if (audioRef.current && currentTrack && currentTrack.audio) {
+                audioRef.current.src = currentTrack.audio;
+                audioRef.current.load();
+              }
+            }, 10);
           } catch (e) {
-            console.warn('Failed to load audio:', e);
+            // Only log if it's not a repeated error
+            if (lastErrorUrlRef.current !== currentTrack.audio) {
+              console.warn('Failed to load audio:', currentTrack.audio.substring(0, 50) + '...');
+              lastErrorUrlRef.current = currentTrack.audio;
+            }
             setIsPlaying(false); // Stop playback if audio fails to load
           }
         } else if (currentTrack.audio && currentTrack.audio.startsWith('blob:')) {
           // Blob URLs are temporary and can become invalid - don't use them
-          console.warn('Blob URL detected for audio - this may not work reliably. Use a permanent URL instead.');
+          if (lastErrorUrlRef.current !== 'blob') {
+            console.warn('Blob URL detected for audio - this may not work reliably. Use a permanent URL instead.');
+            lastErrorUrlRef.current = 'blob';
+          }
           setIsPlaying(false);
         } else if (!currentTrack.audio || currentTrack.audio === '') {
-          // No audio URL - stop playback
+          // No audio URL - stop playback (don't log this as it's expected)
           if (audioRef.current) {
             audioRef.current.src = '';
           }
@@ -1987,6 +2005,8 @@ const App = () => {
       // Clear audio when no track is selected
       audioRef.current.src = '';
       setIsPlaying(false);
+      lastErrorUrlRef.current = null;
+      errorCountRef.current = 0;
     }
   }, [currentTrack]);
 
@@ -4291,7 +4311,25 @@ const App = () => {
         }}
         onEnded={() => setIsPlaying(false)}
         onError={(e) => {
-          console.warn('Audio playback error:', e);
+          const audio = e.currentTarget as HTMLAudioElement;
+          const currentSrc = audio.src || '';
+          
+          // Only log error once per URL to prevent spam
+          if (lastErrorUrlRef.current !== currentSrc) {
+            lastErrorUrlRef.current = currentSrc;
+            errorCountRef.current = 1;
+            // Only log if it's a real error (not empty src)
+            if (currentSrc && currentSrc !== '') {
+              console.warn('Audio playback error for:', currentSrc.substring(0, 50) + '...');
+            }
+          } else {
+            errorCountRef.current++;
+            // Only log every 10th error to prevent spam
+            if (errorCountRef.current % 10 === 0 && currentSrc && currentSrc !== '') {
+              console.warn(`Audio error repeated ${errorCountRef.current} times for:`, currentSrc.substring(0, 50) + '...');
+            }
+          }
+          
           setIsPlaying(false);
           if (audioRef.current) {
             audioRef.current.src = '';
