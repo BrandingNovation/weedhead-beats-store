@@ -6,9 +6,10 @@ interface PlayerProps {
   currentTrack: Track | null;
   isPlaying: boolean;
   onPlayPause: () => void;
+  onBuy?: (track: Track) => void;
 }
 
-const Player: React.FC<PlayerProps> = ({ currentTrack, isPlaying, onPlayPause }) => {
+const Player: React.FC<PlayerProps> = ({ currentTrack, isPlaying, onPlayPause, onBuy }) => {
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -114,7 +115,10 @@ const Player: React.FC<PlayerProps> = ({ currentTrack, isPlaying, onPlayPause })
             <div className="w-2/3 h-full bg-brand-green rounded-full" />
           </div>
         </div>
-        <button className="hidden md:flex items-center gap-2 bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-brand-green/20">
+        <button 
+          onClick={() => onBuy && currentTrack && onBuy(currentTrack)}
+          className="hidden md:flex items-center gap-2 bg-brand-green hover:bg-brand-green/80 text-white px-4 py-2 rounded-full text-sm font-semibold transition-all shadow-lg shadow-brand-green/20"
+        >
           <ShoppingCart size={16} />
           <span>${currentTrack.price}</span>
         </button>
