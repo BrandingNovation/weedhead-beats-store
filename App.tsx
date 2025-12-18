@@ -817,7 +817,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
         
         return (
             <div className="receipt-print-container fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto">
-                 <div className="receipt-print w-full max-w-2xl bg-brand-black border border-brand-slate rounded-2xl overflow-hidden shadow-2xl p-8 text-center my-auto">
+                 <div className="receipt-print w-full max-w-2xl bg-brand-black border border-brand-slate rounded-2xl overflow-hidden shadow-2xl p-8 text-center my-auto" onClick={(e) => e.stopPropagation()}>
                     <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 print:hidden">
                         <CheckCircle size={40} className="text-green-500" />
                     </div>
@@ -1190,22 +1190,40 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                         }
                                         
                                         // Send order confirmation email (if configured)
-                                        try {
-                                            const { data: emailSettings } = await supabase
-                                                .from('email_settings')
-                                                .select('setting_name, setting_value')
-                                                .in('setting_name', ['send_order_confirmation_emails', 'from_email', 'from_name'])
-                                                .eq('is_active', true);
-                                            
-                                            const sendEmail = emailSettings?.find(s => s.setting_name === 'send_order_confirmation_emails')?.setting_value === 'true';
-                                            
-                                            if (sendEmail && userData.user?.email) {
-                                                // TODO: Implement email sending via SMTP
-                                                // For now, just log that email should be sent
-                                                console.log('Order confirmation email should be sent to:', userData.user.email);
+                                        if (userData.user?.email) {
+                                            try {
+                                                const { sendOrderConfirmationEmail } = await import('./services/emailService');
+                                                const downloadLinks = cart
+                                                    .filter(item => item.category === 'beat')
+                                                    .map(item => ({
+                                                        title: item.title,
+                                                        url: item.audio
+                                                    }));
+                                                
+                                                await sendOrderConfirmationEmail({
+                                                    to: userData.user.email,
+                                                    orderNumber: orderNumber,
+                                                    orderDate: new Date().toLocaleDateString('en-US', { 
+                                                        month: 'long', 
+                                                        day: 'numeric', 
+                                                        year: 'numeric', 
+                                                        hour: '2-digit', 
+                                                        minute: '2-digit' 
+                                                    }),
+                                                    items: cart.map(item => ({
+                                                        title: item.title,
+                                                        license: item.selectedLicense?.name,
+                                                        price: item.selectedLicense?.price || (typeof item.price === 'number' ? item.price : parseFloat(String(item.price)))
+                                                    })),
+                                                    total: parseFloat(total),
+                                                    hasPhysicalItems: hasPhysicalItems,
+                                                    shippingAddress: hasPhysicalItems && shippingAddress.name ? shippingAddress : undefined,
+                                                    downloadLinks: downloadLinks.length > 0 ? downloadLinks : undefined
+                                                });
+                                            } catch (emailError) {
+                                                console.error('Error sending order confirmation email:', emailError);
+                                                // Don't fail the order if email fails
                                             }
-                                        } catch (emailError) {
-                                            console.error('Error checking email settings:', emailError);
                                         }
                                     }
                                 } catch (e) {
