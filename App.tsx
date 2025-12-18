@@ -2196,7 +2196,7 @@ const App = () => {
               setPosts([newPost, ...posts]);
           }
       }
-      setBlogForm({ title: '', excerpt: '', image: '' });
+      setBlogForm({ title: '', excerpt: '', content: '', image: '' });
   };
 
   // Backup & Restore
