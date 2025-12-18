@@ -1,13 +1,18 @@
-# Nixpacks configuration for Vite static site
+# Nixpacks configuration for Vite static site (Node.js project)
+# This forces Node.js detection instead of Deno (which gets detected from supabase/functions)
+
+[providers]
+node = true
+
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "npm-9_x"]
+nixPkgs = ["nodejs-18_x"]
 
 [phases.install]
-cmds = ["npm install", "npm install -g serve"]
+cmds = ["npm install"]
 
 [phases.build]
 cmds = ["npm run build"]
 
 [start]
-cmd = "serve -s dist -l ${PORT:-3000}"
+cmd = "npx serve -s dist -l ${PORT:-3000}"
 

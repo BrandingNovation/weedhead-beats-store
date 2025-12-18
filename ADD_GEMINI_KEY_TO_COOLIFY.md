@@ -2,7 +2,7 @@
 
 ## ✅ Your API Key
 
-Your Gemini API key: `AIzaSyBxmaE_J4wlwKsyRN0y24OMk8NLJd7EgYY`
+Your Gemini API key: `your-gemini-api-key-here` (get it from https://aistudio.google.com/app/apikey)
 
 ---
 
@@ -19,7 +19,7 @@ Your Gemini API key: `AIzaSyBxmaE_J4wlwKsyRN0y24OMk8NLJd7EgYY`
 1. **Click "Add Variable" or "+" button**
 2. **Fill in:**
    - **Name:** `VITE_API_KEY`
-   - **Value:** `AIzaSyBxmaE_J4wlwKsyRN0y24OMk8NLJd7EgYY`
+   - **Value:** `your-gemini-api-key-here` (get it from https://aistudio.google.com/app/apikey)
    - ✅ **Available at Buildtime** (CHECK THIS)
    - ✅ **Available at Runtime** (CHECK THIS)
 3. **Click "Save" or "Add"**
@@ -56,4 +56,5 @@ After redeploying:
 ---
 
 **Add the key to Coolify, redeploy, and AI features will work!** 🚀
+
 

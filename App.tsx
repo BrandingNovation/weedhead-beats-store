@@ -783,11 +783,13 @@ const StripePaymentForm = ({ total, onSuccess }: { total: string, onSuccess: () 
 const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onClose: () => void, cart: Track[], total: string }) => {
     const [status, setStatus] = useState<'idle' | 'success'>('idle');
     const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>('stripe');
+    const [orderNumber, setOrderNumber] = useState<string | null>(null);
     
     // Clear status when modal closes
     useEffect(() => {
         if (!isOpen) {
             setStatus('idle');
+            setOrderNumber(null);
         }
     }, [isOpen]);
     const [shippingAddress, setShippingAddress] = useState({
@@ -826,6 +828,11 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                         <CheckCircle size={40} className="text-green-500" />
                     </div>
                     <h2 className="text-2xl font-black text-black uppercase mb-4">Payment Successful!</h2>
+                    {orderNumber && (
+                        <p className="text-gray-800 mb-4 font-bold text-lg">
+                            Order Number: <span className="text-brand-green">{orderNumber}</span>
+                        </p>
+                    )}
                     <p className="text-gray-700 mb-2 font-medium">
                         Your order has been confirmed and a receipt has been sent to your email.
                     </p>
@@ -1000,6 +1007,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                             <StripePaymentForm total={total} onSuccess={async () => {
                                 // Save order with shipping address
                                 const orderNumber = `WH-${Date.now().toString().slice(-8)}`;
+                                setOrderNumber(orderNumber);
                                 const hasPhysicalItems = cart.some(item => item.category === 'album' || item.category === 'sample_pack' || item.category === 'merch');
                                 
                                 try {
@@ -1026,9 +1034,9 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     if (orderError) {
                                         console.error('Failed to save order:', orderError);
                                     } else if (orderData && orderData[0]) {
-                                        // Save order items
-                                        for (const item of cart) {
-                                            await supabase.from('order_items').insert([{
+                                        // Save order items with better error handling
+                                        const orderItemsPromises = cart.map(item => 
+                                            supabase.from('order_items').insert([{
                                                 order_id: orderData[0].id,
                                                 track_id: typeof item.id === 'string' ? item.id : null,
                                                 title: item.title,
@@ -1039,8 +1047,17 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                 quantity: 1,
                                                 is_digital: item.category === 'beat',
                                                 download_url: item.audio
-                                            }]);
-                                        }
+                                            }])
+                                        );
+                                        
+                                        const orderItemsResults = await Promise.allSettled(orderItemsPromises);
+                                        orderItemsResults.forEach((result, index) => {
+                                            if (result.status === 'rejected') {
+                                                console.error(`Failed to save order item ${index}:`, result.reason);
+                                            } else if (result.value.error) {
+                                                console.error(`Error saving order item ${index}:`, result.value.error);
+                                            }
+                                        });
                                         
                                         // Send order confirmation email (if configured)
                                         if (userData.user?.email) {
@@ -1053,7 +1070,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                         url: item.audio
                                                     }));
                                                 
-                                                await sendOrderConfirmationEmail({
+                                                const emailSent = await sendOrderConfirmationEmail({
                                                     to: userData.user.email,
                                                     orderNumber: orderNumber,
                                                     orderDate: new Date().toLocaleDateString('en-US', { 
@@ -1073,10 +1090,18 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                     shippingAddress: hasPhysicalItems && shippingAddress.name ? shippingAddress : undefined,
                                                     downloadLinks: downloadLinks.length > 0 ? downloadLinks : undefined
                                                 });
+                                                
+                                                if (emailSent) {
+                                                    console.log('✅ Order confirmation email sent successfully');
+                                                } else {
+                                                    console.warn('⚠️ Order confirmation email was not sent (check email settings)');
+                                                }
                                             } catch (emailError) {
                                                 console.error('Error sending order confirmation email:', emailError);
                                                 // Don't fail the order if email fails
                                             }
+                                        } else {
+                                            console.warn('⚠️ No user email found, skipping order confirmation email');
                                         }
                                     }
                                 } catch (e) {
@@ -1122,6 +1147,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                 
                                                 // Save order (same logic as Stripe)
                                                 const orderNumber = `WH-${Date.now().toString().slice(-8)}`;
+                                                setOrderNumber(orderNumber);
                                                 const hasPhysicalItems = cart.some(item => item.category === 'album' || item.category === 'sample_pack' || item.category === 'merch');
                                                 
                                                 try {
@@ -1144,9 +1170,12 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                         .insert([orderPayload])
                                                         .select();
                                                     
-                                                    if (!orderError && orderData && orderData[0]) {
-                                                        for (const item of cart) {
-                                                            await supabase.from('order_items').insert([{
+                                                    if (orderError) {
+                                                        console.error('Failed to save PayPal order:', orderError);
+                                                    } else if (orderData && orderData[0]) {
+                                                        // Save order items with better error handling
+                                                        const orderItemsPromises = cart.map(item => 
+                                                            supabase.from('order_items').insert([{
                                                                 order_id: orderData[0].id,
                                                                 track_id: typeof item.id === 'string' ? item.id : null,
                                                                 title: item.title,
@@ -1157,7 +1186,61 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                                 quantity: 1,
                                                                 is_digital: item.category === 'beat',
                                                                 download_url: item.audio
-                                                            }]);
+                                                            }])
+                                                        );
+                                                        
+                                                        const orderItemsResults = await Promise.allSettled(orderItemsPromises);
+                                                        orderItemsResults.forEach((result, index) => {
+                                                            if (result.status === 'rejected') {
+                                                                console.error(`Failed to save order item ${index}:`, result.reason);
+                                                            } else if (result.value.error) {
+                                                                console.error(`Error saving order item ${index}:`, result.value.error);
+                                                            }
+                                                        });
+                                                        
+                                                        // Send order confirmation email (if configured)
+                                                        if (userData.user?.email) {
+                                                            try {
+                                                                const { sendOrderConfirmationEmail } = await import('./services/emailService');
+                                                                const downloadLinks = cart
+                                                                    .filter(item => item.category === 'beat')
+                                                                    .map(item => ({
+                                                                        title: item.title,
+                                                                        url: item.audio
+                                                                    }));
+                                                                
+                                                                const emailSent = await sendOrderConfirmationEmail({
+                                                                    to: userData.user.email,
+                                                                    orderNumber: orderNumber,
+                                                                    orderDate: new Date().toLocaleDateString('en-US', { 
+                                                                        month: 'long', 
+                                                                        day: 'numeric', 
+                                                                        year: 'numeric', 
+                                                                        hour: '2-digit', 
+                                                                        minute: '2-digit' 
+                                                                    }),
+                                                                    items: cart.map(item => ({
+                                                                        title: item.title,
+                                                                        license: item.selectedLicense?.name,
+                                                                        price: item.selectedLicense?.price || (typeof item.price === 'number' ? item.price : parseFloat(String(item.price)))
+                                                                    })),
+                                                                    total: parseFloat(total),
+                                                                    hasPhysicalItems: hasPhysicalItems,
+                                                                    shippingAddress: hasPhysicalItems && shippingAddress.name ? shippingAddress : undefined,
+                                                                    downloadLinks: downloadLinks.length > 0 ? downloadLinks : undefined
+                                                                });
+                                                                
+                                                                if (emailSent) {
+                                                                    console.log('✅ Order confirmation email sent successfully');
+                                                                } else {
+                                                                    console.warn('⚠️ Order confirmation email was not sent (check email settings)');
+                                                                }
+                                                            } catch (emailError) {
+                                                                console.error('Error sending order confirmation email:', emailError);
+                                                                // Don't fail the order if email fails
+                                                            }
+                                                        } else {
+                                                            console.warn('⚠️ No user email found, skipping order confirmation email');
                                                         }
                                                     }
                                                 } catch (e) {
@@ -2058,6 +2141,16 @@ const App = () => {
   const [subscribers, setSubscribers] = useState<any[]>([]);
   const [subscribersLoaded, setSubscribersLoaded] = useState(false);
   
+  // Newsletter Settings State
+  const [newsletterSettings, setNewsletterSettings] = useState({
+    send_welcome_email: false,
+    require_email_confirmation: false,
+    newsletter_frequency: 'Weekly',
+    newsletter_template: ''
+  });
+  const [newsletterSettingsLoaded, setNewsletterSettingsLoaded] = useState(false);
+  const [savingNewsletterSettings, setSavingNewsletterSettings] = useState(false);
+  
   // Email Settings State
   const [emailSettings, setEmailSettings] = useState<Record<string, string>>({
     smtp_host: '',
@@ -2331,6 +2424,99 @@ const App = () => {
       console.error("Failed to start chat session", error);
     }
   }, [config]);
+
+  // Load Newsletter Subscribers and Settings when newsletter tab opens
+  useEffect(() => {
+    if (adminTab === 'newsletter' && !subscribersLoaded) {
+      const fetchSubscribers = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('newsletter_subscribers')
+            .select('*')
+            .order('subscribed_at', { ascending: false });
+          
+          if (error) throw error;
+          setSubscribers(data || []);
+        } catch (err: any) {
+          console.error('Failed to fetch subscribers:', err);
+          setSubscribers([]);
+        } finally {
+          setSubscribersLoaded(true);
+        }
+      };
+      
+      fetchSubscribers();
+    }
+  }, [adminTab, subscribersLoaded]);
+
+  // Load Newsletter Settings when newsletter tab opens
+  useEffect(() => {
+    if (adminTab === 'newsletter') {
+      // Reset loading state when switching tabs
+      if (!newsletterSettingsLoaded) {
+        const fetchNewsletterSettings = async () => {
+          console.log('Loading newsletter settings...');
+          try {
+            const { data, error } = await supabase
+              .from('email_settings')
+              .select('setting_name, setting_value')
+              .in('setting_name', [
+                'newsletter_send_welcome_email',
+                'newsletter_require_confirmation',
+                'newsletter_frequency',
+                'newsletter_template'
+              ]);
+            
+            if (error) {
+              console.error('Error fetching newsletter settings:', error);
+              // Don't throw - just use defaults
+            }
+            
+            const settings: any = {
+              send_welcome_email: false,
+              require_email_confirmation: false,
+              newsletter_frequency: 'Weekly',
+              newsletter_template: ''
+            };
+            
+            if (data && data.length > 0) {
+              data.forEach(setting => {
+                if (setting.setting_name === 'newsletter_send_welcome_email') {
+                  settings.send_welcome_email = setting.setting_value === 'true';
+                } else if (setting.setting_name === 'newsletter_require_confirmation') {
+                  settings.require_email_confirmation = setting.setting_value === 'true';
+                } else if (setting.setting_name === 'newsletter_frequency') {
+                  settings.newsletter_frequency = setting.setting_value || 'Weekly';
+                } else if (setting.setting_name === 'newsletter_template') {
+                  settings.newsletter_template = setting.setting_value || '';
+                }
+              });
+            }
+            
+            console.log('Loaded newsletter settings:', settings);
+            setNewsletterSettings(settings);
+          } catch (err: any) {
+            console.error('Failed to fetch newsletter settings:', err);
+            // Use defaults on error
+            setNewsletterSettings({
+              send_welcome_email: false,
+              require_email_confirmation: false,
+              newsletter_frequency: 'Weekly',
+              newsletter_template: ''
+            });
+          } finally {
+            console.log('Newsletter settings loading complete');
+            setNewsletterSettingsLoaded(true);
+          }
+        };
+        
+        fetchNewsletterSettings();
+      }
+    } else {
+      // Reset loading state when leaving newsletter tab
+      setNewsletterSettingsLoaded(false);
+    }
+  }, [adminTab]);
 
   // --- Handlers ---
 
@@ -3935,6 +4121,8 @@ const App = () => {
                     <label className="flex items-center gap-2 text-sm text-white mb-2">
                       <input
                         type="checkbox"
+                        checked={newsletterSettings.send_welcome_email}
+                        onChange={(e) => setNewsletterSettings({ ...newsletterSettings, send_welcome_email: e.target.checked })}
                         className="w-4 h-4 rounded border-gray-300"
                       />
                       Send welcome email to new subscribers
@@ -3945,6 +4133,8 @@ const App = () => {
                     <label className="flex items-center gap-2 text-sm text-white mb-2">
                       <input
                         type="checkbox"
+                        checked={newsletterSettings.require_email_confirmation}
+                        onChange={(e) => setNewsletterSettings({ ...newsletterSettings, require_email_confirmation: e.target.checked })}
                         className="w-4 h-4 rounded border-gray-300"
                       />
                       Require email confirmation (double opt-in)
@@ -3953,7 +4143,12 @@ const App = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Newsletter Frequency</label>
-                    <select className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none" style={{ color: '#000000', caretColor: '#0D5F11' }}>
+                    <select 
+                      value={newsletterSettings.newsletter_frequency}
+                      onChange={(e) => setNewsletterSettings({ ...newsletterSettings, newsletter_frequency: e.target.value })}
+                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none" 
+                      style={{ color: '#000000', caretColor: '#0D5F11' }}
+                    >
                       <option>Daily</option>
                       <option>Weekly</option>
                       <option>Monthly</option>
@@ -3963,14 +4158,139 @@ const App = () => {
                   <div>
                     <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Default Newsletter Template</label>
                     <textarea
+                      value={newsletterSettings.newsletter_template}
+                      onChange={(e) => setNewsletterSettings({ ...newsletterSettings, newsletter_template: e.target.value })}
                       placeholder="Enter your newsletter template (HTML supported)..."
                       className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-32 placeholder:text-gray-500"
                       style={{ color: '#000000', caretColor: '#0D5F11' }}
                     />
                     <p className="text-xs text-brand-teal mt-1">Use {`{{name}}`} for subscriber name, {`{{email}}`} for email address</p>
                   </div>
-                  <button className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors">
-                    Save Newsletter Settings
+                  <button 
+                    type="button"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      console.log('Save Newsletter Settings button clicked');
+                      console.log('Current settings:', newsletterSettings);
+                      
+                      try {
+                        setSavingNewsletterSettings(true);
+                        console.log('Starting to save newsletter settings...');
+                        
+                        const settingsToSave = [
+                          { setting_name: 'newsletter_send_welcome_email', setting_value: newsletterSettings.send_welcome_email ? 'true' : 'false', description: 'Send welcome email to new subscribers' },
+                          { setting_name: 'newsletter_require_confirmation', setting_value: newsletterSettings.require_email_confirmation ? 'true' : 'false', description: 'Require email confirmation (double opt-in)' },
+                          { setting_name: 'newsletter_frequency', setting_value: newsletterSettings.newsletter_frequency, description: 'Newsletter sending frequency' },
+                          { setting_name: 'newsletter_template', setting_value: newsletterSettings.newsletter_template || '', description: 'Default newsletter template' }
+                        ];
+                        
+                        console.log('Settings to save:', settingsToSave);
+                        
+                        // Check if user is admin first
+                        const { data: userData, error: userError } = await supabase.auth.getUser();
+                        if (userError || !userData.user) {
+                          throw new Error('You must be logged in to save settings');
+                        }
+                        
+                        console.log('User authenticated:', userData.user.email);
+                        
+                        // Verify admin status
+                        const { data: profileData, error: profileError } = await supabase
+                          .from('profiles')
+                          .select('is_admin')
+                          .eq('id', userData.user.id)
+                          .single();
+                        
+                        if (profileError) {
+                          console.error('Profile error:', profileError);
+                          throw new Error('Could not verify admin status. Please ensure you are logged in as an admin.');
+                        }
+                        
+                        if (!profileData?.is_admin) {
+                          throw new Error('You must be an admin to save newsletter settings. Your account is not an admin.');
+                        }
+                        
+                        console.log('Admin status verified');
+                        
+                        // Save each setting using upsert with better error handling
+                        for (const setting of settingsToSave) {
+                          console.log(`Saving setting: ${setting.setting_name} = ${setting.setting_value}`);
+                          
+                          // Use upsert - this handles both insert and update
+                          const { data: upsertData, error: upsertError } = await supabase
+                            .from('email_settings')
+                            .upsert({
+                              setting_name: setting.setting_name,
+                              setting_value: setting.setting_value,
+                              description: setting.description,
+                              is_active: true
+                            }, {
+                              onConflict: 'setting_name',
+                              ignoreDuplicates: false
+                            })
+                            .select();
+                          
+                          if (upsertError) {
+                            console.error(`Error saving ${setting.setting_name}:`, upsertError);
+                            console.error('Error code:', upsertError.code);
+                            console.error('Error message:', upsertError.message);
+                            console.error('Error details:', upsertError.details);
+                            console.error('Error hint:', upsertError.hint);
+                            
+                            // If upsert fails, try insert then update
+                            if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
+                              // Already exists, try update
+                              const { error: updateError } = await supabase
+                                .from('email_settings')
+                                .update({
+                                  setting_value: setting.setting_value,
+                                  description: setting.description,
+                                  is_active: true
+                                })
+                                .eq('setting_name', setting.setting_name);
+                              
+                              if (updateError) {
+                                console.error(`Update also failed for ${setting.setting_name}:`, updateError);
+                                throw updateError;
+                              }
+                              console.log(`Successfully updated ${setting.setting_name} (via update)`);
+                            } else {
+                              throw upsertError;
+                            }
+                          } else {
+                            console.log(`Successfully saved ${setting.setting_name}`, upsertData);
+                          }
+                        }
+                        
+                        console.log('All newsletter settings saved successfully!');
+                        alert('Newsletter settings saved successfully!');
+                      } catch (e: any) {
+                        console.error('Failed to save newsletter settings:', e);
+                        console.error('Error details:', {
+                          message: e?.message,
+                          code: e?.code,
+                          details: e?.details,
+                          hint: e?.hint
+                        });
+                        
+                        if (e?.message?.includes('does not exist')) {
+                          alert('Email settings table not found. Please run migration_add_email_settings.sql in Supabase first.');
+                        } else if (e?.message?.includes('permission denied') || e?.code === '42501') {
+                          alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                        } else {
+                          alert(`Failed to save: ${e.message || 'Unknown error'}\n\nCheck the browser console for details.`);
+                        }
+                      } finally {
+                        setSavingNewsletterSettings(false);
+                        console.log('Save operation completed');
+                      }
+                    }}
+                    disabled={savingNewsletterSettings}
+                    className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {savingNewsletterSettings ? 'Saving...' : 'Save Newsletter Settings'}
                   </button>
                 </div>
               </div>

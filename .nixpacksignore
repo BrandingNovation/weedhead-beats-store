@@ -1,0 +1,4 @@
+# Ignore Supabase Edge Functions from Nixpacks detection
+# These use Deno, but the main app is Node.js/Vite
+supabase/functions/
+

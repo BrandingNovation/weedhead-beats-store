@@ -24,4 +24,12 @@ dist-ssr
 *.sw?
 .env
 .env.local
+.env.*
+*.env
 .zoho-smtp-config.local
+
+# API Keys and Secrets
+*api*key*
+*secret*
+*password*
+*credential*

@@ -30,7 +30,7 @@ If `VITE_API_KEY` is already in Coolify but you're still getting the error:
 **Check in Coolify:**
 - Go to Environment Variables
 - Verify `VITE_API_KEY` exists
-- Value should be: `AIzaSyBxmaE_J4wlwKsyRN0y24OMk8NLJd7EgYY`
+- Value should be: `your-gemini-api-key-here` (get it from https://aistudio.google.com/app/apikey)
 
 ---
 
@@ -78,4 +78,5 @@ Environment variables are included at build time, so:
 ---
 
 **Redeploy your app in Coolify, then the API key error should be gone!** 🚀
+
 

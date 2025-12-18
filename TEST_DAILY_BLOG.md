@@ -29,7 +29,7 @@ Add these lines (replace with your actual values):
 ```
 VITE_SUPABASE_URL=https://supabase.brandingnovations.com
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
-VITE_API_KEY=AIzaSyBxmaE_J4wlwKsyRN0y24OMk8NLJd7EgYY
+VITE_API_KEY=your-gemini-api-key-here
 ```
 
 Save and exit (Ctrl+X, then Y, then Enter).
@@ -89,7 +89,7 @@ ls -la .env
 **Fix**: Add `VITE_API_KEY` to your `.env` file:
 
 ```bash
-echo 'VITE_API_KEY=AIzaSyBxmaE_J4wlwKsyRN0y24OMk8NLJd7EgYY' >> .env
+echo 'VITE_API_KEY=your-gemini-api-key-here' >> .env
 ```
 
 ### Error: "Cannot find module"
@@ -192,4 +192,5 @@ If the script fails:
 3. Check Supabase connection
 4. Check Gemini API key is valid
 5. Look at the troubleshooting section above
+
 
