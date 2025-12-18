@@ -3841,6 +3841,192 @@ const App = () => {
             </div>
           )}
           
+          {adminTab === 'newsletter' && (
+            <div>
+              <h2 className="text-2xl font-black text-white mb-6">Newsletter Subscribers</h2>
+              <div className="mb-4 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-brand-teal text-sm">Total Active Subscribers</p>
+                    <p className="text-3xl font-black text-brand-green">
+                      {subscribers.filter(s => s.is_active).length}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-brand-teal text-sm">Total Subscribers</p>
+                    <p className="text-3xl font-black text-white">
+                      {subscribers.length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {!subscribersLoaded && (
+                <div className="text-center py-8">
+                  <div className="w-8 h-8 border-2 border-brand-green border-t-transparent rounded-full animate-spin mx-auto"></div>
+                </div>
+              )}
+              
+              {subscribersLoaded && subscribers.length === 0 && (
+                <div className="text-center py-8 text-brand-teal">
+                  <Mail size={48} className="mx-auto mb-4 opacity-50" />
+                  <p>No subscribers yet.</p>
+                </div>
+              )}
+              
+              {subscribersLoaded && subscribers.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-brand-slate">
+                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Email</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Name</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Subscribed</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Status</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Source</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subscribers.map((sub) => (
+                        <tr key={sub.id} className="border-b border-brand-slate/50 hover:bg-brand-slate/10">
+                          <td className="p-3 text-sm text-white">{sub.email}</td>
+                          <td className="p-3 text-sm text-brand-teal">{sub.name || '-'}</td>
+                          <td className="p-3 text-xs text-brand-teal">
+                            {new Date(sub.subscribed_at).toLocaleDateString()}
+                          </td>
+                          <td className="p-3">
+                            <span className={`px-2 py-1 rounded text-xs font-bold ${
+                              sub.is_active 
+                                ? 'bg-brand-green/20 text-brand-green border border-brand-green/50' 
+                                : 'bg-red-900/20 text-red-400 border border-red-900/50'
+                            }`}>
+                              {sub.is_active ? 'Active' : 'Unsubscribed'}
+                            </span>
+                          </td>
+                          <td className="p-3 text-xs text-brand-teal">{sub.source || 'website'}</td>
+                          <td className="p-3">
+                            <button
+                              onClick={async () => {
+                                if (!confirm(`Are you sure you want to ${sub.is_active ? 'unsubscribe' : 'resubscribe'} ${sub.email}?`)) return;
+                                
+                                try {
+                                  const { error } = await supabase
+                                    .from('newsletter_subscribers')
+                                    .update({
+                                      is_active: !sub.is_active,
+                                      unsubscribed_at: !sub.is_active ? null : new Date().toISOString()
+                                    })
+                                    .eq('id', sub.id);
+                                  
+                                  if (error) throw error;
+                                  
+                                  setSubscribers(subscribers.map(s => 
+                                    s.id === sub.id 
+                                      ? { ...s, is_active: !s.is_active, unsubscribed_at: !s.is_active ? new Date().toISOString() : null }
+                                      : s
+                                  ));
+                                } catch (e: any) {
+                                  alert(`Failed to update: ${e.message}`);
+                                }
+                              }}
+                              className={`px-3 py-1 text-xs font-bold uppercase rounded transition-colors ${
+                                sub.is_active
+                                  ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-900/50'
+                                  : 'bg-brand-green/30 text-brand-green hover:bg-brand-green/50 border border-brand-green/50'
+                              }`}
+                            >
+                              {sub.is_active ? 'Unsubscribe' : 'Resubscribe'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              
+              {subscribersLoaded && subscribers.length > 0 && (
+                <div className="mt-6 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
+                  <h3 className="font-bold text-white mb-2">Export Subscribers</h3>
+                  <p className="text-xs text-brand-teal mb-3">Download subscriber list as CSV</p>
+                  <button
+                    onClick={() => {
+                      const csv = [
+                        ['Email', 'Name', 'Subscribed At', 'Status', 'Source'].join(','),
+                        ...subscribers.map(s => [
+                          s.email,
+                          s.name || '',
+                          new Date(s.subscribed_at).toLocaleDateString(),
+                          s.is_active ? 'Active' : 'Unsubscribed',
+                          s.source || 'website'
+                        ].join(','))
+                      ].join('\n');
+                      
+                      const blob = new Blob([csv], { type: 'text/csv' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `newsletter-subscribers-${new Date().toISOString().split('T')[0]}.csv`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="px-4 py-2 bg-brand-green hover:bg-brand-green/80 text-white font-bold uppercase text-xs rounded transition-colors"
+                  >
+                    <Download size={14} className="inline mr-1" /> Export CSV
+                  </button>
+                </div>
+              )}
+              
+              <div className="mt-6 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
+                <h3 className="font-bold text-white mb-4">Newsletter Options</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm text-white mb-2">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      Send welcome email to new subscribers
+                    </label>
+                    <p className="text-xs text-brand-teal ml-6">Automatically send a welcome email when someone subscribes</p>
+                  </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm text-white mb-2">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded border-gray-300"
+                      />
+                      Require email confirmation (double opt-in)
+                    </label>
+                    <p className="text-xs text-brand-teal ml-6">Subscribers must confirm their email before being added</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Newsletter Frequency</label>
+                    <select className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none" style={{ color: '#000000', caretColor: '#0D5F11' }}>
+                      <option>Daily</option>
+                      <option>Weekly</option>
+                      <option>Monthly</option>
+                      <option>On New Releases Only</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Default Newsletter Template</label>
+                    <textarea
+                      placeholder="Enter your newsletter template (HTML supported)..."
+                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-32 placeholder:text-gray-500"
+                      style={{ color: '#000000', caretColor: '#0D5F11' }}
+                    />
+                    <p className="text-xs text-brand-teal mt-1">Use {`{{name}}`} for subscriber name, {`{{email}}`} for email address</p>
+                  </div>
+                  <button className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors">
+                    Save Newsletter Settings
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {adminTab === 'settings' && (
             <div>
               <h2 className="text-2xl font-black text-white mb-6">Settings & API Keys</h2>
