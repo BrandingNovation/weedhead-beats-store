@@ -164,29 +164,36 @@
         }
         
         .receipt-print .bg-brand-black,
-        .receipt-print .bg-brand-slate {
-          background: white !important;
+        .receipt-print .bg-brand-slate,
+        .receipt-print .bg-brand-slate\\/20 {
+          background: transparent !important;
         }
         
         .receipt-print .border-brand-slate {
           border-color: #cccccc !important;
         }
         
-        /* Remove backdrop and overlay */
+        /* Hide backdrop blur and overlay effects */
+        .receipt-print-container::before,
         .receipt-print::before {
           display: none !important;
         }
         
-        /* Ensure proper spacing */
-        .receipt-print > div {
-          margin: 0 !important;
-          padding: 0 !important;
+        /* Hide icons in print */
+        .receipt-print svg {
+          display: none !important;
         }
         
-        /* Print-friendly layout */
+        /* Print-friendly layout - single page */
         @page {
-          margin: 1cm;
+          margin: 10mm;
           size: A4;
+        }
+        
+        /* Prevent page breaks and duplicates */
+        .receipt-print {
+          page-break-after: avoid !important;
+          page-break-before: avoid !important;
         }
       }
     </style>
