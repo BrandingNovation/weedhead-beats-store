@@ -1477,32 +1477,130 @@ const App = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  // CMS State - Initialize from LocalStorage if available
-  const [siteContent, setSiteContent] = useState<SiteContent>(() => {
-    try {
-        const saved = localStorage.getItem('weedhead_cms_content');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            // Robustly merge with default to prevent errors if structure changed
-            return {
+  // CMS State - Initialize from Supabase (with localStorage fallback for migration)
+  const [siteContent, setSiteContent] = useState<SiteContent>(DEFAULT_SITE_CONTENT);
+  const [cmsLoaded, setCmsLoaded] = useState(false);
+
+  // Load CMS content from Supabase
+  useEffect(() => {
+    const loadCmsContent = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('site_content')
+          .select('*');
+        
+        if (!error && data) {
+          const loaded: SiteContent = { ...DEFAULT_SITE_CONTENT };
+          
+          data.forEach((item: any) => {
+            const page = item.page as keyof SiteContent;
+            if (page && loaded[page]) {
+              loaded[page] = {
+                heroImage: item.hero_image || DEFAULT_SITE_CONTENT[page].heroImage,
+                ...(item.content || {})
+              };
+            }
+          });
+          
+          setSiteContent(loaded);
+          
+          // Migrate localStorage data to Supabase if exists and user is admin
+          const localSaved = localStorage.getItem('weedhead_cms_content');
+          if (localSaved && user?.isAdmin) {
+            try {
+              const parsed = JSON.parse(localSaved);
+              for (const [page, content] of Object.entries(parsed)) {
+                await supabase
+                  .from('site_content')
+                  .upsert({
+                    page,
+                    hero_image: (content as any).heroImage || '',
+                    content: { ...(content as any) }
+                  }, { onConflict: 'page' });
+              }
+              localStorage.removeItem('weedhead_cms_content'); // Clean up after migration
+            } catch (e) {
+              console.warn('Failed to migrate localStorage CMS data', e);
+            }
+          }
+        } else {
+          // Fallback to localStorage if Supabase fails
+          const saved = localStorage.getItem('weedhead_cms_content');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              setSiteContent({
                 store: { ...DEFAULT_SITE_CONTENT.store, ...(parsed.store || {}) },
                 collabs: { ...DEFAULT_SITE_CONTENT.collabs, ...(parsed.collabs || {}) },
                 licenses: { ...DEFAULT_SITE_CONTENT.licenses, ...(parsed.licenses || {}) },
                 blog: { ...DEFAULT_SITE_CONTENT.blog, ...(parsed.blog || {}) }
-            };
+              });
+            } catch (e) {
+              console.error('Failed to parse localStorage CMS data', e);
+            }
+          }
         }
-        return DEFAULT_SITE_CONTENT;
-    } catch(e) {
-        return DEFAULT_SITE_CONTENT;
-    }
-  });
+      } catch (err) {
+        console.error('Failed to load CMS content from Supabase', err);
+        // Fallback to localStorage
+        const saved = localStorage.getItem('weedhead_cms_content');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setSiteContent({
+              store: { ...DEFAULT_SITE_CONTENT.store, ...(parsed.store || {}) },
+              collabs: { ...DEFAULT_SITE_CONTENT.collabs, ...(parsed.collabs || {}) },
+              licenses: { ...DEFAULT_SITE_CONTENT.licenses, ...(parsed.licenses || {}) },
+              blog: { ...DEFAULT_SITE_CONTENT.blog, ...(parsed.blog || {}) }
+            });
+          } catch (e) {
+            console.error('Failed to parse localStorage CMS data', e);
+          }
+        }
+      } finally {
+        setCmsLoaded(true);
+      }
+    };
+    
+    loadCmsContent();
+  }, [user]);
 
-  // Persist CMS changes to LocalStorage
+  // Persist CMS changes to Supabase (and localStorage as backup)
   useEffect(() => {
-    try {
-        localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
-    } catch (e) { console.error('Failed to save CMS content', e); }
-  }, [siteContent]);
+    if (!cmsLoaded) return; // Don't save on initial load
+    
+    const saveCmsContent = async () => {
+      try {
+        // Save to Supabase
+        for (const [page, content] of Object.entries(siteContent)) {
+          await supabase
+            .from('site_content')
+            .upsert({
+              page,
+              hero_image: (content as PageConfig).heroImage || '',
+              content: { ...(content as any) }
+            }, { onConflict: 'page' });
+        }
+        
+        // Also save to localStorage as backup
+        try {
+          localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
+        } catch (e) {
+          console.warn('Failed to save CMS content to localStorage', e);
+        }
+      } catch (e) {
+        console.error('Failed to save CMS content to Supabase', e);
+        // Fallback to localStorage only
+        try {
+          localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
+        } catch (err) {
+          console.error('Failed to save CMS content to localStorage', err);
+        }
+      }
+    };
+    
+    saveCmsContent();
+  }, [siteContent, cmsLoaded]);
 
   // New States for Checkout/Licenses
   const [isLicenseModalOpen, setIsLicenseModalOpen] = useState(false);
@@ -2152,18 +2250,97 @@ const App = () => {
         const titleMatch = textContent.match(/^# (.*$)/m) || textContent.match(/^#+ (.*$)/m);
         const title = titleMatch ? titleMatch[1] : "Music Studio Update";
 
-        // 2. Generate Image
+        // 2. Generate Image and upload to Storage
         const imageBase64 = await generateBlogImage(title);
+        let imageUrl = "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=600&auto=format&fit=crop"; // Fallback
+        
+        // Upload base64 image to Supabase Storage if generated
+        if (imageBase64 && imageBase64.startsWith('data:image/')) {
+          try {
+            // Convert base64 to Blob
+            const base64Data = imageBase64.split(',')[1];
+            const mimeType = imageBase64.match(/data:([^;]+);/)?.[1] || 'image/png';
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: mimeType });
+            
+            // Create File from Blob
+            const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+            const file = new File([blob], fileName, { type: mimeType });
+            
+            // Upload to Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('covers')
+              .upload(fileName, file, {
+                contentType: mimeType,
+                upsert: false
+              });
+            
+            if (!uploadError && uploadData) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('covers')
+                .getPublicUrl(fileName);
+              imageUrl = publicUrl;
+            } else {
+              console.warn('Failed to upload blog image to Storage, using base64 fallback', uploadError);
+              imageUrl = imageBase64; // Fallback to base64 if upload fails
+            }
+          } catch (err) {
+            console.error('Error processing blog image', err);
+            imageUrl = imageBase64; // Fallback to base64 if processing fails
+          }
+        }
 
-        const newPost: BlogPost = {
-            id: Date.now(),
-            title: title.replace(/^\*+|\*+$/g, ''), // Clean markdown bolding from title
-            excerpt: textContent,
-            date: new Date().toLocaleDateString(),
-            image: imageBase64 || "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=600&auto=format&fit=crop", 
-            isAiGenerated: true
+        // 3. Save post to Supabase
+        const postData = {
+          title: title.replace(/^\*+|\*+$/g, ''), // Clean markdown bolding from title
+          excerpt: textContent.substring(0, 200) + '...', // First 200 chars as excerpt
+          content: textContent, // Full content
+          image: imageUrl,
+          is_ai_generated: true
         };
-        setPosts([newPost, ...posts]);
+
+        try {
+          const { data, error } = await supabase.from('posts').insert([postData]).select();
+          if (!error && data && data[0]) {
+            const newPost: BlogPost = {
+              id: data[0].id,
+              title: data[0].title,
+              excerpt: data[0].excerpt || textContent.substring(0, 200) + '...',
+              date: new Date(data[0].created_at).toLocaleDateString(),
+              image: data[0].image,
+              isAiGenerated: data[0].is_ai_generated
+            };
+            setPosts([newPost, ...posts]);
+          } else {
+            // Fallback if Supabase insert fails
+            const newPost: BlogPost = {
+              id: Date.now(),
+              title: title.replace(/^\*+|\*+$/g, ''),
+              excerpt: textContent.substring(0, 200) + '...',
+              date: new Date().toLocaleDateString(),
+              image: imageUrl,
+              isAiGenerated: true
+            };
+            setPosts([newPost, ...posts]);
+          }
+        } catch (err) {
+          console.error('Failed to save blog post to Supabase', err);
+          // Fallback
+          const newPost: BlogPost = {
+            id: Date.now(),
+            title: title.replace(/^\*+|\*+$/g, ''),
+            excerpt: textContent.substring(0, 200) + '...',
+            date: new Date().toLocaleDateString(),
+            image: imageUrl,
+            isAiGenerated: true
+          };
+          setPosts([newPost, ...posts]);
+        }
     } catch (e) {
         console.error("Failed to generate news", e);
         alert("Studio AI could not generate the brief at this time.");
