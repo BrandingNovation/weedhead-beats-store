@@ -3432,6 +3432,12 @@ const App = () => {
                     </div>
                   )}
                   
+                  {apiKeysLoaded && !user?.isAdmin && (
+                    <div className="p-3 bg-yellow-900/20 border border-yellow-900/50 rounded text-xs text-yellow-400 mb-4">
+                      <strong>Note:</strong> If you see a 404 error in the console, it means the <code className="bg-brand-black px-1 rounded">api_keys</code> table doesn't exist yet. Run <code className="bg-brand-black px-1 rounded">migration_api_keys.sql</code> in Supabase to create it.
+                    </div>
+                  )}
+                  
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
