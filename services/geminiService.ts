@@ -85,9 +85,10 @@ export const sendMessageStream = async (
 
 export const generateBlogImage = async (prompt: string): Promise<string | null> => {
     try {
-        // Use free-tier model instead of premium
+        // Note: Image generation may not work with gemini-pro (text-only model)
+        // This is a limitation of the free tier
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-pro',
             contents: {
                 parts: [{ text: `Generate a high quality, cinematic, 4k digital art image for a hip-hop music producer blog post about: ${prompt}. Dark aesthetic, neon green accents, studio equipment, urban vibe. No text on image.` }]
             }
@@ -111,9 +112,9 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
 
 export const generateSEOContent = async (topic: string): Promise<string> => {
     try {
-        // Using free-tier model (gemini-1.5-flash) instead of premium gemini-3-pro
+        // Using free-tier model (gemini-pro) - standard model available on free tier
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-pro',
             contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
             
             Task:
