@@ -103,18 +103,17 @@
       
       /* Print Styles for Receipt */
       @media print {
-        /* Hide everything except receipt using visibility */
-        html, body, body * {
-          visibility: hidden;
+        /* Hide everything by default */
+        body > #root > * {
+          display: none !important;
         }
         
-        /* Show receipt container and everything inside it */
-        .receipt-print-container,
-        .receipt-print-container * {
-          visibility: visible !important;
+        /* Show ONLY the receipt container */
+        body > #root > .receipt-print-container {
+          display: block !important;
         }
         
-        /* Position receipt container at top of page */
+        /* Position and style receipt container */
         .receipt-print-container {
           position: absolute !important;
           top: 0 !important;
@@ -126,8 +125,9 @@
           z-index: 999999 !important;
         }
         
-        /* Style receipt content */
+        /* Style receipt content - ensure it's visible */
         .receipt-print {
+          display: block !important;
           position: relative !important;
           width: 100% !important;
           max-width: 100% !important;
@@ -141,6 +141,20 @@
           page-break-inside: avoid !important;
         }
         
+        /* Ensure all child elements are visible */
+        .receipt-print * {
+          display: block !important;
+          visibility: visible !important;
+          color: #000000 !important;
+        }
+        
+        /* Inline elements */
+        .receipt-print span,
+        .receipt-print strong,
+        .receipt-print em {
+          display: inline !important;
+        }
+        
         /* Hide buttons and download links */
         .receipt-print button,
         .receipt-print a[href*="track"],
@@ -148,19 +162,6 @@
         .receipt-print .print\\:hidden,
         .receipt-print svg {
           display: none !important;
-          visibility: hidden !important;
-        }
-        
-        /* Force all text to be visible and black */
-        .receipt-print,
-        .receipt-print h1,
-        .receipt-print h2,
-        .receipt-print h3,
-        .receipt-print p,
-        .receipt-print div,
-        .receipt-print span {
-          color: #000000 !important;
-          visibility: visible !important;
         }
         
         /* Text color overrides */
@@ -180,9 +181,8 @@
         .receipt-print .bg-brand-black,
         .receipt-print .bg-brand-slate,
         .receipt-print .bg-brand-slate\\/20,
-        .receipt-print .bg-green-500\\/20,
-        .receipt-print-container {
-          background: white !important;
+        .receipt-print .bg-green-500\\/20 {
+          background: transparent !important;
         }
         
         .receipt-print .border-brand-slate {
