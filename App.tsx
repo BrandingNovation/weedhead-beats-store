@@ -1969,12 +1969,17 @@ const App = () => {
     if (currentTrack && audioRef.current) {
         // Only set src if it's a valid HTTP/HTTPS URL (avoid blob URLs which can become invalid)
         if (currentTrack.audio && (currentTrack.audio.startsWith('http://') || currentTrack.audio.startsWith('https://'))) {
+          // Don't reload if src is already set to the same URL
+          if (audioRef.current.src === currentTrack.audio || audioRef.current.src === currentTrack.audio + '/') {
+            return; // Already loaded, skip
+          }
+          
           try {
             // Clear previous src to avoid conflicts
             audioRef.current.src = '';
             // Small delay to ensure previous src is cleared
             setTimeout(() => {
-              if (audioRef.current && currentTrack && currentTrack.audio) {
+              if (audioRef.current && currentTrack && currentTrack.audio && audioRef.current.src !== currentTrack.audio) {
                 audioRef.current.src = currentTrack.audio;
                 audioRef.current.load();
               }
@@ -1996,14 +2001,16 @@ const App = () => {
           setIsPlaying(false);
         } else if (!currentTrack.audio || currentTrack.audio === '') {
           // No audio URL - stop playback (don't log this as it's expected)
-          if (audioRef.current) {
+          if (audioRef.current && audioRef.current.src !== '') {
             audioRef.current.src = '';
           }
           setIsPlaying(false);
         }
     } else if (!currentTrack && audioRef.current) {
       // Clear audio when no track is selected
-      audioRef.current.src = '';
+      if (audioRef.current.src !== '') {
+        audioRef.current.src = '';
+      }
       setIsPlaying(false);
       lastErrorUrlRef.current = null;
       errorCountRef.current = 0;
