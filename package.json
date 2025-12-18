@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "daily-blog": "node scripts/daily-blog-post.js",
+    "daily-blog:topic": "node scripts/daily-blog-post.js"
   },
   "dependencies": {
     "@google/genai": "^1.33.0",
