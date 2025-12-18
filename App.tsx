@@ -1231,6 +1231,8 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     console.error('Error saving order:', e);
                                 }
                                 
+                                // Always set status to success to show receipt, even if order save fails
+                                console.log('Setting status to success - receipt should display');
                                 setStatus('success');
                             }} />
                         </Elements>
@@ -1310,6 +1312,8 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                     console.error('Error saving PayPal order:', e);
                                                 }
                                                 
+                                                // Always set status to success to show receipt, even if order save fails
+                                                console.log('Setting status to success - receipt should display');
                                                 setStatus('success');
                                             } catch (err) {
                                                 console.error('[PayPal Error]', err);
