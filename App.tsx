@@ -783,9 +783,29 @@ const StripePaymentForm = ({ total, onSuccess }: { total: string, onSuccess: () 
 const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onClose: () => void, cart: Track[], total: string }) => {
     const [status, setStatus] = useState<'idle' | 'success'>('idle');
     const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'paypal'>('stripe');
+    const [shippingAddress, setShippingAddress] = useState({
+        name: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        country: 'USA',
+        phone: ''
+    });
 
     useEffect(() => {
-        if(isOpen) setStatus('idle');
+        if(isOpen) {
+            setStatus('idle');
+            setShippingAddress({
+                name: '',
+                street: '',
+                city: '',
+                state: '',
+                zip: '',
+                country: 'USA',
+                phone: ''
+            });
+        }
     }, [isOpen]);
 
     if(!isOpen) return null;
