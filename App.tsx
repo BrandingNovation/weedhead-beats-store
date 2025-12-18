@@ -1008,6 +1008,100 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                         <ChevronRight size={14} className="rotate-180" /> Return to Shopping
                     </button>
 
+                    {/* Shipping Address Form (for physical items) */}
+                    {cart.some(item => item.category === 'album' || item.category === 'sample_pack' || item.category === 'merch') && (
+                        <div className="mb-6 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
+                            <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+                                <Package size={16} className="text-brand-green" /> Shipping Address
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Name *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={shippingAddress.name}
+                                        onChange={(e) => setShippingAddress({ ...shippingAddress, name: e.target.value })}
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        placeholder="John Doe"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Street Address *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={shippingAddress.street}
+                                        onChange={(e) => setShippingAddress({ ...shippingAddress, street: e.target.value })}
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        placeholder="123 Main St"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">City *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={shippingAddress.city}
+                                        onChange={(e) => setShippingAddress({ ...shippingAddress, city: e.target.value })}
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        placeholder="Los Angeles"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">State/Province *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={shippingAddress.state}
+                                        onChange={(e) => setShippingAddress({ ...shippingAddress, state: e.target.value })}
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        placeholder="CA"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">ZIP/Postal Code *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={shippingAddress.zip}
+                                        onChange={(e) => setShippingAddress({ ...shippingAddress, zip: e.target.value })}
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        placeholder="90001"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Country *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={shippingAddress.country}
+                                        onChange={(e) => setShippingAddress({ ...shippingAddress, country: e.target.value })}
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        placeholder="USA"
+                                    />
+                                </div>
+                                <div className="md:col-span-2">
+                                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        value={shippingAddress.phone}
+                                        onChange={(e) => setShippingAddress({ ...shippingAddress, phone: e.target.value })}
+                                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                                        placeholder="+1 (555) 123-4567"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
                     <div className="flex gap-4 mb-6">
                         <button 
                             onClick={() => setPaymentMethod('stripe')}
@@ -1025,7 +1119,51 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                     
                     {paymentMethod === 'stripe' ? (
                         <Elements stripe={stripePromise}>
-                            <StripePaymentForm total={total} onSuccess={() => setStatus('success')} />
+                            <StripePaymentForm total={total} onSuccess={async () => {
+                                // Save order with shipping address
+                                const hasPhysicalItems = cart.some(item => item.category === 'album' || item.category === 'sample_pack' || item.category === 'merch');
+                                if (hasPhysicalItems && shippingAddress.name) {
+                                    try {
+                                        const orderNumber = `WH-${Date.now().toString().slice(-8)}`;
+                                        const { data: userData } = await supabase.auth.getUser();
+                                        const { data: orderData, error: orderError } = await supabase
+                                            .from('orders')
+                                            .insert([{
+                                                order_number: orderNumber,
+                                                total_amount: parseFloat(total),
+                                                payment_method: 'stripe',
+                                                payment_status: 'completed',
+                                                shipping_address: shippingAddress,
+                                                status: 'pending',
+                                                user_id: userData.user?.id || null
+                                            }])
+                                            .select();
+                                        
+                                        if (orderError) {
+                                            console.error('Failed to save order:', orderError);
+                                        } else if (orderData && orderData[0]) {
+                                            // Save order items
+                                            for (const item of cart) {
+                                                await supabase.from('order_items').insert([{
+                                                    order_id: orderData[0].id,
+                                                    track_id: typeof item.id === 'string' ? item.id : null,
+                                                    title: item.title,
+                                                    license_name: item.selectedLicense?.name || null,
+                                                    price: item.selectedLicense?.price || (typeof item.price === 'number' ? item.price : parseFloat(String(item.price))),
+                                                    size: item.category === 'merch' ? (item as any).size : null,
+                                                    color: item.category === 'merch' ? (item as any).color : null,
+                                                    quantity: 1,
+                                                    is_digital: item.category === 'beat',
+                                                    download_url: item.audio
+                                                }]);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        console.error('Error saving order:', e);
+                                    }
+                                }
+                                setStatus('success');
+                            }} />
                         </Elements>
                     ) : (
                         <div className="pt-4">
