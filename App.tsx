@@ -1753,6 +1753,97 @@ const NewsletterForm = () => {
                     throw error;
                 }
             } else {
+                // Send welcome email if enabled
+                try {
+                    const { data: settingsData } = await supabase
+                        .from('email_settings')
+                        .select('setting_name, setting_value')
+                        .in('setting_name', [
+                            'newsletter_send_welcome_email',
+                            'smtp_host',
+                            'smtp_port',
+                            'smtp_username',
+                            'smtp_password',
+                            'from_email',
+                            'from_name',
+                            'use_tls'
+                        ])
+                        .eq('is_active', true);
+
+                    const sendWelcomeEmail = settingsData?.find(
+                        s => s.setting_name === 'newsletter_send_welcome_email'
+                    )?.setting_value === 'true';
+
+                    if (sendWelcomeEmail && settingsData && settingsData.length > 0) {
+                        const emailSettings: any = {};
+                        settingsData.forEach(setting => {
+                            if (setting.setting_name === 'smtp_host') emailSettings.smtp_host = setting.setting_value || '';
+                            if (setting.setting_name === 'smtp_port') emailSettings.smtp_port = setting.setting_value || '587';
+                            if (setting.setting_name === 'smtp_username') emailSettings.smtp_username = setting.setting_value || '';
+                            if (setting.setting_name === 'smtp_password') emailSettings.smtp_password = setting.setting_value || '';
+                            if (setting.setting_name === 'from_email') emailSettings.from_email = setting.setting_value || '';
+                            if (setting.setting_name === 'from_name') emailSettings.from_name = setting.setting_value || 'Weedhead Beats';
+                            if (setting.setting_name === 'use_tls') emailSettings.use_tls = setting.setting_value === 'true';
+                        });
+
+                        if (emailSettings.smtp_host && emailSettings.smtp_username && emailSettings.smtp_password && emailSettings.from_email) {
+                            const welcomeEmailHtml = `
+                                <!DOCTYPE html>
+                                <html>
+                                <head>
+                                    <meta charset="utf-8">
+                                    <style>
+                                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                                        .header { background: linear-gradient(135deg, #0D5F11 0%, #1a1a1a 100%); color: white; padding: 30px; text-align: center; }
+                                        .content { padding: 30px; background: #f9f9f9; }
+                                        .button { display: inline-block; padding: 12px 24px; background: #0D5F11; color: white; text-decoration: none; border-radius: 5px; margin-top: 20px; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="header">
+                                            <h1>Welcome to Weedhead Beats!</h1>
+                                        </div>
+                                        <div class="content">
+                                            <h2>Thanks for subscribing, ${name.trim() || 'there'}! 🎵</h2>
+                                            <p>You're now part of the Weedhead Beats family. Get ready for:</p>
+                                            <ul>
+                                                <li>🔥 Exclusive new beats and releases</li>
+                                                <li>🎧 Early access to new tracks</li>
+                                                <li>💎 Special discounts and offers</li>
+                                                <li>📱 Updates on the latest drops</li>
+                                            </ul>
+                                            <p>We're excited to share our latest music with you!</p>
+                                            <a href="${window.location.origin}" class="button">Visit Our Store</a>
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>
+                            `;
+
+                            // Try Edge Function first
+                            const { error: emailError } = await supabase.functions.invoke('send-email', {
+                                body: {
+                                    to: email.trim().toLowerCase(),
+                                    subject: 'Welcome to Weedhead Beats! 🎵',
+                                    html: welcomeEmailHtml,
+                                    smtp_settings: emailSettings
+                                }
+                            });
+
+                            if (emailError) {
+                                console.warn('Welcome email not sent (Edge Function may not be deployed):', emailError);
+                            } else {
+                                console.log('✅ Welcome email sent successfully');
+                            }
+                        }
+                    }
+                } catch (emailErr) {
+                    console.warn('Could not send welcome email:', emailErr);
+                    // Don't fail subscription if email fails
+                }
+
                 setMessage('Successfully subscribed! Check your email for confirmation.');
                 setStatus('success');
                 setEmail('');
@@ -2425,98 +2516,140 @@ const App = () => {
     }
   }, [config]);
 
-  // Load Newsletter Subscribers and Settings when newsletter tab opens
+  // Reset loaded state when leaving newsletter tab
+  useEffect(() => {
+    if (adminTab !== 'newsletter' && subscribersLoaded) {
+      setSubscribersLoaded(false);
+    }
+  }, [adminTab]);
+
+  // Load Newsletter Subscribers when newsletter tab opens
   useEffect(() => {
     if (adminTab === 'newsletter' && !subscribersLoaded) {
+      let isCancelled = false;
+      
       const fetchSubscribers = async () => {
+        console.log('Loading newsletter subscribers...');
         try {
           const { data, error } = await supabase
             .from('newsletter_subscribers')
             .select('*')
             .order('subscribed_at', { ascending: false });
           
-          if (error) throw error;
-          setSubscribers(data || []);
+          if (isCancelled) return;
+          
+          if (error) {
+            console.error('Error fetching subscribers:', error);
+            setSubscribers([]);
+          } else {
+            setSubscribers(data || []);
+          }
         } catch (err: any) {
+          if (isCancelled) return;
           console.error('Failed to fetch subscribers:', err);
           setSubscribers([]);
         } finally {
-          setSubscribersLoaded(true);
+          // Always set loaded to true, even if cancelled or errored
+          if (!isCancelled) {
+            console.log('Subscribers loading complete');
+            setSubscribersLoaded(true);
+          }
         }
       };
       
       fetchSubscribers();
+      
+      // Cleanup function to prevent state updates if component unmounts or tab changes
+      return () => {
+        isCancelled = true;
+      };
     }
   }, [adminTab, subscribersLoaded]);
 
-  // Load Newsletter Settings when newsletter tab opens
+  // Reset loaded state when leaving newsletter tab
   useEffect(() => {
-    if (adminTab === 'newsletter') {
-      // Reset loading state when switching tabs
-      if (!newsletterSettingsLoaded) {
-        const fetchNewsletterSettings = async () => {
-          console.log('Loading newsletter settings...');
-          try {
-            const { data, error } = await supabase
-              .from('email_settings')
-              .select('setting_name, setting_value')
-              .in('setting_name', [
-                'newsletter_send_welcome_email',
-                'newsletter_require_confirmation',
-                'newsletter_frequency',
-                'newsletter_template'
-              ]);
-            
-            if (error) {
-              console.error('Error fetching newsletter settings:', error);
-              // Don't throw - just use defaults
-            }
-            
-            const settings: any = {
-              send_welcome_email: false,
-              require_email_confirmation: false,
-              newsletter_frequency: 'Weekly',
-              newsletter_template: ''
-            };
-            
-            if (data && data.length > 0) {
-              data.forEach(setting => {
-                if (setting.setting_name === 'newsletter_send_welcome_email') {
-                  settings.send_welcome_email = setting.setting_value === 'true';
-                } else if (setting.setting_name === 'newsletter_require_confirmation') {
-                  settings.require_email_confirmation = setting.setting_value === 'true';
-                } else if (setting.setting_name === 'newsletter_frequency') {
-                  settings.newsletter_frequency = setting.setting_value || 'Weekly';
-                } else if (setting.setting_name === 'newsletter_template') {
-                  settings.newsletter_template = setting.setting_value || '';
-                }
-              });
-            }
-            
-            console.log('Loaded newsletter settings:', settings);
-            setNewsletterSettings(settings);
-          } catch (err: any) {
-            console.error('Failed to fetch newsletter settings:', err);
-            // Use defaults on error
-            setNewsletterSettings({
-              send_welcome_email: false,
-              require_email_confirmation: false,
-              newsletter_frequency: 'Weekly',
-              newsletter_template: ''
-            });
-          } finally {
-            console.log('Newsletter settings loading complete');
-            setNewsletterSettingsLoaded(true);
-          }
-        };
-        
-        fetchNewsletterSettings();
-      }
-    } else {
-      // Reset loading state when leaving newsletter tab
+    if (adminTab !== 'newsletter' && newsletterSettingsLoaded) {
       setNewsletterSettingsLoaded(false);
     }
   }, [adminTab]);
+
+  // Load Newsletter Settings when newsletter tab opens
+  useEffect(() => {
+    if (adminTab === 'newsletter' && !newsletterSettingsLoaded) {
+      let isCancelled = false;
+      
+      const fetchNewsletterSettings = async () => {
+        console.log('Loading newsletter settings...');
+        try {
+          const { data, error } = await supabase
+            .from('email_settings')
+            .select('setting_name, setting_value')
+            .in('setting_name', [
+              'newsletter_send_welcome_email',
+              'newsletter_require_confirmation',
+              'newsletter_frequency',
+              'newsletter_template'
+            ]);
+          
+          if (isCancelled) return;
+          
+          if (error) {
+            console.error('Error fetching newsletter settings:', error);
+            // Don't throw - just use defaults
+          }
+          
+          const settings: any = {
+            send_welcome_email: false,
+            require_email_confirmation: false,
+            newsletter_frequency: 'Weekly',
+            newsletter_template: ''
+          };
+          
+          if (data && data.length > 0) {
+            data.forEach((setting: any) => {
+              if (setting.setting_name === 'newsletter_send_welcome_email') {
+                settings.send_welcome_email = setting.setting_value === 'true';
+              } else if (setting.setting_name === 'newsletter_require_confirmation') {
+                settings.require_email_confirmation = setting.setting_value === 'true';
+              } else if (setting.setting_name === 'newsletter_frequency') {
+                settings.newsletter_frequency = setting.setting_value || 'Weekly';
+              } else if (setting.setting_name === 'newsletter_template') {
+                settings.newsletter_template = setting.setting_value || '';
+              }
+            });
+          }
+          
+          console.log('Loaded newsletter settings:', settings);
+          if (!isCancelled) {
+            setNewsletterSettings(settings);
+          }
+        } catch (err: any) {
+          if (isCancelled) return;
+          console.error('Failed to fetch newsletter settings:', err);
+          // Use defaults on error
+          setNewsletterSettings({
+            send_welcome_email: false,
+            require_email_confirmation: false,
+            newsletter_frequency: 'Weekly',
+            newsletter_template: ''
+          });
+        } finally {
+          // Always set loaded to true, even if cancelled or errored
+          if (!isCancelled) {
+            console.log('Newsletter settings loading complete');
+            setNewsletterSettingsLoaded(true);
+          }
+        }
+      };
+      
+      fetchNewsletterSettings();
+      
+      // Cleanup function to prevent state updates if component unmounts or tab changes
+      return () => {
+        isCancelled = true;
+      };
+    }
+  }, [adminTab, newsletterSettingsLoaded]);
 
   // --- Handlers ---
 
