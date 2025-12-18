@@ -109,12 +109,27 @@ export const sendOrderConfirmationEmail = async (emailData: OrderEmailData): Pro
 
 /**
  * Fallback: Send email via direct API call (requires backend endpoint)
+ * For now, we'll log the email details so you can see what would be sent
  */
 const sendEmailViaAPI = async (emailData: OrderEmailData, settings: EmailSettings): Promise<boolean> => {
   try {
-    // This would call your backend API endpoint
-    // For now, we'll use a simple fetch to a backend service
-    const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/send-email`, {
+    // Check if API URL is configured
+    const apiUrl = import.meta.env.VITE_API_URL;
+    
+    if (!apiUrl) {
+      console.warn('⚠️ Email API URL not configured. Email details:', {
+        to: emailData.to,
+        subject: `Order Confirmation - ${emailData.orderNumber}`,
+        orderNumber: emailData.orderNumber,
+        total: emailData.total
+      });
+      console.warn('💡 To enable email sending, either:');
+      console.warn('   1. Deploy the Supabase Edge Function (see EDGE_FUNCTION_SETUP.md)');
+      console.warn('   2. Set up a backend API and configure VITE_API_URL');
+      return false;
+    }
+
+    const response = await fetch(`${apiUrl}/api/send-email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
