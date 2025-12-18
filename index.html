@@ -131,12 +131,13 @@
           width: 100% !important;
           max-width: 100% !important;
           margin: 0 !important;
-          padding: 20mm !important;
+          padding: 15mm !important;
           background: white !important;
           color: #000000 !important;
           border: none !important;
           box-shadow: none !important;
-          page-break-after: auto !important;
+          page-break-after: avoid !important;
+          page-break-before: avoid !important;
           page-break-inside: avoid !important;
         }
         
@@ -190,10 +191,17 @@
           size: A4;
         }
         
-        /* Prevent page breaks and duplicates */
-        .receipt-print {
+        /* Force single page - prevent all page breaks */
+        .receipt-print-container {
           page-break-after: avoid !important;
           page-break-before: avoid !important;
+        }
+        
+        .receipt-print,
+        .receipt-print > * {
+          page-break-after: avoid !important;
+          page-break-before: avoid !important;
+          page-break-inside: avoid !important;
         }
       }
     </style>
