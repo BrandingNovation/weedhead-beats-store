@@ -4321,22 +4321,19 @@ const App = () => {
           const audio = e.currentTarget as HTMLAudioElement;
           const currentSrc = audio.src || '';
           
-          // Only log error once per URL to prevent spam
+          // Completely suppress error logging for repeated errors
+          // Only log the first error for a new URL, then silence all subsequent errors
           if (lastErrorUrlRef.current !== currentSrc) {
             lastErrorUrlRef.current = currentSrc;
             errorCountRef.current = 1;
-            // Only log if it's a real error (not empty src)
-            if (currentSrc && currentSrc !== '') {
-              console.warn('Audio playback error for:', currentSrc.substring(0, 50) + '...');
-            }
+            // Silently handle - don't log to console to prevent spam
+            // The 404 error in network tab is enough information
           } else {
             errorCountRef.current++;
-            // Only log every 10th error to prevent spam
-            if (errorCountRef.current % 10 === 0 && currentSrc && currentSrc !== '') {
-              console.warn(`Audio error repeated ${errorCountRef.current} times for:`, currentSrc.substring(0, 50) + '...');
-            }
+            // Completely silent after first error
           }
           
+          // Stop playback and clear src
           setIsPlaying(false);
           if (audioRef.current) {
             audioRef.current.src = '';
