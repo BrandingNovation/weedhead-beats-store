@@ -3050,7 +3050,7 @@ const App = () => {
                       type="button"
                       onClick={() => {
                         setEditingPostId(null);
-                        setBlogForm({ title: '', excerpt: '', image: '' });
+                        setBlogForm({ title: '', excerpt: '', content: '', image: '' });
                       }}
                       className="px-8 py-3 bg-brand-slate text-white font-bold uppercase tracking-wider rounded hover:bg-brand-slate/80"
                     >
@@ -3064,7 +3064,7 @@ const App = () => {
                     <button
                       onClick={() => {
                         setEditingPostId(null);
-                        setBlogForm({ title: '', excerpt: '', image: '' });
+                        setBlogForm({ title: '', excerpt: '', content: '', image: '' });
                       }}
                       className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 flex items-center gap-2"
                     >
