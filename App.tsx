@@ -3655,6 +3655,15 @@ Message: ${error.message}`;
                         .select();
                     
                     if (error) {
+                        console.error('❌ Error updating track:', error);
+                        console.error('Error message:', error.message);
+                        
+                        // Check for missing column error
+                        if (error.message?.includes('stems_url') || 
+                            error.message?.includes('column') && error.message?.includes('not found') ||
+                            error.message?.includes('schema cache')) {
+                            alert(`❌ Database Error: Missing 'stems_url' Column\n\nRun ADD_STEMS_URL_COLUMN_NOW.sql in Supabase SQL Editor to fix this.\n\nError: ${error.message}`);
+                        }
                         throw error;
                     }
                     
