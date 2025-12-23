@@ -2470,13 +2470,16 @@ Message: ${error.message}`;
           stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
         }));
         setBeats(mappedTracks);
-        console.log('✅ Tracks updated in state');
+        console.log('✅ Tracks updated in state:', mappedTracks.length);
       } else {
         console.warn('⚠️ No tracks returned from database (empty result)');
         console.log('This could mean:');
-        console.log('1. No tracks exist in database');
-        console.log('2. RLS policy is blocking access');
+        console.log('1. RLS policy is blocking SELECT (most likely if tracks exist in DB)');
+        console.log('2. No tracks exist in database');
         console.log('3. Query returned empty array');
+        console.log('⚠️ NOT updating state - keeping existing tracks to avoid overwriting');
+        // Don't update state if query returns empty - this prevents overwriting
+        // with empty array when RLS is blocking
       }
     } catch (err: any) {
       console.error("❌ Exception while reloading tracks:", err);
@@ -2521,6 +2524,7 @@ Message: ${error.message}`;
             
             if (data && data.length > 0) {
                 console.log(`✅ Loaded ${data.length} tracks from Supabase`);
+                console.log('Sample track data:', data[0]);
                 const mappedTracks = data.map(t => ({
                     id: t.id,
                     title: t.title,
@@ -2544,9 +2548,25 @@ Message: ${error.message}`;
                 setBeats(mappedTracks);
                 console.log('✅ Tracks set in state:', mappedTracks.length);
             } else {
-                // Empty database - use INITIAL_BEATS only if database is truly empty
-                console.log('ℹ️ No tracks found in database, using initial beats');
-                setBeats(INITIAL_BEATS);
+                // Empty result - could mean RLS is blocking or database is empty
+                console.warn('⚠️ Query returned empty array');
+                console.log('This could mean:');
+                console.log('1. RLS policy is blocking SELECT (most likely)');
+                console.log('2. Database is truly empty');
+                console.log('3. Query issue');
+                console.log('⚠️ NOT using INITIAL_BEATS - keeping empty array to avoid overwriting');
+                
+                // Don't use INITIAL_BEATS - if tracks exist in DB but query returns empty,
+                // that means RLS is blocking. Using INITIAL_BEATS would hide the problem.
+                // Only use INITIAL_BEATS on first load if we're sure DB is empty
+                const isFirstLoad = beats.length === 0;
+                if (isFirstLoad) {
+                    console.log('First load with empty result - using INITIAL_BEATS as fallback');
+                    setBeats(INITIAL_BEATS);
+                } else {
+                    console.log('Not first load - keeping existing tracks, not overwriting with INITIAL_BEATS');
+                    // Keep existing beats, don't overwrite
+                }
             }
         } catch (err: any) {
             console.error("❌ Exception while fetching tracks:", err);
