@@ -1699,7 +1699,7 @@ const BlogPostCard = ({ post, onClick }: any) => {
   );
 };
 
-// Helper function to clean blog content - remove meta descriptions and H3 headers
+// Helper function to clean blog content - remove meta descriptions and "H3:" prefixes
 const cleanBlogContent = (content: string): string => {
   if (!content) return content;
   
@@ -1719,8 +1719,11 @@ const cleanBlogContent = (content: string): string => {
     return true;
   }).join('\n');
   
-  // Remove H3 headers (###)
-  cleaned = cleaned.replace(/^###\s+.*$/gm, '');
+  // Remove "H3:" prefixes from headers (but keep the H3 headers themselves)
+  // Pattern: "H3:" or "H3 :" at the start of a line or after ###
+  cleaned = cleaned.replace(/^###\s*H3\s*:\s*/gim, '### ');
+  cleaned = cleaned.replace(/^H3\s*:\s*/gim, '');
+  cleaned = cleaned.replace(/\*\*H3\s*:\s*/gi, '**');
   
   // Clean up extra blank lines
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
@@ -1768,7 +1771,7 @@ const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpe
             <ReactMarkdown components={{
               h1: ({node, ...props}: any) => <h1 className="text-3xl font-black text-gray-900 mb-4" {...props} />,
               h2: ({node, ...props}: any) => <h2 className="text-2xl font-bold text-gray-900 mb-3 mt-6" {...props} />,
-              h3: ({node, ...props}: any) => null, // Hide H3 tags - not used in blog posts
+              h3: ({node, ...props}: any) => <h3 className="text-xl font-bold text-gray-900 mb-2 mt-4" {...props} />,
               p: ({node, ...props}: any) => <p className="mb-4 leading-relaxed text-gray-700" {...props} />,
               a: ({node, ...props}: any) => <a className="text-brand-green hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
               ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-4 space-y-2 ml-4" {...props} />,
