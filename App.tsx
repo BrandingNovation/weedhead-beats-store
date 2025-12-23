@@ -1699,6 +1699,35 @@ const BlogPostCard = ({ post, onClick }: any) => {
   );
 };
 
+// Helper function to clean blog content - remove meta descriptions and H3 headers
+const cleanBlogContent = (content: string): string => {
+  if (!content) return content;
+  
+  let cleaned = content;
+  
+  // Remove meta description patterns (common formats)
+  // Pattern 1: "Meta Description:" or "Meta description:" followed by text
+  cleaned = cleaned.replace(/[Mm]eta\s+[Dd]escription\s*:?\s*.{0,200}/gi, '');
+  
+  // Pattern 2: Lines that look like meta descriptions (150-160 chars, standalone)
+  cleaned = cleaned.split('\n').filter(line => {
+    const trimmed = line.trim();
+    // Skip lines that are exactly meta description length and don't start with markdown
+    if (trimmed.length >= 150 && trimmed.length <= 160 && !trimmed.match(/^[#\-\*\[\d]/)) {
+      return false; // Likely a meta description
+    }
+    return true;
+  }).join('\n');
+  
+  // Remove H3 headers (###)
+  cleaned = cleaned.replace(/^###\s+.*$/gm, '');
+  
+  // Clean up extra blank lines
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  
+  return cleaned.trim();
+};
+
 const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpen: boolean, onClose: () => void }) => {
   if (!isOpen || !post) return null;
   
