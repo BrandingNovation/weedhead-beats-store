@@ -3322,53 +3322,95 @@ const App = () => {
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadForm.title || !uploadForm.coverPreview) {
-      alert("Please fill in title and cover.");
+    
+    // Validation
+    if (!uploadForm.title) {
+      alert("Please enter a title for the track.");
+      return;
+    }
+    
+    if (!uploadForm.coverPreview && !uploadForm.cover) {
+      alert("Please upload a cover image.");
+      return;
+    }
+    
+    // Check if audio is required (for new tracks) or if editing existing track
+    if (!editingTrackId && !uploadForm.audio && typeof uploadForm.audio !== 'string') {
+      alert("Please upload an audio file.");
       return;
     }
 
     try {
-        let coverUrl: string = uploadForm.coverPreview;
+        let coverUrl: string = uploadForm.coverPreview || '';
         let audioUrl: string | null = typeof uploadForm.audio === 'string' ? uploadForm.audio : null;
 
         // Upload Cover
         if (uploadForm.cover instanceof File) {
             try {
-                const fileName = `${Date.now()}-${uploadForm.cover.name}`;
-                const { data, error } = await supabase.storage.from('covers').upload(fileName, uploadForm.cover);
-                if (!error && data) {
+                const fileName = `${Date.now()}-${uploadForm.cover.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                const { data, error } = await supabase.storage.from('covers').upload(fileName, uploadForm.cover, {
+                  cacheControl: '3600',
+                  upsert: false
+                });
+                
+                if (error) {
+                  console.error('Cover upload error:', error);
+                  throw new Error(`Failed to upload cover image: ${error.message}`);
+                }
+                
+                if (data) {
                     const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName);
                     coverUrl = publicUrl;
+                    console.log('✅ Cover image uploaded successfully:', coverUrl);
                 } else {
-                    throw new Error("Supabase bucket not ready");
+                    throw new Error("Cover upload failed - no data returned");
                 }
-            } catch (err) {
-                // Fallback: Use local blob URL if Supabase upload fails
-                console.warn("Using local object URL for cover");
-                coverUrl = URL.createObjectURL(uploadForm.cover);
+            } catch (err: any) {
+                console.error('Cover upload failed:', err);
+                alert(`Failed to upload cover image: ${err.message || 'Unknown error'}\n\nPlease check:\n1. Supabase Storage bucket 'covers' exists\n2. Bucket is set to public\n3. RLS policies allow uploads`);
+                return; // Don't continue if cover upload fails
             }
+        } else if (!coverUrl && !editingTrackId) {
+          alert("Please upload a cover image.");
+          return;
         }
 
         // Upload Audio
         if (uploadForm.audio instanceof File) {
              try {
-                 const fileName = `${Date.now()}-${uploadForm.audio.name}`;
-                 const { data, error } = await supabase.storage.from('audio').upload(fileName, uploadForm.audio);
-                 if (!error && data) {
+                 const fileName = `${Date.now()}-${uploadForm.audio.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                 const { data, error } = await supabase.storage.from('audio').upload(fileName, uploadForm.audio, {
+                   cacheControl: '3600',
+                   upsert: false
+                 });
+                 
+                 if (error) {
+                   console.error('Audio upload error:', error);
+                   throw new Error(`Failed to upload audio file: ${error.message}`);
+                 }
+                 
+                 if (data) {
                       const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
                      audioUrl = publicUrl;
+                     console.log('✅ Audio file uploaded successfully:', audioUrl);
                  } else {
-                     throw new Error("Supabase bucket not ready");
+                     throw new Error("Audio upload failed - no data returned");
                  }
-             } catch (err) {
-                 // Fallback: Use local blob URL if Supabase upload fails
-                 console.warn("Using local object URL for audio");
-                 audioUrl = URL.createObjectURL(uploadForm.audio);
+             } catch (err: any) {
+                 console.error('Audio upload failed:', err);
+                 alert(`Failed to upload audio file: ${err.message || 'Unknown error'}\n\nPlease check:\n1. Supabase Storage bucket 'audio' exists\n2. Bucket is set to public\n3. RLS policies allow uploads\n4. File size is under 100MB`);
+                 return; // Don't continue if audio upload fails
              }
+        } else if (!audioUrl && !editingTrackId) {
+          alert("Please upload an audio file.");
+          return;
         }
         
-        // Use placeholder if upload failed/not provided for mock purposes if Supabase buckets aren't ready
-        if(!audioUrl) audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        // Don't use placeholder - require actual upload
+        if (!audioUrl && !editingTrackId) {
+          alert("Audio file is required. Please upload an audio file.");
+          return;
+        }
 
         // Upload Stems (ZIP file)
         let stemsUrl: string | null = null;
