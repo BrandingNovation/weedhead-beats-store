@@ -3677,8 +3677,16 @@ Message: ${error.message}`;
         } else {
              // Create New
              try {
+                console.log('📤 Inserting track into database...');
                 const { data, error } = await supabase.from('tracks').insert([trackData]).select();
-                if (data) {
+                
+                if (error) {
+                  console.error('❌ Error inserting track:', error);
+                  throw error;
+                }
+                
+                if (data && data[0]) {
+                    console.log('✅ Track inserted successfully:', data[0].id);
                     const newBeat: Track = {
                         id: data[0].id,
                         title: data[0].title,
@@ -3695,11 +3703,13 @@ Message: ${error.message}`;
                         amazonUrl: data[0].amazon_url,
                         cover: data[0].cover,
                         audio: data[0].audio,
+                        tags: data[0].tags || [],
                         stats: { plays: 0, sales: 0, revenue: 0 }
                     };
                     setBeats([newBeat, ...beats]);
                     alert("Item uploaded successfully to store!");
-                    // Reload tracks from database to ensure consistency
+                    // Force reload ALL tracks from database to ensure consistency
+                    console.log('🔄 Reloading all tracks from database after upload...');
                     await reloadTracks();
                 } else {
                     // Fallback for when DB write fails (e.g. RLS policy or network)
