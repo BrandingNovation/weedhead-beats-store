@@ -91,13 +91,66 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
         const imageModels = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
         const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001'];
         
+        // Enhanced image generation prompt with detailed specifications
+        const imagePrompt = `Create a high-resolution, photorealistic image for a modern hip-hop beat store blog post.
+
+Subject:
+${prompt}
+
+Visual Style & Mood:
+- Modern hip-hop culture
+- Gritty but clean
+- Cinematic lighting
+- Realistic, professional photography look (not illustration, not cartoon)
+- Urban environments (studio spaces, city streets at night, neon accents, creative workspaces)
+
+Branding & Color Palette:
+- Primary colors: black, dark green, white, and gray
+- Subtle green accents (neon lights, smoke tint, LED glow, reflections)
+- No logos or readable text in the image
+- No watermarks
+
+People & Objects (if applicable):
+- Real people only (diverse, authentic hip-hop aesthetic)
+- Natural poses, candid moments
+- No exaggerated fashion or costumes
+- Modern streetwear, studio gear, microphones, MPCs, laptops, vinyl, headphones, city textures
+
+Composition:
+- Centered focal subject
+- Clean depth of field
+- Strong contrast
+- High detail and sharpness
+- Suitable for website hero images and blog thumbnails
+
+Technical Requirements:
+- Ultra-realistic
+- 16:9 aspect ratio
+- 4K quality
+- No illustration, no anime, no 3D render
+- Natural skin tones
+- Realistic shadows and lighting
+
+Overall Feel:
+- Premium
+- Underground but polished
+- Forward-thinking hip-hop culture
+- Matches the brand identity of weedheadbeats.com
+
+HARD RULES (DO NOT BREAK THESE):
+❌ No text overlays
+❌ No cartoon or illustrated styles
+❌ No AI-looking faces
+❌ No fantasy elements
+❌ No logos (including WeedHead Beats logo)`;
+        
         // Try image generation models first
         for (const modelName of imageModels) {
             try {
                 const response = await ai.models.generateContent({
                     model: modelName,
                     contents: {
-                        parts: [{ text: `Generate a high quality, cinematic, 4k digital art image for a hip-hop music producer blog post about: ${prompt}. Dark aesthetic, neon green accents, studio equipment, urban vibe. No text on image.` }]
+                        parts: [{ text: imagePrompt }]
                     }
                 });
 
@@ -156,20 +209,25 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                     - **Focus Keyword**: "${topic}" + "Beats" or "Producer" - use naturally throughout (aim for 1-2% keyword density)
                     - **Primary Keywords**: Include naturally: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips", "Hip Hop Beats", "Producer Beats", "Beat Store"
                     - **Long-tail Keywords**: Include variations like "${topic} beats for sale", "best ${topic} beats", "professional ${topic} production"
-                    - **Title**: Must include focus keyword, be 50-60 characters, compelling and click-worthy
-                    - **Meta Description**: Write a 150-160 character meta description (include in content)
-                    - **Header Structure**: Use H2 and H3 headers that include keywords naturally
+                        - **Title**: Must include focus keyword, be 50-60 characters, compelling and click-worthy
+                        - **Meta Description**: Write a 150-160 character meta description (DO NOT include in visible content - this is for SEO only, not for display)
+                        - **Header Structure**: Use H2 headers that include keywords naturally. DO NOT use H3 headers - only use H2 for section headers
                     - **Internal Linking**: Reference "Weedhead Beats store", "our beat catalog", "check out our beats"
                     - **External Context**: Mention relevant artists, producers, or industry trends naturally
                     
-                    Standard Blog Format Protocol:
-                    1. **Title (H1)**: SEO-optimized headline (50-60 chars) with focus keyword, compelling and click-worthy
-                    2. **Introduction Paragraph**: 5-7 sentences that hook the reader, introduce the topic, provide context, and preview what they'll learn. End with a clear value proposition.
-                    3. **Body Sections (H2 headers)**: Each section should be 3-5 paragraphs (4-6 sentences each). Use descriptive H2 headers that include keywords naturally. Minimum 4-5 H2 sections.
-                    4. **Subsections (H3 headers)**: Break down complex topics with H3 headers. Each H3 section should have 2-3 paragraphs.
-                    5. **Bullet Points or Numbered Lists**: Use for actionable takeaways, tips, or key points. Make lists substantial (5-8 items).
-                    6. **Examples and Case Studies**: Include real-world examples, scenarios, or brief case studies to add depth.
-                    7. **Conclusion Paragraph**: 5-7 sentences summarizing key points, reinforcing main message, and strong call to action to visit Weedhead Beats store.
+                        Standard Blog Format Protocol:
+                        1. **Title (H1)**: SEO-optimized headline (50-60 chars) with focus keyword, compelling and click-worthy
+                        2. **Introduction Paragraph**: 5-7 sentences that hook the reader, introduce the topic, provide context, and preview what they'll learn. End with a clear value proposition.
+                        3. **Body Sections (H2 headers ONLY)**: Each section should be 3-5 paragraphs (4-6 sentences each). Use descriptive H2 headers that include keywords naturally. Minimum 4-5 H2 sections. DO NOT use H3 headers - only use H2.
+                        4. **Bullet Points or Numbered Lists**: Use for actionable takeaways, tips, or key points. Make lists substantial (5-8 items).
+                        5. **Examples and Case Studies**: Include real-world examples, scenarios, or brief case studies to add depth.
+                        6. **Conclusion Paragraph**: 5-7 sentences summarizing key points, reinforcing main message, and strong call to action to visit Weedhead Beats store.
+                        
+                        IMPORTANT FORMATTING RULES:
+                        - DO NOT include meta description in the visible content
+                        - DO NOT use H3 headers (###) - only use H2 headers (##)
+                        - Meta description is for SEO metadata only, not for display
+                        - All section headers must be H2 (##), not H3 (###)
                     
                     Content Requirements:
                     - **Minimum Word Count**: 800-1200 words (aim for comprehensive, detailed content)
@@ -179,14 +237,16 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                     - **Engagement**: Use rhetorical questions, relatable scenarios, and engaging language
                     - **Authority**: Demonstrate expertise through detailed explanations and industry knowledge
                     
-                    Formatting Rules:
-                    - Use proper Markdown: # for H1, ## for H2, ### for H3
-                    - Bold important terms and keywords: **term**
-                    - Use bullet points (-) or numbered lists (1.) for lists (make them substantial)
-                    - Keep paragraphs substantial (4-6 sentences)
-                    - Use line breaks between sections
-                    - Include internal links naturally (e.g., "check out our beat store", "browse our catalog")
-                    - Include a strong call-to-action at the end encouraging readers to visit Weedhead Beats
+                        Formatting Rules:
+                        - Use proper Markdown: # for H1, ## for H2 (DO NOT use ### for H3)
+                        - Bold important terms and keywords: **term**
+                        - Use bullet points (-) or numbered lists (1.) for lists (make them substantial)
+                        - Keep paragraphs substantial (4-6 sentences)
+                        - Use line breaks between sections
+                        - Include internal links naturally (e.g., "check out our beat store", "browse our catalog")
+                        - Include a strong call-to-action at the end encouraging readers to visit Weedhead Beats
+                        - DO NOT include meta description in the content - it's for SEO metadata only
+                        - DO NOT use H3 headers - only H2 headers for sections
                     
                     Output strictly as Markdown following this structure. Write extensively - this should be a comprehensive, valuable piece of content.`,
                     config: {
@@ -231,11 +291,15 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         Standard Blog Format Protocol:
                         1. **Title (H1)**: SEO-optimized headline (50-60 chars) with focus keyword
                         2. **Introduction Paragraph**: 5-7 sentences that hook, introduce topic, provide context, preview value
-                        3. **Body Sections (H2 headers)**: 3-5 paragraphs each (4-6 sentences per paragraph). Minimum 4-5 H2 sections.
-                        4. **Subsections (H3 headers)**: 2-3 paragraphs each when needed
-                        5. **Bullet Points or Numbered Lists**: Substantial lists (5-8 items) for takeaways
-                        6. **Examples**: Include real-world examples and scenarios
-                        7. **Conclusion Paragraph**: 5-7 sentences summarizing and strong CTA to visit Weedhead Beats
+                        3. **Body Sections (H2 headers ONLY)**: 3-5 paragraphs each (4-6 sentences per paragraph). Minimum 4-5 H2 sections. DO NOT use H3 headers.
+                        4. **Bullet Points or Numbered Lists**: Substantial lists (5-8 items) for takeaways
+                        5. **Examples**: Include real-world examples and scenarios
+                        6. **Conclusion Paragraph**: 5-7 sentences summarizing and strong CTA to visit Weedhead Beats
+                        
+                        IMPORTANT FORMATTING RULES:
+                        - DO NOT use H3 headers (###) - only use H2 headers (##)
+                        - All section headers must be H2 (##), not H3 (###)
+                        - Meta description is for SEO only, not for visible content
                         
                         Content Requirements:
                         - **Minimum Word Count**: 800-1200 words
@@ -244,13 +308,15 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         - **Value**: Provide actionable insights and detailed information
                         
                         Formatting Rules:
-                        - Use proper Markdown: # for H1, ## for H2, ### for H3
+                        - Use proper Markdown: # for H1, ## for H2 (DO NOT use ### for H3)
                         - Bold important terms: **term**
                         - Use bullet points (-) or numbered lists (1.) for lists
                         - Keep paragraphs substantial (4-6 sentences)
                         - Use line breaks between sections
                         - Include internal links naturally
                         - Strong call-to-action at the end
+                        - DO NOT use H3 headers - only H2 headers for sections
+                        - Meta description is for SEO only, not visible content
                         
                         Output strictly as Markdown following this structure. Write extensively - comprehensive, valuable content.`
                     });

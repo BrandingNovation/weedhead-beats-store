@@ -1739,7 +1739,7 @@ const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpe
             <ReactMarkdown components={{
               h1: ({node, ...props}: any) => <h1 className="text-3xl font-black text-gray-900 mb-4" {...props} />,
               h2: ({node, ...props}: any) => <h2 className="text-2xl font-bold text-gray-900 mb-3 mt-6" {...props} />,
-              h3: ({node, ...props}: any) => <h3 className="text-xl font-bold text-gray-900 mb-2 mt-4" {...props} />,
+              h3: ({node, ...props}: any) => null, // Hide H3 tags - not used in blog posts
               p: ({node, ...props}: any) => <p className="mb-4 leading-relaxed text-gray-700" {...props} />,
               a: ({node, ...props}: any) => <a className="text-brand-green hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
               ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-4 space-y-2 ml-4" {...props} />,
@@ -1749,7 +1749,7 @@ const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpe
               em: ({node, ...props}: any) => <em className="italic" {...props} />,
               code: ({node, ...props}: any) => <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono" {...props} />,
               blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-brand-green pl-4 italic my-4" {...props} />
-            }}>{post.content || post.excerpt}</ReactMarkdown>
+            }}>{cleanBlogContent(post.content || post.excerpt)}</ReactMarkdown>
           </div>
         </div>
       </div>
