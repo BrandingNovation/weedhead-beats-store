@@ -2396,13 +2396,91 @@ const App = () => {
     }
   }, []);
 
+  // Function to reload tracks from Supabase (can be called after upload)
+  const reloadTracks = async () => {
+    try {
+      console.log('🔄 Reloading tracks from Supabase...');
+      const { data, error } = await supabase
+        .from('tracks')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('❌ Error reloading tracks:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        // Check if it's an RLS/permission error
+        if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('policy')) {
+          console.warn('⚠️ RLS policy may be blocking track access. Check Supabase RLS policies for tracks table.');
+          alert('⚠️ Cannot load tracks: Permission denied. Please check Supabase RLS policies allow public read access to tracks table.');
+        }
+        return; // Don't update state on error
+      }
+      
+      if (data && data.length > 0) {
+        console.log(`✅ Reloaded ${data.length} tracks from Supabase`);
+        const mappedTracks = data.map(t => ({
+          id: t.id,
+          title: t.title,
+          producer: t.producer || 'Weedhead',
+          bpm: t.bpm,
+          key: t.key,
+          price: t.price,
+          mood: t.mood,
+          category: t.category,
+          description: t.description,
+          youtubeUrl: t.youtube_url,
+          spotifyUrl: t.spotify_url,
+          appleMusicUrl: t.apple_music_url,
+          amazonUrl: t.amazon_url,
+          cover: t.cover,
+          audio: t.audio,
+          stemsUrl: t.stems_url || undefined,
+          tags: t.tags || [],
+          stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
+        }));
+        setBeats(mappedTracks);
+      }
+    } catch (err: any) {
+      console.error("❌ Exception while reloading tracks:", err);
+    }
+  };
+
   // Fetch Data from Supabase
   useEffect(() => {
     const fetchTracks = async () => {
         try {
-            const { data, error } = await supabase.from('tracks').select('*').order('created_at', { ascending: false });
-            if (!error && data && data.length > 0) {
-                setBeats(data.map(t => ({
+            console.log('🔄 Fetching tracks from Supabase...');
+            const { data, error } = await supabase
+              .from('tracks')
+              .select('*')
+              .order('created_at', { ascending: false });
+            
+            if (error) {
+              console.error('❌ Error fetching tracks:', error);
+              console.error('Error code:', error.code);
+              console.error('Error message:', error.message);
+              console.error('Error details:', error.details);
+              console.error('Error hint:', error.hint);
+              
+              // Check if it's an RLS/permission error
+              if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('policy')) {
+                console.warn('⚠️ RLS policy may be blocking track access. Check Supabase RLS policies for tracks table.');
+                alert('⚠️ Cannot load tracks: Permission denied.\n\nPlease check Supabase RLS policies:\n1. Go to Supabase Dashboard → Authentication → Policies\n2. Find the "tracks" table\n3. Ensure there is a policy allowing SELECT for all users (public read access)');
+                // Don't overwrite with INITIAL_BEATS - keep empty array
+                setBeats([]);
+              } else {
+                // For other errors, still don't overwrite - keep empty array
+                setBeats([]);
+              }
+              setTracksLoaded(true);
+              return;
+            }
+            
+            if (data && data.length > 0) {
+                console.log(`✅ Loaded ${data.length} tracks from Supabase`);
+                const mappedTracks = data.map(t => ({
                     id: t.id,
                     title: t.title,
                     producer: t.producer || 'Weedhead',
@@ -2421,17 +2499,27 @@ const App = () => {
                     stemsUrl: t.stems_url || undefined,
                     tags: t.tags || [],
                     stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
-                })));
+                }));
+                setBeats(mappedTracks);
+                console.log('✅ Tracks set in state:', mappedTracks.length);
             } else {
-                // Only use INITIAL_BEATS if Supabase has no data (empty database)
+                // Empty database - use INITIAL_BEATS only if database is truly empty
+                console.log('ℹ️ No tracks found in database, using initial beats');
                 setBeats(INITIAL_BEATS);
             }
         } catch (err: any) {
-            console.error("Failed to fetch tracks:", err);
-            // Only use INITIAL_BEATS as fallback if fetch fails
-            setBeats(INITIAL_BEATS);
+            console.error("❌ Exception while fetching tracks:", err);
+            console.error("Error details:", {
+              message: err?.message,
+              code: err?.code,
+              stack: err?.stack
+            });
+            // Don't overwrite with INITIAL_BEATS on exception - keep empty array
+            // This prevents losing saved tracks if there's a temporary error
+            setBeats([]);
         } finally {
             setTracksLoaded(true);
+            console.log('✅ Tracks loading complete');
         }
     };
     
@@ -3516,6 +3604,8 @@ const App = () => {
                             stats: { plays: data[0].stats_plays || 0, sales: data[0].stats_sales || 0, revenue: 0 }
                         } : b));
                         alert("Track updated successfully!");
+                        // Reload tracks from database to ensure consistency
+                        await reloadTracks();
                     }
                 }
              } catch(e) { 
@@ -3548,6 +3638,8 @@ const App = () => {
                     };
                     setBeats([newBeat, ...beats]);
                     alert("Item uploaded successfully to store!");
+                    // Reload tracks from database to ensure consistency
+                    await reloadTracks();
                 } else {
                     // Fallback for when DB write fails (e.g. RLS policy or network)
                     throw new Error("DB Insert failed");
