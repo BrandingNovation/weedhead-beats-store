@@ -297,8 +297,8 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         6. **Conclusion Paragraph**: 5-7 sentences summarizing and strong CTA to visit Weedhead Beats
                         
                         IMPORTANT FORMATTING RULES:
-                        - DO NOT use H3 headers (###) - only use H2 headers (##)
-                        - All section headers must be H2 (##), not H3 (###)
+                        - Use H2 (##) for main sections and H3 (###) for subsections
+                        - When writing H3 headers, use "### Header Text" - DO NOT include "H3:" prefix text
                         - Meta description is for SEO only, not for visible content
                         
                         Content Requirements:
