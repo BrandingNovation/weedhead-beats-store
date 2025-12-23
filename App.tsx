@@ -3693,10 +3693,42 @@ Message: ${error.message}`;
              // Create New
              try {
                 console.log('📤 Inserting track into database...');
+                console.log('Track data:', { ...trackData, audio: trackData.audio?.substring(0, 50) + '...' });
+                
                 const { data, error } = await supabase.from('tracks').insert([trackData]).select();
                 
                 if (error) {
                   console.error('❌ Error inserting track:', error);
+                  console.error('Error code:', error.code);
+                  console.error('Error message:', error.message);
+                  console.error('Error details:', error.details);
+                  console.error('Error hint:', error.hint);
+                  
+                  // Check for missing column error
+                  if (error.message?.includes('stems_url') || 
+                      error.message?.includes('column') && error.message?.includes('not found') ||
+                      error.message?.includes('schema cache')) {
+                    const fixMessage = `❌ Database Error: Missing 'stems_url' Column
+
+The tracks table is missing the 'stems_url' column.
+
+🔧 TO FIX:
+1. Go to Supabase Dashboard → SQL Editor
+2. Run the file: ADD_STEMS_URL_COLUMN_NOW.sql
+   OR copy/paste this SQL:
+
+   ALTER TABLE tracks ADD COLUMN IF NOT EXISTS stems_url TEXT;
+
+3. Click "RUN"
+4. Try uploading again
+
+Error Details:
+${error.message}`;
+                    
+                    alert(fixMessage);
+                    throw error;
+                  }
+                  
                   throw error;
                 }
                 
