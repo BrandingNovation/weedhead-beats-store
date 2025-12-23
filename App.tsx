@@ -2400,6 +2400,8 @@ const App = () => {
   const reloadTracks = async () => {
     try {
       console.log('🔄 Reloading tracks from Supabase...');
+      console.log('Using Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+      
       const { data, error } = await supabase
         .from('tracks')
         .select('*')
@@ -2409,17 +2411,44 @@ const App = () => {
         console.error('❌ Error reloading tracks:', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
         
         // Check if it's an RLS/permission error
-        if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('policy')) {
-          console.warn('⚠️ RLS policy may be blocking track access. Check Supabase RLS policies for tracks table.');
-          alert('⚠️ Cannot load tracks: Permission denied. Please check Supabase RLS policies allow public read access to tracks table.');
+        if (error.code === '42501' || 
+            error.code === 'PGRST301' ||
+            error.message?.includes('permission denied') || 
+            error.message?.includes('policy') ||
+            error.message?.includes('row-level security')) {
+          console.warn('⚠️ RLS policy is blocking track access!');
+          const fixMessage = `⚠️ Cannot load tracks: Permission denied (RLS Policy Issue)
+
+🔧 TO FIX:
+1. Go to Supabase Dashboard → SQL Editor
+2. Run the file: FIX_TRACKS_RLS.sql
+   OR copy/paste this SQL:
+   
+   DROP POLICY IF EXISTS "Tracks are viewable by everyone" ON tracks;
+   CREATE POLICY "Tracks are viewable by everyone"
+       ON tracks FOR SELECT
+       USING (true);
+
+3. Refresh this page
+
+Error Details:
+Code: ${error.code}
+Message: ${error.message}`;
+          
+          alert(fixMessage);
+        } else {
+          alert(`❌ Error loading tracks: ${error.message}\n\nCheck browser console for details.`);
         }
         return; // Don't update state on error
       }
       
       if (data && data.length > 0) {
         console.log(`✅ Reloaded ${data.length} tracks from Supabase`);
+        console.log('Sample track:', data[0]);
         const mappedTracks = data.map(t => ({
           id: t.id,
           title: t.title,
@@ -2441,9 +2470,21 @@ const App = () => {
           stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
         }));
         setBeats(mappedTracks);
+        console.log('✅ Tracks updated in state');
+      } else {
+        console.warn('⚠️ No tracks returned from database (empty result)');
+        console.log('This could mean:');
+        console.log('1. No tracks exist in database');
+        console.log('2. RLS policy is blocking access');
+        console.log('3. Query returned empty array');
       }
     } catch (err: any) {
       console.error("❌ Exception while reloading tracks:", err);
+      console.error("Exception details:", {
+        message: err?.message,
+        code: err?.code,
+        stack: err?.stack
+      });
     }
   };
 
