@@ -2202,8 +2202,13 @@ const App = () => {
           // Also save to localStorage as backup
           try {
             localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
-          } catch (e) {
-            console.warn('Failed to save CMS content to localStorage', e);
+          } catch (e: any) {
+            // Handle quota exceeded errors gracefully
+            if (e instanceof DOMException && (e.code === 22 || e.name === 'QuotaExceededError')) {
+              console.warn('localStorage quota exceeded, data not saved to localStorage');
+            } else {
+              console.warn('Failed to save CMS content to localStorage', e);
+            }
           }
         } catch (e: any) {
           // If unauthorized, just use localStorage (user logged out)
@@ -2216,16 +2221,26 @@ const App = () => {
           // Fallback to localStorage
           try {
             localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
-          } catch (err) {
-            console.error('Failed to save CMS content to localStorage', err);
+          } catch (err: any) {
+            // Handle quota exceeded errors gracefully
+            if (err instanceof DOMException && (err.code === 22 || err.name === 'QuotaExceededError')) {
+              console.warn('localStorage quota exceeded, data not saved to localStorage');
+            } else {
+              console.error('Failed to save CMS content to localStorage', err);
+            }
           }
         }
       } else {
         // User not authenticated - only save to localStorage
         try {
           localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
-        } catch (e) {
-          console.warn('Failed to save CMS content to localStorage', e);
+        } catch (e: any) {
+          // Handle quota exceeded errors gracefully
+          if (e instanceof DOMException && (e.code === 22 || e.name === 'QuotaExceededError')) {
+            console.warn('localStorage quota exceeded, data not saved to localStorage');
+          } else {
+            console.warn('Failed to save CMS content to localStorage', e);
+          }
         }
       }
     };
