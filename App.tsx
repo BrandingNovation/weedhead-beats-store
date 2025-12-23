@@ -1126,9 +1126,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                     downloadLinks: downloadLinks.length > 0 ? downloadLinks : undefined
                                                 });
                                                 
-                                                if (emailSent) {
-                                                    console.log('✅ Order confirmation email sent successfully');
-                                                } else {
+                                                if (!emailSent) {
                                                     console.warn('⚠️ Order confirmation email was not sent (check email settings)');
                                                 }
                                             } catch (emailError) {
@@ -1144,7 +1142,6 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                 }
                                 
                                 // Always set status to success to show receipt, even if order save fails
-                                console.log('Setting status to success - receipt should display');
                                 setStatus('success');
                             }} />
                         </Elements>
@@ -1265,9 +1262,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                                     downloadLinks: downloadLinks.length > 0 ? downloadLinks : undefined
                                                                 });
                                                                 
-                                                                if (emailSent) {
-                                                                    console.log('✅ Order confirmation email sent successfully');
-                                                                } else {
+                                                                if (!emailSent) {
                                                                     console.warn('⚠️ Order confirmation email was not sent (check email settings)');
                                                                 }
                                                             } catch (emailError) {
@@ -1283,7 +1278,6 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                                 }
                                                 
                                                 // Always set status to success to show receipt, even if order save fails
-                                                console.log('Setting status to success - receipt should display');
                                                 setStatus('success');
                                             } catch (err) {
                                                 console.error('[PayPal Error]', err);
@@ -1869,8 +1863,6 @@ const NewsletterForm = () => {
 
                             if (emailError) {
                                 console.warn('Welcome email not sent (Edge Function may not be deployed):', emailError);
-                            } else {
-                                console.log('✅ Welcome email sent successfully');
                             }
                         }
                     }
@@ -2192,7 +2184,6 @@ const App = () => {
             if (error) {
               // If unauthorized, user logged out - just use localStorage
               if (error.code === 'PGRST301' || error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-                console.log('User not authenticated, saving to localStorage only');
                 break; // Exit loop and save to localStorage
               }
               throw error;
@@ -2572,7 +2563,6 @@ const App = () => {
       let isCancelled = false;
       
       const fetchSubscribers = async () => {
-        console.log('Loading newsletter subscribers...');
         try {
           const { data, error } = await supabase
             .from('newsletter_subscribers')
@@ -2594,7 +2584,6 @@ const App = () => {
         } finally {
           // Always set loaded to true, even if cancelled or errored
           if (!isCancelled) {
-            console.log('Subscribers loading complete');
             setSubscribersLoaded(true);
           }
         }
@@ -2622,7 +2611,6 @@ const App = () => {
       let isCancelled = false;
       
       const fetchNewsletterSettings = async () => {
-        console.log('Loading newsletter settings...');
         try {
           const { data, error } = await supabase
             .from('email_settings')
@@ -2662,7 +2650,6 @@ const App = () => {
             });
           }
           
-          console.log('Loaded newsletter settings:', settings);
           if (!isCancelled) {
             setNewsletterSettings(settings);
           }
@@ -2679,7 +2666,6 @@ const App = () => {
         } finally {
           // Always set loaded to true, even if cancelled or errored
           if (!isCancelled) {
-            console.log('Newsletter settings loading complete');
             setNewsletterSettingsLoaded(true);
           }
         }
@@ -2743,7 +2729,7 @@ const App = () => {
   const handleLogout = async () => {
       try {
         await supabase.auth.signOut();
-      } catch (e) { console.log('Signout local only'); }
+      } catch (e) { /* Signout local only */ }
       setUser(null);
       setIsUserMenuOpen(false);
       setActiveTab('store');
@@ -3327,9 +3313,35 @@ const App = () => {
       return;
     }
 
+    // Check if user is authenticated and is admin before proceeding
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        alert("You must be logged in to upload tracks.");
+        return;
+      }
+
+      // Verify admin status
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userData.user.id)
+        .single();
+
+      if (profileError || !profileData?.is_admin) {
+        alert("You must be logged in as an admin to upload tracks. Please check your admin status.");
+        return;
+      }
+    } catch (authError) {
+      console.error('Error checking admin status:', authError);
+      alert("Failed to verify admin status. Please try again.");
+      return;
+    }
+
     try {
         let coverUrl: string = uploadForm.coverPreview;
         let audioUrl: string | null = typeof uploadForm.audio === 'string' ? uploadForm.audio : null;
+        let uploadedFiles: string[] = []; // Track uploaded files for cleanup if needed
 
         // Upload Cover
         if (uploadForm.cover instanceof File) {
@@ -3339,13 +3351,14 @@ const App = () => {
                 if (!error && data) {
                     const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName);
                     coverUrl = publicUrl;
+                    uploadedFiles.push(`covers/${fileName}`);
                 } else {
-                    throw new Error("Supabase bucket not ready");
+                    throw new Error(error?.message || "Failed to upload cover image");
                 }
             } catch (err) {
-                // Fallback: Use local blob URL if Supabase upload fails
-                console.warn("Using local object URL for cover");
-                coverUrl = URL.createObjectURL(uploadForm.cover);
+                console.error("Error uploading cover:", err);
+                alert(`Failed to upload cover image: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                throw err; // Re-throw to prevent continuing with failed upload
             }
         }
 
@@ -3357,18 +3370,21 @@ const App = () => {
                  if (!error && data) {
                       const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
                      audioUrl = publicUrl;
+                     uploadedFiles.push(`audio/${fileName}`);
                  } else {
-                     throw new Error("Supabase bucket not ready");
+                     throw new Error(error?.message || "Failed to upload audio file");
                  }
              } catch (err) {
-                 // Fallback: Use local blob URL if Supabase upload fails
-                 console.warn("Using local object URL for audio");
-                 audioUrl = URL.createObjectURL(uploadForm.audio);
+                 console.error("Error uploading audio:", err);
+                 alert(`Failed to upload audio file: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                 throw err; // Re-throw to prevent continuing with failed upload
              }
         }
         
-        // Use placeholder if upload failed/not provided for mock purposes if Supabase buckets aren't ready
-        if(!audioUrl) audioUrl = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        if (!audioUrl) {
+            alert("Audio file is required. Please upload an audio file.");
+            return;
+        }
 
         // Upload Stems (ZIP file)
         let stemsUrl: string | null = null;
@@ -3379,11 +3395,13 @@ const App = () => {
                 if (!error && data) {
                     const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
                     stemsUrl = publicUrl;
+                    uploadedFiles.push(`audio/${fileName}`);
                 } else {
-                    throw new Error("Supabase bucket not ready");
+                    throw new Error(error?.message || "Failed to upload stems file");
                 }
             } catch (err) {
-                console.warn("Failed to upload stems, skipping");
+                console.warn("Failed to upload stems, skipping:", err);
+                // Stems are optional, so we continue even if upload fails
                 stemsUrl = null;
             }
         }
@@ -3449,7 +3467,24 @@ const App = () => {
                         .select();
                     
                     if (error) {
-                        throw error;
+                        console.error('Database update error:', error);
+                        // Clean up uploaded files if database update fails
+                        for (const filePath of uploadedFiles) {
+                            const [bucket, fileName] = filePath.split('/');
+                            try {
+                                await supabase.storage.from(bucket).remove([fileName]);
+                            } catch (cleanupError) {
+                                console.warn(`Failed to cleanup file ${filePath}:`, cleanupError);
+                            }
+                        }
+                        
+                        if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('policy')) {
+                            throw new Error('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                        } else if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
+                            throw new Error('Tracks table not found. Please run the database setup SQL in Supabase first.');
+                        } else {
+                            throw error;
+                        }
                     }
                     
                     if (data && data[0]) {
@@ -3474,18 +3509,55 @@ const App = () => {
                             stats: { plays: data[0].stats_plays || 0, sales: data[0].stats_sales || 0, revenue: 0 }
                         } : b));
                         alert("Track updated successfully!");
+                    } else {
+                        throw new Error("Database update returned no data");
                     }
                 }
              } catch(e) { 
                  console.error('Failed to update track:', e);
-                 alert(`Failed to update track: ${e instanceof Error ? e.message : 'Unknown error'}`);
+                 
+                 // Clean up uploaded files if database update fails
+                 for (const filePath of uploadedFiles) {
+                     const [bucket, fileName] = filePath.split('/');
+                     try {
+                         await supabase.storage.from(bucket).remove([fileName]);
+                     } catch (cleanupError) {
+                         console.warn(`Failed to cleanup file ${filePath}:`, cleanupError);
+                     }
+                 }
+                 
+                 alert(`Failed to update track: ${e instanceof Error ? e.message : 'Unknown error'}\n\nFiles were uploaded to storage but have been cleaned up.`);
              }
              setEditingTrackId(null);
         } else {
              // Create New
              try {
                 const { data, error } = await supabase.from('tracks').insert([trackData]).select();
-                if (data) {
+                
+                if (error) {
+                    console.error('Database insert error:', error);
+                    // Clean up uploaded files if database insert fails
+                    for (const filePath of uploadedFiles) {
+                        const [bucket, fileName] = filePath.split('/');
+                        try {
+                            await supabase.storage.from(bucket).remove([fileName]);
+                        } catch (cleanupError) {
+                            console.warn(`Failed to cleanup file ${filePath}:`, cleanupError);
+                        }
+                    }
+                    
+                    // Show detailed error message
+                    if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('policy')) {
+                        alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
+                    } else if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
+                        alert('Tracks table not found. Please run the database setup SQL in Supabase first.');
+                    } else {
+                        alert(`Failed to save track to database: ${error.message || 'Unknown error'}\n\nFiles were uploaded to storage but the database record was not created.`);
+                    }
+                    return;
+                }
+                
+                if (data && data[0]) {
                     const newBeat: Track = {
                         id: data[0].id,
                         title: data[0].title,
@@ -3505,33 +3577,24 @@ const App = () => {
                         stats: { plays: 0, sales: 0, revenue: 0 }
                     };
                     setBeats([newBeat, ...beats]);
-                    alert("Item uploaded successfully to store!");
+                    alert("Track uploaded successfully to store!");
                 } else {
-                    // Fallback for when DB write fails (e.g. RLS policy or network)
-                    throw new Error("DB Insert failed");
+                    throw new Error("Database insert returned no data");
                 }
              } catch (e) {
-                 // Fallback Mock Add
-                 const newBeat: Track = {
-                    id: Date.now(),
-                    title: trackData.title,
-                    producer: "Weedhead",
-                    bpm: trackData.bpm,
-                    key: trackData.key,
-                    price: trackData.price,
-                    mood: trackData.mood,
-                    category: trackData.category as ProductCategory,
-                    description: trackData.description,
-                    youtubeUrl: trackData.youtube_url,
-                    spotifyUrl: trackData.spotify_url ?? undefined,
-                    appleMusicUrl: trackData.apple_music_url ?? undefined,
-                    amazonUrl: trackData.amazon_url ?? undefined,
-                    cover: trackData.cover || '',
-                    audio: trackData.audio as string,
-                    stats: { plays: 0, sales: 0, revenue: 0 }
-                 };
-                 setBeats([newBeat, ...beats]);
-                 alert("Item added (Local Mode - Audio Ready for Playback)");
+                 console.error('Failed to create track:', e);
+                 
+                 // Clean up uploaded files if database insert fails
+                 for (const filePath of uploadedFiles) {
+                     const [bucket, fileName] = filePath.split('/');
+                     try {
+                         await supabase.storage.from(bucket).remove([fileName]);
+                     } catch (cleanupError) {
+                         console.warn(`Failed to cleanup file ${filePath}:`, cleanupError);
+                     }
+                 }
+                 
+                 alert(`Failed to save track: ${e instanceof Error ? e.message : 'Unknown error'}\n\nFiles were uploaded to storage but have been cleaned up.`);
              }
         }
         
@@ -4374,12 +4437,8 @@ const App = () => {
                       e.preventDefault();
                       e.stopPropagation();
                       
-                      console.log('Save Newsletter Settings button clicked');
-                      console.log('Current settings:', newsletterSettings);
-                      
                       try {
                         setSavingNewsletterSettings(true);
-                        console.log('Starting to save newsletter settings...');
                         
                         const settingsToSave = [
                           { setting_name: 'newsletter_send_welcome_email', setting_value: newsletterSettings.send_welcome_email ? 'true' : 'false', description: 'Send welcome email to new subscribers' },
@@ -4388,15 +4447,11 @@ const App = () => {
                           { setting_name: 'newsletter_template', setting_value: newsletterSettings.newsletter_template || '', description: 'Default newsletter template' }
                         ];
                         
-                        console.log('Settings to save:', settingsToSave);
-                        
                         // Check if user is admin first
                         const { data: userData, error: userError } = await supabase.auth.getUser();
                         if (userError || !userData.user) {
                           throw new Error('You must be logged in to save settings');
                         }
-                        
-                        console.log('User authenticated:', userData.user.email);
                         
                         // Verify admin status
                         const { data: profileData, error: profileError } = await supabase
@@ -4414,14 +4469,10 @@ const App = () => {
                           throw new Error('You must be an admin to save newsletter settings. Your account is not an admin.');
                         }
                         
-                        console.log('Admin status verified');
-                        
                         // Save each setting using upsert with better error handling
                         for (const setting of settingsToSave) {
-                          console.log(`Saving setting: ${setting.setting_name} = ${setting.setting_value}`);
-                          
                           // Use upsert - this handles both insert and update
-                          const { data: upsertData, error: upsertError } = await supabase
+                          const { error: upsertError } = await supabase
                             .from('email_settings')
                             .upsert({
                               setting_name: setting.setting_name,
@@ -4431,15 +4482,10 @@ const App = () => {
                             }, {
                               onConflict: 'setting_name',
                               ignoreDuplicates: false
-                            })
-                            .select();
+                            });
                           
                           if (upsertError) {
                             console.error(`Error saving ${setting.setting_name}:`, upsertError);
-                            console.error('Error code:', upsertError.code);
-                            console.error('Error message:', upsertError.message);
-                            console.error('Error details:', upsertError.details);
-                            console.error('Error hint:', upsertError.hint);
                             
                             // If upsert fails, try insert then update
                             if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
@@ -4457,25 +4503,15 @@ const App = () => {
                                 console.error(`Update also failed for ${setting.setting_name}:`, updateError);
                                 throw updateError;
                               }
-                              console.log(`Successfully updated ${setting.setting_name} (via update)`);
                             } else {
                               throw upsertError;
                             }
-                          } else {
-                            console.log(`Successfully saved ${setting.setting_name}`, upsertData);
                           }
                         }
                         
-                        console.log('All newsletter settings saved successfully!');
                         alert('Newsletter settings saved successfully!');
                       } catch (e: any) {
                         console.error('Failed to save newsletter settings:', e);
-                        console.error('Error details:', {
-                          message: e?.message,
-                          code: e?.code,
-                          details: e?.details,
-                          hint: e?.hint
-                        });
                         
                         if (e?.message?.includes('does not exist')) {
                           alert('Email settings table not found. Please run migration_add_email_settings.sql in Supabase first.');
@@ -4486,7 +4522,6 @@ const App = () => {
                         }
                       } finally {
                         setSavingNewsletterSettings(false);
-                        console.log('Save operation completed');
                       }
                     }}
                     disabled={savingNewsletterSettings}
@@ -4556,8 +4591,6 @@ const App = () => {
                             
                             setSavingKey('gemini');
                             try {
-                              console.log('Saving Gemini API key...');
-                              
                               // Get current user ID for updated_by
                               const { data: userData } = await supabase.auth.getUser();
                               const userId = userData?.user?.id || null;
@@ -4600,7 +4633,6 @@ const App = () => {
                                 
                                 // If upsert fails due to duplicate, try update
                                 if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
-                                  console.log('Key exists, trying update instead...');
                                   const { error: updateError } = await supabase
                                     .from('api_keys')
                                     .update({
@@ -4631,7 +4663,6 @@ const App = () => {
                                 throw upsertError;
                               }
                               
-                              console.log('Successfully saved Gemini API key');
                               alert('Gemini API key saved successfully!');
                               
                               // Reload keys to show updated value
@@ -4714,8 +4745,6 @@ const App = () => {
                             
                             setSavingKey('stripe');
                             try {
-                              console.log('Saving Stripe API key...');
-                              
                               // Get current user ID for updated_by
                               const { data: userData } = await supabase.auth.getUser();
                               const userId = userData?.user?.id || null;
@@ -4758,7 +4787,6 @@ const App = () => {
                                 
                                 // If upsert fails due to duplicate, try update
                                 if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
-                                  console.log('Key exists, trying update instead...');
                                   const { error: updateError } = await supabase
                                     .from('api_keys')
                                     .update({
@@ -4789,7 +4817,6 @@ const App = () => {
                                 throw upsertError;
                               }
                               
-                              console.log('Successfully saved Stripe API key');
                               alert('Stripe API key saved successfully!');
                               
                               // Reload keys to show updated value
@@ -4869,8 +4896,6 @@ const App = () => {
                             
                             setSavingKey('paypal');
                             try {
-                              console.log('Saving PayPal API key...');
-                              
                               // Get current user ID for updated_by
                               const { data: userData } = await supabase.auth.getUser();
                               const userId = userData?.user?.id || null;
@@ -4913,7 +4938,6 @@ const App = () => {
                                 
                                 // If upsert fails due to duplicate, try update
                                 if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
-                                  console.log('Key exists, trying update instead...');
                                   const { error: updateError } = await supabase
                                     .from('api_keys')
                                     .update({
@@ -4944,7 +4968,6 @@ const App = () => {
                                 throw upsertError;
                               }
                               
-                              console.log('Successfully saved PayPal API key');
                               alert('PayPal API key saved successfully!');
                               
                               // Reload keys to show updated value
@@ -5141,7 +5164,6 @@ const App = () => {
                         
                         try {
                           setSavingEmailSetting('all');
-                          console.log('Saving email settings...');
                           
                           // Verify admin status
                           const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -5164,7 +5186,6 @@ const App = () => {
                             throw new Error('You must be an admin to save email settings. Your account is not an admin.');
                           }
                           
-                          console.log('Admin status verified');
                           
                           const settingsToSave = [
                             { setting_name: 'smtp_host', setting_value: emailSettings.smtp_host, description: 'SMTP server host' },
@@ -5178,8 +5199,6 @@ const App = () => {
                           
                           // Save each setting using upsert with better error handling
                           for (const setting of settingsToSave) {
-                            console.log(`Saving setting: ${setting.setting_name} = ${setting.setting_value}`);
-                            
                             // Use upsert - this handles both insert and update
                             const { data: upsertData, error: upsertError } = await supabase
                               .from('email_settings')
@@ -5196,10 +5215,6 @@ const App = () => {
                             
                             if (upsertError) {
                               console.error(`Error saving ${setting.setting_name}:`, upsertError);
-                              console.error('Error code:', upsertError.code);
-                              console.error('Error message:', upsertError.message);
-                              console.error('Error details:', upsertError.details);
-                              console.error('Error hint:', upsertError.hint);
                               
                               // Check for table not found
                               if (upsertError.code === 'PGRST116' || 
@@ -5222,7 +5237,6 @@ const App = () => {
                               // If upsert fails, try insert then update
                               if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
                                 // Already exists, try update
-                                console.log(`Key exists, trying update for ${setting.setting_name}...`);
                                 const { error: updateError } = await supabase
                                   .from('email_settings')
                                   .update({
@@ -5236,16 +5250,12 @@ const App = () => {
                                   console.error(`Update also failed for ${setting.setting_name}:`, updateError);
                                   throw updateError;
                                 }
-                                console.log(`Successfully updated ${setting.setting_name} (via update)`);
                               } else {
                                 throw upsertError;
                               }
-                            } else {
-                              console.log(`Successfully saved ${setting.setting_name}`, upsertData);
                             }
                           }
                           
-                          console.log('All email settings saved successfully!');
                           alert('Email settings saved successfully!');
                         } catch (e: any) {
                           console.error('Failed to save email settings:', e);
