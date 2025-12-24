@@ -1699,40 +1699,62 @@ const BlogPostCard = ({ post, onClick }: any) => {
   );
 };
 
-// Helper function to clean blog content - remove meta descriptions and "H3:" prefixes
+// Helper function to clean blog content - AGGRESSIVELY remove meta descriptions and "H3:" prefixes
 const cleanBlogContent = (content: string): string => {
   if (!content) return content;
   
   let cleaned = content;
   
-  // Remove meta description patterns (common formats)
-  // Pattern 1: "Meta Description:" or "Meta description:" followed by text (entire line)
-  cleaned = cleaned.replace(/^[Mm]eta\s+[Dd]escription\s*:?\s*.{0,200}$/gim, '');
+  // AGGRESSIVE: Remove ALL meta description patterns
+  // Pattern 1: "Meta Description:" or "Meta description:" followed by ANY text (entire line)
+  cleaned = cleaned.replace(/^[Mm]eta\s+[Dd]escription\s*:?\s*.*$/gim, '');
   
-  // Pattern 2: Standalone meta description lines (150-160 chars, no markdown)
+  // Pattern 2: Remove lines containing "meta description" (case insensitive)
   cleaned = cleaned.split('\n').filter(line => {
     const trimmed = line.trim();
-    // Skip lines that look like meta descriptions
-    if (trimmed.toLowerCase().includes('meta description')) {
+    const lower = trimmed.toLowerCase();
+    
+    // Remove any line containing meta description
+    if (lower.includes('meta description') || lower.includes('meta-desc')) {
       return false;
     }
-    // Skip lines that are exactly meta description length and don't start with markdown
+    
+    // Remove standalone meta description lines (150-160 chars, no markdown)
     if (trimmed.length >= 150 && trimmed.length <= 160 && !trimmed.match(/^[#\-\*\[\d]/)) {
-      return false; // Likely a meta description
+      // Check if it looks like a meta description (no markdown, proper length)
+      return false;
     }
+    
     return true;
   }).join('\n');
   
-  // Remove "H3:" prefixes from headers (but keep the H3 headers themselves)
-  // Pattern: "H3:" or "H3 :" at the start of a line or after ###
+  // AGGRESSIVE: Remove ALL "H3:" prefixes from headers
+  // Pattern 1: "### H3: Header" -> "### Header"
   cleaned = cleaned.replace(/^###\s*H3\s*:\s*/gim, '### ');
+  
+  // Pattern 2: "H3: Header" at start of line -> "Header"
   cleaned = cleaned.replace(/^H3\s*:\s*/gim, '');
+  
+  // Pattern 3: "**H3: Header**" -> "**Header**"
   cleaned = cleaned.replace(/\*\*H3\s*:\s*/gi, '**');
-  // Also catch patterns like "H3: Header Text" in regular text
-  cleaned = cleaned.replace(/H3\s*:\s*([A-Z][^:]*?)(?=\n|$)/gim, '$1');
+  
+  // Pattern 4: "H3: Header Text" anywhere in text -> "Header Text"
+  cleaned = cleaned.replace(/H3\s*:\s*([A-Z][^\n]*?)(?=\n|$|#)/gim, '$1');
+  
+  // Pattern 5: Catch "H3:" followed by any text (more aggressive)
+  cleaned = cleaned.replace(/H3\s*:\s*/gi, '');
+  
+  // Pattern 6: Remove any remaining "H3:" patterns in markdown
+  cleaned = cleaned.replace(/(#{1,6})\s*H3\s*:\s*/gi, '$1 ');
   
   // Clean up extra blank lines
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  
+  // Remove any lines that are just "H3:" or "Meta Description:"
+  cleaned = cleaned.split('\n').filter(line => {
+    const trimmed = line.trim().toLowerCase();
+    return trimmed !== 'h3:' && trimmed !== 'meta description:' && trimmed !== 'meta-desc:';
+  }).join('\n');
   
   return cleaned.trim();
 };
