@@ -4852,12 +4852,21 @@ ${error.message}`;
                     </div>
                   </div>
                 )}
-                {/* DEBUG: Category value = {uploadForm.category} */}
+                {/* DEBUG: Category value = {uploadForm.category}, Type: {typeof uploadForm.category} */}
+                {uploadForm.category === 'merch' && (
+                  <div className="md:col-span-2 mb-2 p-2 bg-yellow-500/20 border border-yellow-500 rounded text-xs">
+                    ✅ DEBUG: Category is 'merch' - Multiple images field should be visible below
+                  </div>
+                )}
+                {uploadForm.category !== 'merch' && (
+                  <div className="md:col-span-2 mb-2 p-2 bg-red-500/20 border border-red-500 rounded text-xs">
+                    ⚠️ DEBUG: Category is '{uploadForm.category}' (not 'merch') - Showing single cover image instead
+                  </div>
+                )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {uploadForm.category === 'merch' ? (
-                    // MERCH CATEGORY DETECTED - Showing multiple images upload
                     <div className="md:col-span-2">
-                      <div className="mb-4 p-4 bg-brand-green/20 border-2 border-brand-green rounded-lg shadow-lg">
+                      <div className="mb-4 p-4 bg-brand-green/20 border-2 border-brand-green rounded-lg shadow-lg animate-pulse">
                         <label htmlFor="upload-product-images" className="block text-base font-black uppercase text-brand-green mb-3 flex items-center gap-2">
                           <ImageIcon size={20} className="text-brand-green" />
                           🖼️ PRODUCT IMAGES * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
