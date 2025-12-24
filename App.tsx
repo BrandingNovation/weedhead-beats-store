@@ -2062,6 +2062,19 @@ const NewsletterForm = () => {
 // --- Main App Component ---
 
 const App = () => {
+  // Suppress StorageType.persistent deprecation warning (from third-party dependencies)
+  // This warning is harmless and comes from Supabase/Stripe/PayPal SDKs
+  if (typeof window !== 'undefined' && window.console) {
+    const originalWarn = console.warn;
+    console.warn = (...args: any[]) => {
+      if (args[0]?.includes?.('StorageType.persistent') || args[0]?.includes?.('navigator.storage')) {
+        // Suppress this specific deprecation warning from dependencies
+        return;
+      }
+      originalWarn.apply(console, args);
+    };
+  }
+  
   // Store State
   const [activeTab, setActiveTab] = useState('store'); 
   const [storeSection, setStoreSection] = useState<'beat' | 'sample_pack' | 'album' | 'merch' | 'all'>('beat');
@@ -4082,7 +4095,7 @@ ${error.message}`;
         <div className="flex gap-4 mb-8 border-b border-brand-slate overflow-x-auto">
           {[
             { id: 'inventory', label: 'Inventory', icon: Package },
-            { id: 'upload', label: 'Upload Track', icon: Upload },
+            { id: 'upload', label: 'Upload Track/Merch', icon: Upload },
             { id: 'cms', label: 'CMS', icon: Edit3 },
             { id: 'blog', label: 'Blog', icon: FileText },
             { id: 'newsletter', label: 'Newsletter', icon: Mail },
@@ -4455,7 +4468,19 @@ ${error.message}`;
           
           {adminTab === 'upload' && (
             <div>
-              <h2 className="text-2xl font-black text-white mb-6">{editingTrackId ? 'Edit Track' : 'Upload New Track'}</h2>
+              <h2 className="text-2xl font-black text-white mb-6">{editingTrackId ? 'Edit Track' : 'Upload New Track or Merchandise'}</h2>
+              <div className="mb-6 p-4 bg-brand-green/10 border border-brand-green/30 rounded-lg">
+                <p className="text-brand-teal text-sm mb-2">
+                  <strong className="text-white">💡 Tip:</strong> Use the <strong>Category</strong> dropdown below to select:
+                </p>
+                <ul className="text-brand-teal text-sm space-y-1 list-disc list-inside ml-2">
+                  <li><strong>Beat</strong> - For music tracks/beats</li>
+                  <li><strong>Sample Pack</strong> - For sample collections</li>
+                  <li><strong>Album</strong> - For full albums</li>
+                  <li><strong>Collab</strong> - For collaborations</li>
+                  <li><strong>Merchandise</strong> - For physical goods (t-shirts, hoodies, etc.) - <span className="text-yellow-400">Description required, audio optional</span></li>
+                </ul>
+              </div>
               <form onSubmit={handleUploadSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
