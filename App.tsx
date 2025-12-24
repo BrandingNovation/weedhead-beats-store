@@ -4869,62 +4869,65 @@ ${error.message}`;
                     </div>
                   </div>
                 )}
-                {/* DEBUG BOX - ALWAYS VISIBLE */}
-                <div className="md:col-span-2 mb-4 p-4 bg-yellow-500/40 border-4 border-yellow-500 rounded-lg">
-                  <p className="text-sm font-black text-yellow-900 mb-2">
-                    🔍 DEBUG INFO:
-                  </p>
-                  <p className="text-xs text-yellow-800">
-                    Category value: <strong>"{uploadForm.category}"</strong> | Type: <strong>{typeof uploadForm.category}</strong>
-                  </p>
-                  <p className="text-xs text-yellow-800">
-                    Is 'merch'? <strong>{String(uploadForm.category === 'merch')}</strong> | Lowercase match? <strong>{String(uploadForm.category?.toLowerCase() === 'merch')}</strong>
-                  </p>
-                </div>
                 
-                {/* MULTIPLE IMAGES UPLOAD - FOR MERCH */}
-                {(uploadForm.category === 'merch' || uploadForm.category?.toLowerCase() === 'merch') && (
-                  <div className="md:col-span-2 mb-6">
-                    <div className="p-6 bg-brand-green/40 border-4 border-brand-green rounded-xl shadow-2xl">
-                      <label htmlFor="upload-product-images" className="block text-lg font-black uppercase text-brand-green mb-4 flex items-center gap-3">
-                        <ImageIcon size={24} className="text-brand-green" />
-                        🖼️ PRODUCT IMAGES * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
-                      </label>
-                      <input
-                        id="upload-product-images"
-                        name="upload-product-images"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={e => handleFileChange(e, 'productImages')}
-                        className="w-full bg-brand-slate/70 border-4 border-brand-green p-4 text-white rounded-lg focus:border-brand-green outline-none cursor-pointer hover:bg-brand-slate/90 transition-colors text-base"
-                        aria-label="Upload multiple product images"
-                      />
-                      <p className="text-sm text-brand-teal mt-3 font-bold">
-                        💡 <strong>Tip:</strong> Select multiple images (hold Ctrl on Windows/Linux or Cmd on Mac) to show different angles, colors, or details. The first image will be used as the cover/thumbnail.
-                      </p>
-                    </div>
-                    {uploadForm.productImagePreviews.length > 0 && (
-                      <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {uploadForm.productImagePreviews.map((preview, index) => (
-                          <div key={index} className="relative">
-                            <img src={preview} alt={`Product image ${index + 1}`} className="w-full h-32 object-cover rounded border border-brand-slate" />
-                            <button
-                              type="button"
-                              onClick={() => removeProductImage(index)}
-                              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700"
-                            >
-                              ×
-                            </button>
-                            {index === 0 && (
-                              <span className="absolute bottom-1 left-1 bg-brand-green text-white text-xs px-2 py-1 rounded">Cover</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                <>
+                  {/* DEBUG BOX - ALWAYS VISIBLE */}
+                  <div className="md:col-span-2 mb-4 p-4 bg-yellow-500/40 border-4 border-yellow-500 rounded-lg">
+                    <p className="text-sm font-black text-yellow-900 mb-2">
+                      🔍 DEBUG INFO:
+                    </p>
+                    <p className="text-xs text-yellow-800">
+                      Category value: <strong>"{uploadForm.category}"</strong> | Type: <strong>{typeof uploadForm.category}</strong>
+                    </p>
+                    <p className="text-xs text-yellow-800">
+                      Is 'merch'? <strong>{String(uploadForm.category === 'merch')}</strong> | Lowercase match? <strong>{String(uploadForm.category?.toLowerCase() === 'merch')}</strong>
+                    </p>
                   </div>
-                )}
+                  
+                  {/* MULTIPLE IMAGES UPLOAD - FOR MERCH */}
+                  {(uploadForm.category === 'merch' || uploadForm.category?.toLowerCase() === 'merch') && (
+                    <div className="md:col-span-2 mb-6">
+                      <div className="p-6 bg-brand-green/40 border-4 border-brand-green rounded-xl shadow-2xl">
+                        <label htmlFor="upload-product-images" className="block text-lg font-black uppercase text-brand-green mb-4 flex items-center gap-3">
+                          <ImageIcon size={24} className="text-brand-green" />
+                          🖼️ PRODUCT IMAGES * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
+                        </label>
+                        <input
+                          id="upload-product-images"
+                          name="upload-product-images"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={e => handleFileChange(e, 'productImages')}
+                          className="w-full bg-brand-slate/70 border-4 border-brand-green p-4 text-white rounded-lg focus:border-brand-green outline-none cursor-pointer hover:bg-brand-slate/90 transition-colors text-base"
+                          aria-label="Upload multiple product images"
+                        />
+                        <p className="text-sm text-brand-teal mt-3 font-bold">
+                          💡 <strong>Tip:</strong> Select multiple images (hold Ctrl on Windows/Linux or Cmd on Mac) to show different angles, colors, or details. The first image will be used as the cover/thumbnail.
+                        </p>
+                      </div>
+                      {uploadForm.productImagePreviews.length > 0 && (
+                        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {uploadForm.productImagePreviews.map((preview, index) => (
+                            <div key={index} className="relative">
+                              <img src={preview} alt={`Product image ${index + 1}`} className="w-full h-32 object-cover rounded border border-brand-slate" />
+                              <button
+                                type="button"
+                                onClick={() => removeProductImage(index)}
+                                className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700"
+                              >
+                                ×
+                              </button>
+                              {index === 0 && (
+                                <span className="absolute bottom-1 left-1 bg-brand-green text-white text-xs px-2 py-1 rounded">Cover</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {uploadForm.category !== 'merch' && uploadForm.category?.toLowerCase() !== 'merch' && (
