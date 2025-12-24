@@ -2617,8 +2617,9 @@ Message: ${error.message}`;
           audio: t.audio,
           stemsUrl: t.stems_url || undefined,
           tags: t.tags || [],
-          stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
-        }));
+          stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 },
+          product_images: t.product_images || undefined // Include product_images for merch items
+        } as Track & { product_images?: string[] }));
         setBeats(mappedTracks);
         console.log('✅ Tracks updated in state:', mappedTracks.length);
       } else {
@@ -2693,8 +2694,9 @@ Message: ${error.message}`;
                     audio: t.audio,
                     stemsUrl: t.stems_url || undefined,
                     tags: t.tags || [],
-                    stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 }
-                }));
+                    stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 },
+                    product_images: t.product_images || undefined // Include product_images for merch items
+                } as Track & { product_images?: string[] }));
                 setBeats(mappedTracks);
                 console.log('✅ Tracks set in state:', mappedTracks.length);
             } else {
