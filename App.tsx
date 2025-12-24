@@ -5693,7 +5693,8 @@ ${error.message}`;
                             { setting_name: 'smtp_password', setting_value: emailSettings.smtp_password, description: 'SMTP password' },
                             { setting_name: 'from_email', setting_value: emailSettings.from_email, description: 'Sender email' },
                             { setting_name: 'from_name', setting_value: emailSettings.from_name || 'Weedhead Beats', description: 'Sender name' },
-                            { setting_name: 'use_tls', setting_value: emailSettings.use_tls || 'true', description: 'Use TLS encryption' }
+                            { setting_name: 'use_tls', setting_value: emailSettings.use_tls || 'true', description: 'Use TLS encryption' },
+                            { setting_name: 'send_order_confirmation_emails', setting_value: emailSettings.send_order_confirmation_emails || 'false', description: 'Enable order confirmation emails' }
                           ];
                           
                           // Save each setting using upsert with better error handling
