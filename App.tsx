@@ -4472,10 +4472,10 @@ ${error.message}`;
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {uploadForm.category === 'merch' ? (
                         <div className="md:col-span-2">
-                          <div className="mb-4 p-4 bg-brand-green/10 border-2 border-brand-green/50 rounded-lg">
-                            <label htmlFor="inventory-upload-product-images" className="block text-sm font-bold uppercase text-brand-green mb-2 flex items-center gap-2">
-                              <ImageIcon size={18} />
-                              Product Images * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
+                          <div className="mb-4 p-4 bg-brand-green/20 border-2 border-brand-green rounded-lg shadow-lg">
+                            <label htmlFor="inventory-upload-product-images" className="block text-base font-black uppercase text-brand-green mb-3 flex items-center gap-2">
+                              <ImageIcon size={20} className="text-brand-green" />
+                              🖼️ PRODUCT IMAGES * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
                             </label>
                             <input
                               id="inventory-upload-product-images"
@@ -4852,13 +4852,15 @@ ${error.message}`;
                     </div>
                   </div>
                 )}
+                {/* DEBUG: Category value = {uploadForm.category} */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {uploadForm.category === 'merch' ? (
+                    // MERCH CATEGORY DETECTED - Showing multiple images upload
                     <div className="md:col-span-2">
-                      <div className="mb-4 p-4 bg-brand-green/10 border-2 border-brand-green/50 rounded-lg">
-                        <label htmlFor="upload-product-images" className="block text-sm font-bold uppercase text-brand-green mb-2 flex items-center gap-2">
-                          <ImageIcon size={18} />
-                          Product Images * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
+                      <div className="mb-4 p-4 bg-brand-green/20 border-2 border-brand-green rounded-lg shadow-lg">
+                        <label htmlFor="upload-product-images" className="block text-base font-black uppercase text-brand-green mb-3 flex items-center gap-2">
+                          <ImageIcon size={20} className="text-brand-green" />
+                          🖼️ PRODUCT IMAGES * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
                         </label>
                         <input
                           id="upload-product-images"
