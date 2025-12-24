@@ -127,8 +127,7 @@ async function generateBlogContent(topic) {
         Standard Blog Format Protocol:
         1. **Title (H1)**: SEO-optimized headline (50-60 chars) with focus keyword, compelling and click-worthy
         2. **Introduction Paragraph**: 5-7 sentences that hook the reader, introduce the topic, provide context, and preview what they'll learn. End with a clear value proposition.
-        3. **Body Sections (H2 headers)**: Each section should be 3-5 paragraphs (4-6 sentences each). Use descriptive H2 headers that include keywords naturally. Minimum 4-5 H2 sections.
-        4. **Subsections (H3 headers)**: Break down complex topics with H3 headers. Each H3 section should have 2-3 paragraphs.
+        3. **Body Sections (H2 and H3 headers)**: Each section should be 3-5 paragraphs (4-6 sentences each). Use descriptive H2 headers for main sections and H3 headers for subsections. Minimum 4-5 H2 sections. When writing H3 headers, use EXACTLY "### Header Text" format - NEVER include "H3:" prefix text.
         5. **Bullet Points or Numbered Lists**: Use for actionable takeaways, tips, or key points. Make lists substantial (5-8 items).
         6. **Examples and Case Studies**: Include real-world examples, scenarios, or brief case studies to add depth.
         7. **Conclusion Paragraph**: 5-7 sentences summarizing key points, reinforcing main message, and strong call to action to visit Weedhead Beats store.
