@@ -349,10 +349,12 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         5. **Examples**: Include real-world examples and scenarios
                         6. **Conclusion Paragraph**: 5-7 sentences summarizing and strong CTA to visit Weedhead Beats
                         
-                        IMPORTANT FORMATTING RULES:
+                        CRITICAL FORMATTING RULES - DO NOT VIOLATE:
+                        - NEVER include "Meta Description:" or "meta description" anywhere in the content
+                        - NEVER write "H3:" before headers - only use "### " for H3 headers
+                        - NEVER write headers like "H3: Header Text" - only write "### Header Text"
                         - Use H2 (##) for main sections and H3 (###) for subsections
-                        - When writing H3 headers, use "### Header Text" - DO NOT include "H3:" prefix text
-                        - Meta description is for SEO only, not for visible content
+                        - Meta descriptions are for SEO metadata ONLY, not for visible content
                         
                         Content Requirements:
                         - **Minimum Word Count**: 800-1200 words
@@ -362,14 +364,21 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         
                         Formatting Rules:
                         - Use proper Markdown: # for H1, ## for H2, ### for H3
-                        - When writing H3 headers, use "### Header Text" - DO NOT include "H3:" prefix text
+                        - When writing H3 headers, use EXACTLY "### Header Text" - NEVER include "H3:" prefix
+                        - NEVER write "H3: Header Text" - only write "### Header Text"
+                        - NEVER include "Meta Description:" or "meta description" anywhere in content
                         - Bold important terms: **term**
                         - Use bullet points (-) or numbered lists (1.) for lists
                         - Keep paragraphs substantial (4-6 sentences)
                         - Use line breaks between sections
                         - Include internal links naturally
                         - Strong call-to-action at the end
-                        - Meta description is for SEO only, not visible content
+                        - Meta descriptions are for SEO metadata ONLY, not visible content
+                        
+                        CRITICAL - DO NOT VIOLATE:
+                        - NEVER write "H3:" before any header
+                        - NEVER write "Meta Description:" in the content
+                        - Only use "### " for H3 headers, never "H3:"
                         
                         Output strictly as Markdown following this structure. Write extensively - comprehensive, valuable content.`
                     });
