@@ -3297,8 +3297,8 @@ Message: ${error.message}`;
           published: true
       };
 
-      if(editingPostId) {
-          // Update Local
+      if(editingPostId && editingPostId !== 'new') {
+          // Update Existing Post
           setPosts(posts.map(p => p.id === editingPostId ? {
               ...p,
               title: blogForm.title,
@@ -3312,6 +3312,7 @@ Message: ${error.message}`;
           } catch(e) { console.error(e); }
           setEditingPostId(null);
       } else {
+          // Create New Post (editingPostId is null or 'new')
           // Insert DB
           try {
             const { data } = await supabase.from('posts').insert([postData]).select();
