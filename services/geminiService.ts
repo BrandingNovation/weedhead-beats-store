@@ -89,10 +89,10 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
         // Try image generation models first, then fallback to text models
         // Note: Only use models that actually exist in the Gemini API
         // Removed non-existent models: nano-banana, imagen-3, imagen-3.0, imagen-3.0-generate-001
-        // Prioritize working image generation models
+        // Prioritize gemini-2.5-flash-image as primary model
         const imageModels = [
-          'gemini-2.0-flash-exp-image-generation',
           'gemini-2.5-flash-image',
+          'gemini-2.0-flash-exp-image-generation',
           'gemini-2.0-flash-exp'
         ];
         const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001'];

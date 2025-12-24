@@ -235,7 +235,8 @@ HARD RULES (DO NOT BREAK THESE - CRITICAL):
 
   // Try image generation models - only use models that actually exist in Gemini API
   // Removed non-existent models: imagen-3, imagen-3.0-generate-001, nano-banana
-  const imageModels = ['gemini-2.0-flash-exp-image-generation', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
+  // Prioritize gemini-2.5-flash-image as primary model
+  const imageModels = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp-image-generation', 'gemini-2.0-flash-exp'];
   const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest'];
   
   for (const modelName of [...imageModels, ...textModels]) {
