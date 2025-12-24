@@ -4108,6 +4108,304 @@ ${error.message}`;
           {adminTab === 'inventory' && (
             <div>
               <h2 className="text-2xl font-black text-white mb-6">Track Inventory</h2>
+              
+              {/* Edit Form - Shows inline when editing */}
+              {editingTrackId && (
+                <div className="mb-8 bg-brand-slate/30 border border-brand-slate rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-black text-white">Edit Track</h3>
+                    <button
+                      onClick={() => {
+                        setEditingTrackId(null);
+                        setUploadForm({
+                          title: '',
+                          bpm: '',
+                          key: '',
+                          price: '29.99',
+                          mood: 'Dark',
+                          category: 'beat',
+                          description: '',
+                          youtubeUrl: '',
+                          spotifyUrl: '',
+                          appleMusicUrl: '',
+                          amazonUrl: '',
+                          cover: null,
+                          audio: null,
+                          stems: null,
+                          coverPreview: null,
+                          audioName: '',
+                          stemsName: ''
+                        });
+                      }}
+                      className="px-4 py-2 bg-brand-slate text-white text-xs font-bold uppercase hover:bg-brand-slate/80"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <form onSubmit={handleUploadSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label htmlFor="inventory-upload-title" className="block text-xs font-bold uppercase text-brand-teal mb-2">Title *</label>
+                        <input
+                          id="inventory-upload-title"
+                          name="inventory-upload-title"
+                          type="text"
+                          value={uploadForm.title}
+                          onChange={e => setUploadForm({...uploadForm, title: e.target.value})}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="inventory-upload-bpm" className="block text-xs font-bold uppercase text-brand-teal mb-2">BPM</label>
+                        <input
+                          id="inventory-upload-bpm"
+                          name="inventory-upload-bpm"
+                          type="number"
+                          value={uploadForm.bpm}
+                          onChange={e => setUploadForm({...uploadForm, bpm: e.target.value})}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="inventory-upload-key" className="block text-xs font-bold uppercase text-brand-teal mb-2">Key</label>
+                        <input
+                          id="inventory-upload-key"
+                          name="inventory-upload-key"
+                          type="text"
+                          value={uploadForm.key}
+                          onChange={e => setUploadForm({...uploadForm, key: e.target.value})}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="inventory-upload-price" className="block text-xs font-bold uppercase text-brand-teal mb-2">Price</label>
+                        <input
+                          id="inventory-upload-price"
+                          name="inventory-upload-price"
+                          type="number"
+                          step="0.01"
+                          value={uploadForm.price}
+                          onChange={e => setUploadForm({...uploadForm, price: e.target.value})}
+                          className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="inventory-upload-mood" className="block text-xs font-bold uppercase text-brand-teal mb-2">Mood</label>
+                        <select
+                          id="inventory-upload-mood"
+                          name="inventory-upload-mood"
+                          value={uploadForm.mood}
+                          onChange={e => setUploadForm({...uploadForm, mood: e.target.value})}
+                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        >
+                          {MOODS.map(m => <option key={m} value={m}>{m}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label htmlFor="inventory-upload-category" className="block text-xs font-bold uppercase text-brand-teal mb-2">Category</label>
+                        <select
+                          id="inventory-upload-category"
+                          name="inventory-upload-category"
+                          value={uploadForm.category}
+                          onChange={e => setUploadForm({...uploadForm, category: e.target.value as ProductCategory})}
+                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        >
+                          <option value="beat">Beat</option>
+                          <option value="sample_pack">Sample Pack</option>
+                          <option value="album">Album</option>
+                          <option value="collab">Collab</option>
+                          <option value="merch">Merchandise</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="inventory-upload-description" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        Description {uploadForm.category === 'merch' && <span className="text-yellow-400">* (Required for Merch)</span>}
+                      </label>
+                      <textarea
+                        id="inventory-upload-description"
+                        name="inventory-upload-description"
+                        value={uploadForm.description}
+                        onChange={e => setUploadForm({...uploadForm, description: e.target.value})}
+                        placeholder={uploadForm.category === 'merch' ? "Describe your merchandise item (e.g., material, sizes, colors, features)..." : "Optional description for the track..."}
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                      {uploadForm.category === 'merch' && (
+                        <p className="text-xs text-yellow-400 mt-1">💡 For merchandise, include details like: material, available sizes, colors, features, and any special notes.</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="inventory-upload-youtube" className="block text-xs font-bold uppercase text-brand-teal mb-2">YouTube URL</label>
+                      <input
+                        id="inventory-upload-youtube"
+                        name="inventory-upload-youtube"
+                        type="url"
+                        value={uploadForm.youtubeUrl}
+                        onChange={e => setUploadForm({...uploadForm, youtubeUrl: e.target.value})}
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      />
+                    </div>
+                    {uploadForm.category === 'album' && (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                          <label htmlFor="inventory-upload-spotify" className="block text-xs font-bold uppercase text-brand-teal mb-2">Spotify URL</label>
+                          <input
+                            id="inventory-upload-spotify"
+                            name="inventory-upload-spotify"
+                            type="url"
+                            value={uploadForm.spotifyUrl}
+                            onChange={e => setUploadForm({...uploadForm, spotifyUrl: e.target.value})}
+                            className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                            style={{ color: '#000000', caretColor: '#0D5F11' }}
+                            placeholder="https://open.spotify.com/..."
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="inventory-upload-apple-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Apple Music URL</label>
+                          <input
+                            id="inventory-upload-apple-music"
+                            name="inventory-upload-apple-music"
+                            type="url"
+                            value={uploadForm.appleMusicUrl}
+                            onChange={e => setUploadForm({...uploadForm, appleMusicUrl: e.target.value})}
+                            className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                            style={{ color: '#000000', caretColor: '#0D5F11' }}
+                            placeholder="https://music.apple.com/..."
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="inventory-upload-amazon-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Amazon Music URL</label>
+                          <input
+                            id="inventory-upload-amazon-music"
+                            name="inventory-upload-amazon-music"
+                            type="url"
+                            value={uploadForm.amazonUrl}
+                            onChange={e => setUploadForm({...uploadForm, amazonUrl: e.target.value})}
+                            className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                            style={{ color: '#000000', caretColor: '#0D5F11' }}
+                            placeholder="https://music.amazon.com/..."
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label htmlFor="inventory-upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
+                        <input
+                          id="inventory-upload-cover"
+                          name="inventory-upload-cover"
+                          type="file"
+                          accept="image/*"
+                          onChange={e => handleFileChange(e, 'cover')}
+                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                        />
+                        {uploadForm.coverPreview && (
+                          <div className="mt-3">
+                            <img src={uploadForm.coverPreview} alt="Preview" className="w-full h-32 object-cover rounded border border-brand-slate" />
+                            {uploadForm.cover && (
+                              <p className="mt-2 text-xs text-brand-teal">
+                                File: {uploadForm.cover.name} ({(uploadForm.cover.size / 1024 / 1024).toFixed(2)} MB)
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label htmlFor="inventory-upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                          Audio File {uploadForm.category === 'merch' && <span className="text-brand-teal text-xs font-normal">(Optional for Merch)</span>}
+                        </label>
+                        <input
+                          id="inventory-upload-audio"
+                          name="inventory-upload-audio"
+                          type="file"
+                          accept="audio/*"
+                          onChange={e => handleFileChange(e, 'audio')}
+                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                          disabled={uploadForm.category === 'merch'}
+                        />
+                        {uploadForm.category === 'merch' && (
+                          <p className="text-xs text-brand-teal mt-1">ℹ️ Audio files are not required for merchandise items.</p>
+                        )}
+                        {uploadForm.audioName && (
+                          <div className="mt-3">
+                            <p className="text-xs text-brand-teal font-bold">{uploadForm.audioName}</p>
+                            {uploadForm.audio instanceof File && (
+                              <p className="text-xs text-brand-teal mt-1">
+                                Size: {(uploadForm.audio.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
+                        <input
+                          type="file"
+                          accept=".zip,application/zip"
+                          onChange={e => handleFileChange(e, 'stems')}
+                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                        />
+                        {uploadForm.stemsName && (
+                          <div className="mt-3">
+                            <p className="text-xs text-brand-teal font-bold">Selected: {uploadForm.stemsName}</p>
+                            {uploadForm.stems instanceof File && (
+                              <p className="text-xs text-brand-teal mt-1">
+                                Size: {(uploadForm.stems.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-4">
+                      <button
+                        type="submit"
+                        className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80"
+                      >
+                        Update Track
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingTrackId(null);
+                          setUploadForm({
+                            title: '',
+                            bpm: '',
+                            key: '',
+                            price: '29.99',
+                            mood: 'Dark',
+                            category: 'beat',
+                            description: '',
+                            youtubeUrl: '',
+                            spotifyUrl: '',
+                            appleMusicUrl: '',
+                            amazonUrl: '',
+                            cover: null,
+                            audio: null,
+                            stems: null,
+                            coverPreview: null,
+                            audioName: '',
+                            stemsName: ''
+                          });
+                        }}
+                        className="px-8 py-3 bg-brand-slate text-white font-bold uppercase tracking-wider rounded hover:bg-brand-slate/80"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {beats.map(beat => (
                   <div key={beat.id} className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4">
@@ -4120,8 +4418,8 @@ ${error.message}`;
                           setEditingTrackId(beat.id);
                           setUploadForm({
                             title: beat.title,
-                            bpm: String(beat.bpm),
-                            key: beat.key,
+                            bpm: String(beat.bpm || ''),
+                            key: beat.key || '',
                             price: String(beat.price),
                             mood: beat.mood || 'Dark',
                             category: beat.category,
@@ -4134,10 +4432,9 @@ ${error.message}`;
                             audio: null,
                             stems: null,
                             coverPreview: beat.cover,
-                            audioName: '',
+                            audioName: beat.audio ? 'Existing Audio File' : '',
                             stemsName: ''
                           });
-                          setAdminTab('upload');
                         }}
                         className="flex-1 px-3 py-2 bg-brand-slate text-white text-xs font-bold uppercase hover:bg-brand-slate/80"
                       >
