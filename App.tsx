@@ -4381,7 +4381,11 @@ ${error.message}`;
                           id="inventory-upload-category"
                           name="inventory-upload-category"
                           value={uploadForm.category}
-                          onChange={e => setUploadForm({...uploadForm, category: e.target.value as ProductCategory})}
+                          onChange={e => {
+                            const newCategory = e.target.value as ProductCategory;
+                            setUploadForm({...uploadForm, category: newCategory});
+                            console.log('Category changed to:', newCategory);
+                          }}
                           className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none"
                           style={{ color: '#000000', caretColor: '#0D5F11' }}
                         >
@@ -4756,20 +4760,24 @@ ${error.message}`;
                   </div>
                   <div>
                     <label htmlFor="upload-category" className="block text-xs font-bold uppercase text-brand-teal mb-2">Category</label>
-                    <select
-                      id="upload-category"
-                      name="upload-category"
-                      value={uploadForm.category}
-                      onChange={e => setUploadForm({...uploadForm, category: e.target.value as ProductCategory})}
-                      className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none"
-                      style={{ color: '#000000', caretColor: '#0D5F11' }}
-                    >
-                      <option value="beat">Beat</option>
-                      <option value="sample_pack">Sample Pack</option>
-                      <option value="album">Album</option>
-                      <option value="collab">Collab</option>
-                      <option value="merch">Merchandise</option>
-                    </select>
+                        <select
+                          id="upload-category"
+                          name="upload-category"
+                          value={uploadForm.category}
+                          onChange={e => {
+                            const newCategory = e.target.value as ProductCategory;
+                            setUploadForm({...uploadForm, category: newCategory});
+                            console.log('Category changed to:', newCategory);
+                          }}
+                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 rounded focus:border-brand-green outline-none"
+                          style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        >
+                          <option value="beat">Beat</option>
+                          <option value="sample_pack">Sample Pack</option>
+                          <option value="album">Album</option>
+                          <option value="collab">Collab</option>
+                          <option value="merch">Merchandise</option>
+                        </select>
                   </div>
                 </div>
                 <div>
