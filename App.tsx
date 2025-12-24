@@ -2706,9 +2706,21 @@ Message: ${error.message}`;
             audioRef.current.src = '';
             // Small delay to ensure previous src is cleared
             setTimeout(() => {
-              if (audioRef.current && currentTrack && currentTrack.audio && audioRef.current.src !== currentTrack.audio) {
-                audioRef.current.src = currentTrack.audio;
-                audioRef.current.load();
+              if (audioRef.current && currentTrack && currentTrack.audio) {
+                const fullUrl = new URL(audioRef.current.src || '').href;
+                const trackUrl = new URL(currentTrack.audio).href;
+                if (fullUrl !== trackUrl) {
+                  audioRef.current.src = currentTrack.audio;
+                  audioRef.current.load();
+                  // Wait for audio to be ready before allowing play
+                  audioRef.current.addEventListener('canplay', () => {
+                    if (isPlaying && audioRef.current) {
+                      audioRef.current.play().catch(() => {
+                        setIsPlaying(false);
+                      });
+                    }
+                  }, { once: true });
+                }
               }
             }, 10);
           } catch (e) {
@@ -2755,12 +2767,23 @@ Message: ${error.message}`;
       if (isPlaying) {
         // Only try to play if we have a valid src and it's not a blob URL
         const src = audioRef.current.src;
-        if (src && src !== '' && !src.startsWith('blob:') && audioRef.current.readyState >= 2) {
-          // readyState 2 = HAVE_CURRENT_DATA, 3 = HAVE_FUTURE_DATA, 4 = HAVE_ENOUGH_DATA
-          audioRef.current.play().catch(() => {
-            // Silently handle playback errors - don't log to prevent spam
-            setIsPlaying(false); // Stop trying to play if it fails
-          });
+        if (src && src !== '' && !src.startsWith('blob:')) {
+          // Wait for audio to be ready, then play
+          const tryPlay = () => {
+            if (audioRef.current && audioRef.current.readyState >= 2) {
+              // readyState 2 = HAVE_CURRENT_DATA, 3 = HAVE_FUTURE_DATA, 4 = HAVE_ENOUGH_DATA
+              audioRef.current!.play().catch((err) => {
+                console.warn('Playback error:', err);
+                setIsPlaying(false); // Stop trying to play if it fails
+              });
+            } else if (audioRef.current && audioRef.current.readyState === 0) {
+              // readyState 0 = HAVE_NOTHING, wait for it to load
+              audioRef.current.addEventListener('loadeddata', tryPlay, { once: true });
+              audioRef.current.addEventListener('canplay', tryPlay, { once: true });
+              audioRef.current.load(); // Force load if not already loading
+            }
+          };
+          tryPlay();
         } else if (!src || src === '') {
           setIsPlaying(false); // No valid audio source, stop playback
         }
@@ -3253,10 +3276,14 @@ Message: ${error.message}`;
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
       
+      // Clean content before saving
+      const cleanedContent = cleanBlogContent(blogForm.content || blogForm.excerpt);
+      const cleanedExcerpt = cleanBlogContent(blogForm.excerpt || blogForm.content?.substring(0, 200) + '...');
+      
       const postData = {
           title: blogForm.title,
-          excerpt: blogForm.excerpt || blogForm.content?.substring(0, 200) + '...', // Auto-generate excerpt if not provided
-          content: blogForm.content || blogForm.excerpt, // Full content
+          excerpt: cleanedExcerpt, // Cleaned excerpt
+          content: cleanedContent, // Cleaned full content
           image: imageUrl,
           slug: slug,
           is_ai_generated: false,
@@ -3268,8 +3295,8 @@ Message: ${error.message}`;
           setPosts(posts.map(p => p.id === editingPostId ? {
               ...p,
               title: blogForm.title,
-              excerpt: blogForm.excerpt || blogForm.content?.substring(0, 200) + '...',
-              content: blogForm.content || blogForm.excerpt,
+              excerpt: cleanedExcerpt,
+              content: cleanedContent,
               image: imageUrl
           } : p));
           // Update DB
@@ -4482,8 +4509,9 @@ ${error.message}`;
                 <>
                   <div className="flex gap-4 mb-6">
                     <button
+                      type="button"
                       onClick={() => {
-                        setEditingPostId(null);
+                        setEditingPostId('new');
                         setBlogForm({ title: '', excerpt: '', content: '', image: '' });
                       }}
                       className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 flex items-center gap-2"
