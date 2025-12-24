@@ -1689,8 +1689,8 @@ const BlogPostCard = ({ post, onClick }: any) => {
           {post.isAiGenerated ? (
               <ReactMarkdown components={{
                   a: ({node, ...props}: any) => <span className="text-brand-green" {...props} onClick={(e: any) => e.stopPropagation()} />
-              }}>{post.excerpt}</ReactMarkdown>
-          ) : post.excerpt}
+              }}>{cleanBlogContent(post.excerpt)}</ReactMarkdown>
+          ) : cleanBlogContent(post.excerpt)}
       </div>
       <div className="flex items-center gap-2 text-white text-sm font-bold uppercase tracking-wider lg:group-hover:underline decoration-brand-green underline-offset-4">
         Read Article <ArrowRight size={16} className="text-brand-green" />
