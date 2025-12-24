@@ -4870,21 +4870,7 @@ ${error.message}`;
                   </div>
                 )}
                 
-                <>
-                  {/* DEBUG BOX - ALWAYS VISIBLE */}
-                  <div className="md:col-span-2 mb-4 p-4 bg-yellow-500/40 border-4 border-yellow-500 rounded-lg">
-                    <p className="text-sm font-black text-yellow-900 mb-2">
-                      🔍 DEBUG INFO:
-                    </p>
-                    <p className="text-xs text-yellow-800">
-                      Category value: <strong>"{uploadForm.category}"</strong> | Type: <strong>{typeof uploadForm.category}</strong>
-                    </p>
-                    <p className="text-xs text-yellow-800">
-                      Is 'merch'? <strong>{String(uploadForm.category === 'merch')}</strong> | Lowercase match? <strong>{String(uploadForm.category?.toLowerCase() === 'merch')}</strong>
-                    </p>
-                  </div>
-                  
-                  {/* MULTIPLE IMAGES UPLOAD - FOR MERCH */}
+                {/* MULTIPLE IMAGES UPLOAD - FOR MERCH */}
                   {(uploadForm.category === 'merch' || uploadForm.category?.toLowerCase() === 'merch') && (
                     <div className="md:col-span-2 mb-6">
                       <div className="p-6 bg-brand-green/40 border-4 border-brand-green rounded-xl shadow-2xl">
@@ -4927,7 +4913,6 @@ ${error.message}`;
                       )}
                     </div>
                   )}
-                </>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {uploadForm.category !== 'merch' && uploadForm.category?.toLowerCase() !== 'merch' && (
@@ -5004,8 +4989,10 @@ ${error.message}`;
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
+                    <label htmlFor="upload-stems" className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
                     <input
+                      id="upload-stems"
+                      name="upload-stems"
                       type="file"
                       accept=".zip,application/zip"
                       onChange={e => handleFileChange(e, 'stems')}
