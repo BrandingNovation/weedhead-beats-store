@@ -603,6 +603,7 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                     <img 
                         src={currentImage} 
                         alt={product.title} 
+                        crossOrigin="anonymous"
                         className={`max-w-full max-h-[500px] object-contain mb-4 transition-opacity duration-300 ${
                             imageLoading ? 'opacity-0' : 'opacity-100'
                         }`}
@@ -636,6 +637,7 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                                         <img 
                                             src={img} 
                                             alt={`${product.title} - ${colorForImage}`}
+                                            crossOrigin="anonymous"
                                             className="w-full h-full object-cover"
                                         />
                                     </button>
@@ -1760,6 +1762,7 @@ const BlogPostCard = ({ post, onClick }: any) => {
               <img 
                   src={post.image} 
                   alt={post.title} 
+                  crossOrigin="anonymous"
                   className="w-full h-full object-cover transition-transform duration-700 lg:grayscale lg:group-hover:grayscale-0 lg:group-hover:scale-105" 
               />
           </div>
@@ -1887,7 +1890,7 @@ const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpe
         </div>
         <div className="p-8">
           {post.image && (
-            <img src={post.image} alt={post.title} className="w-full h-64 object-cover rounded-lg mb-6" />
+            <img src={post.image} alt={post.title} crossOrigin="anonymous" className="w-full h-64 object-cover rounded-lg mb-6" />
           )}
           <div className="prose prose-lg max-w-none text-gray-700">
             <ReactMarkdown components={{
@@ -2156,9 +2159,11 @@ const App = () => {
       const originalWarn = console.warn;
       console.warn = (...args: any[]) => {
         const message = typeof args[0] === 'string' ? args[0] : String(args[0] || '');
+        const fullMessage = args.map(a => String(a || '')).join(' ');
         if (message.includes('StorageType.persistent') || 
             message.includes('navigator.storage') ||
-            message.includes('deprecated') && message.includes('storage')) {
+            fullMessage.includes('StorageType.persistent') ||
+            fullMessage.includes('deprecated') && (fullMessage.includes('storage') || fullMessage.includes('StorageType'))) {
           // Suppress this specific deprecation warning from dependencies
           return;
         }
@@ -2169,12 +2174,31 @@ const App = () => {
       const originalError = console.error;
       console.error = (...args: any[]) => {
         const message = typeof args[0] === 'string' ? args[0] : String(args[0] || '');
+        const fullMessage = args.map(a => String(a || '')).join(' ');
         if (message.includes('StorageType.persistent') || 
             message.includes('navigator.storage') ||
-            (message.includes('deprecated') && message.includes('storage'))) {
+            fullMessage.includes('StorageType.persistent') ||
+            (fullMessage.includes('deprecated') && (fullMessage.includes('storage') || fullMessage.includes('StorageType')))) {
           return;
         }
         originalError.apply(console, args);
+      };
+      
+      // Also suppress in console.log for some cases
+      const originalLog = console.log;
+      console.log = (...args: any[]) => {
+        const fullMessage = args.map(a => String(a || '')).join(' ');
+        if (fullMessage.includes('StorageType.persistent') || 
+            (fullMessage.includes('deprecated') && fullMessage.includes('storage'))) {
+          return;
+        }
+        originalLog.apply(console, args);
+      };
+      
+      return () => {
+        console.warn = originalWarn;
+        console.error = originalError;
+        console.log = originalLog;
       };
     }
   }, []);
@@ -4250,7 +4274,9 @@ ${error.message}`;
           stems: null,
           coverPreview: null,
           audioName: '',
-          stemsName: ''
+          stemsName: '',
+          productImages: [],
+          productImagePreviews: []
         });
         setAdminTab('inventory');
 
@@ -4328,7 +4354,9 @@ ${error.message}`;
                           stems: null,
                           coverPreview: null,
                           audioName: '',
-                          stemsName: ''
+                          stemsName: '',
+                          productImages: [],
+                          productImagePreviews: []
                         });
                       }}
                       className="px-4 py-2 bg-brand-slate text-white text-xs font-bold uppercase hover:bg-brand-slate/80"
@@ -4629,7 +4657,9 @@ ${error.message}`;
                             stems: null,
                             coverPreview: null,
                             audioName: '',
-                            stemsName: ''
+                            stemsName: '',
+                            productImages: [],
+                            productImagePreviews: []
                           });
                         }}
                         className="px-8 py-3 bg-brand-slate text-white font-bold uppercase tracking-wider rounded hover:bg-brand-slate/80"
@@ -5036,7 +5066,9 @@ ${error.message}`;
                           stems: null,
                           coverPreview: null,
                           audioName: '',
-                          stemsName: ''
+                          stemsName: '',
+                          productImages: [],
+                          productImagePreviews: []
                         });
                       }}
                       className="px-8 py-3 bg-brand-slate text-white font-bold uppercase tracking-wider rounded hover:bg-brand-slate/80"
@@ -5068,36 +5100,47 @@ ${error.message}`;
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Headline</label>
+                  <label htmlFor="cms-headline" className="block text-xs font-bold uppercase text-brand-teal mb-2">Headline</label>
                   <input
+                    id="cms-headline"
+                    name="cms-headline"
                     type="text"
                     value={siteContent[cmsPage].headline}
                     onChange={e => handleCmsUpdate('headline', e.target.value)}
                     className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                     style={{ color: '#ffffff', caretColor: '#0D5F11' }}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Subheadline</label>
+                  <label htmlFor="cms-subheadline" className="block text-xs font-bold uppercase text-brand-teal mb-2">Subheadline</label>
                   <textarea
+                    id="cms-subheadline"
+                    name="cms-subheadline"
                     value={siteContent[cmsPage].subheadline}
                     onChange={e => handleCmsUpdate('subheadline', e.target.value)}
                     className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
                     style={{ color: '#ffffff', caretColor: '#0D5F11' }}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Hero Image URL</label>
+                  <label htmlFor="cms-hero-image-url" className="block text-xs font-bold uppercase text-brand-teal mb-2">Hero Image URL</label>
                     <input
+                      id="cms-hero-image-url"
+                      name="cms-hero-image-url"
                       type="url"
                       value={siteContent[cmsPage].heroImage}
                       onChange={e => handleCmsUpdate('heroImage', e.target.value)}
                       className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
                       style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      autoComplete="url"
                     />
                     <div className="mt-4">
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Or Upload Image</label>
+                      <label htmlFor="cms-hero-image-upload" className="block text-xs font-bold uppercase text-brand-teal mb-2">Or Upload Image</label>
                       <input
+                        id="cms-hero-image-upload"
+                        name="cms-hero-image-upload"
                         type="file"
                         accept="image/*"
                         onChange={async (e) => {
@@ -5139,64 +5182,78 @@ ${error.message}`;
               
               {editingPostId ? (
                 <form onSubmit={handleBlogSubmit} className="space-y-6">
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={blogForm.title}
-                      onChange={e => setBlogForm({...blogForm, title: e.target.value})}
-                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                      style={{ color: '#000000', caretColor: '#0D5F11' }}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Excerpt (Short Summary)</label>
-                    <textarea
-                      value={blogForm.excerpt}
-                      onChange={e => setBlogForm({...blogForm, excerpt: e.target.value})}
-                      placeholder="Brief summary (1-2 sentences) - shown in blog listing"
-                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
-                      style={{ color: '#000000', caretColor: '#0D5F11' }}
-                    />
-                    <p className="text-xs text-brand-teal mt-1">Leave empty to auto-generate from content</p>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Content (Markdown)</label>
-                    <textarea
-                      value={blogForm.content}
-                      onChange={e => setBlogForm({...blogForm, content: e.target.value})}
-                      placeholder="Full blog post content in Markdown format..."
-                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-96 font-mono text-sm placeholder:text-gray-500"
-                      style={{ color: '#000000', caretColor: '#0D5F11' }}
-                      required
-                    />
-                    <p className="text-xs text-brand-teal mt-1">Supports Markdown: # Headers, **bold**, *italic*, - lists, [links](url)</p>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Image URL</label>
-                    <input
-                      type="url"
-                      value={blogForm.image}
-                      onChange={e => setBlogForm({...blogForm, image: e.target.value})}
-                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                      style={{ color: '#000000', caretColor: '#0D5F11' }}
-                    />
-                    <div className="mt-4">
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Or Upload Image</label>
+                    <div>
+                      <label htmlFor="blog-form-title" className="block text-xs font-bold uppercase text-brand-teal mb-2">Title</label>
                       <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            try {
-                              const fileName = `${Date.now()}-${file.name}`;
-                              const { data, error } = await supabase.storage.from('covers').upload(fileName, file);
-                              if (!error && data) {
-                                const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName);
-                                setBlogForm({...blogForm, image: publicUrl});
-                              } else {
+                        id="blog-form-title"
+                        name="blog-form-title"
+                        type="text"
+                        value={blogForm.title}
+                        onChange={e => setBlogForm({...blogForm, title: e.target.value})}
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        required
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="blog-form-excerpt" className="block text-xs font-bold uppercase text-brand-teal mb-2">Excerpt (Short Summary)</label>
+                      <textarea
+                        id="blog-form-excerpt"
+                        name="blog-form-excerpt"
+                        value={blogForm.excerpt}
+                        onChange={e => setBlogForm({...blogForm, excerpt: e.target.value})}
+                        placeholder="Brief summary (1-2 sentences) - shown in blog listing"
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        autoComplete="off"
+                      />
+                      <p className="text-xs text-brand-teal mt-1">Leave empty to auto-generate from content</p>
+                    </div>
+                    <div>
+                      <label htmlFor="blog-form-content" className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Content (Markdown)</label>
+                      <textarea
+                        id="blog-form-content"
+                        name="blog-form-content"
+                        value={blogForm.content}
+                        onChange={e => setBlogForm({...blogForm, content: e.target.value})}
+                        placeholder="Full blog post content in Markdown format..."
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-96 font-mono text-sm placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        required
+                        autoComplete="off"
+                      />
+                      <p className="text-xs text-brand-teal mt-1">Supports Markdown: # Headers, **bold**, *italic*, - lists, [links](url)</p>
+                    </div>
+                    <div>
+                      <label htmlFor="blog-form-image-url" className="block text-xs font-bold uppercase text-brand-teal mb-2">Image URL</label>
+                      <input
+                        id="blog-form-image-url"
+                        name="blog-form-image-url"
+                        type="url"
+                        value={blogForm.image}
+                        onChange={e => setBlogForm({...blogForm, image: e.target.value})}
+                        className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                        style={{ color: '#000000', caretColor: '#0D5F11' }}
+                        autoComplete="url"
+                      />
+                      <div className="mt-4">
+                        <label htmlFor="blog-form-image-upload" className="block text-xs font-bold uppercase text-brand-teal mb-2">Or Upload Image</label>
+                        <input
+                          id="blog-form-image-upload"
+                          name="blog-form-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const fileName = `${Date.now()}-${file.name}`;
+                                const { data, error } = await supabase.storage.from('covers').upload(fileName, file);
+                                if (!error && data) {
+                                  const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName);
+                                  setBlogForm({...blogForm, image: publicUrl});
+                                } else {
                                 const previewUrl = URL.createObjectURL(file);
                                 setBlogForm({...blogForm, image: previewUrl});
                               }
@@ -6777,7 +6834,9 @@ ${error.message}`;
                          stems: null,
                          coverPreview: null,
                          audioName: '',
-                         stemsName: ''
+                         stemsName: '',
+                         productImages: [],
+                         productImagePreviews: []
                        });
                      }}
                      className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider hover:bg-brand-green/80 transition-colors"
@@ -6821,7 +6880,9 @@ ${error.message}`;
                             stems: null,
                             coverPreview: beat.cover,
                             audioName: '',
-                            stemsName: ''
+                            stemsName: '',
+                            productImages: (beat as any).productImages || [],
+                            productImagePreviews: []
                           });
                           setActiveTab('dashboard');
                           setAdminTab('upload');
