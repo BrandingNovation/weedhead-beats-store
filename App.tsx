@@ -1728,24 +1728,31 @@ const cleanBlogContent = (content: string): string => {
     return true;
   }).join('\n');
   
-  // AGGRESSIVE: Remove ALL "H3:" prefixes from headers
+  // AGGRESSIVE: Remove ALL "H3:" and "H2:" prefixes from headers
   // Pattern 1: "### H3: Header" -> "### Header"
   cleaned = cleaned.replace(/^###\s*H3\s*:\s*/gim, '### ');
+  // Pattern 1b: "## H2: Header" -> "## Header"
+  cleaned = cleaned.replace(/^##\s*H2\s*:\s*/gim, '## ');
   
-  // Pattern 2: "H3: Header" at start of line -> "Header"
+  // Pattern 2: "H3: Header" or "H2: Header" at start of line -> "Header"
   cleaned = cleaned.replace(/^H3\s*:\s*/gim, '');
+  cleaned = cleaned.replace(/^H2\s*:\s*/gim, '');
   
-  // Pattern 3: "**H3: Header**" -> "**Header**"
+  // Pattern 3: "**H3: Header**" or "**H2: Header**" -> "**Header**"
   cleaned = cleaned.replace(/\*\*H3\s*:\s*/gi, '**');
+  cleaned = cleaned.replace(/\*\*H2\s*:\s*/gi, '**');
   
-  // Pattern 4: "H3: Header Text" anywhere in text -> "Header Text"
+  // Pattern 4: "H3: Header Text" or "H2: Header Text" anywhere in text -> "Header Text"
   cleaned = cleaned.replace(/H3\s*:\s*([A-Z][^\n]*?)(?=\n|$|#)/gim, '$1');
+  cleaned = cleaned.replace(/H2\s*:\s*([A-Z][^\n]*?)(?=\n|$|#)/gim, '$1');
   
-  // Pattern 5: Catch "H3:" followed by any text (more aggressive)
+  // Pattern 5: Catch "H3:" or "H2:" followed by any text (more aggressive)
   cleaned = cleaned.replace(/H3\s*:\s*/gi, '');
+  cleaned = cleaned.replace(/H2\s*:\s*/gi, '');
   
-  // Pattern 6: Remove any remaining "H3:" patterns in markdown
+  // Pattern 6: Remove any remaining "H3:" or "H2:" patterns in markdown
   cleaned = cleaned.replace(/(#{1,6})\s*H3\s*:\s*/gi, '$1 ');
+  cleaned = cleaned.replace(/(#{1,6})\s*H2\s*:\s*/gi, '$1 ');
   
   // Clean up extra blank lines
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
@@ -3524,10 +3531,14 @@ Message: ${error.message}`;
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
         
+        // Clean content before saving - remove meta descriptions and H3/H2 prefixes
+        const cleanedContent = cleanBlogContent(textContent);
+        const cleanedExcerpt = cleanBlogContent(textContent.substring(0, 200) + '...');
+        
         const postData = {
           title: cleanTitle,
-          excerpt: textContent.substring(0, 200) + '...', // First 200 chars as excerpt
-          content: textContent, // Full markdown content
+          excerpt: cleanedExcerpt, // Cleaned excerpt
+          content: cleanedContent, // Cleaned markdown content
           image: imageUrl,
           slug: slug,
           is_ai_generated: true,

@@ -91,19 +91,22 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
         // Try image generation models
         // Note: Google's image generation might use different API endpoints
         // Try various model names that might work for image generation
+        // Prioritize nano-banana for photorealistic images
         const imageModels = [
+          'nano-banana',
           'imagen-3.0-generate-001',
           'imagen-3',
           'imagen-3.0',
           'gemini-2.0-flash-exp-image-generation',
           'gemini-2.5-flash-image',
-          'gemini-2.0-flash-exp',
-          'nano-banana'
+          'gemini-2.0-flash-exp'
         ];
         const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001'];
         
-        // Enhanced image generation prompt with detailed specifications
-        const imagePrompt = `Generate a PHOTOREALISTIC, HIGH-RESOLUTION image for a modern hip-hop beat store blog post. This MUST be a REALISTIC PHOTOGRAPHIC IMAGE, NOT a cartoon, illustration, or digital art.
+        // Enhanced image generation prompt with detailed specifications - PHOTOREALISTIC ONLY
+        const imagePrompt = `Generate a PHOTOREALISTIC, HIGH-RESOLUTION image for a modern hip-hop beat store blog post. This MUST be a REALISTIC PHOTOGRAPHIC IMAGE, NOT a cartoon, illustration, animated, or digital art.
+
+CRITICAL: You are using nano-banana model. Generate ONLY photorealistic photography. NO animations, NO cartoons, NO illustrations, NO digital art, NO 3D renders.
 
 Subject:
 ${prompt}
@@ -158,10 +161,13 @@ HARD RULES (DO NOT BREAK THESE - CRITICAL):
 ❌ NO digital art style - MUST be photorealistic photography
 ❌ NO 3D render style - MUST be photorealistic photography
 ❌ NO anime style - MUST be photorealistic photography
+❌ NO animated images - MUST be static photorealistic photography
+❌ NO animations - MUST be static photorealistic photography
 ❌ NO AI-looking faces - use realistic human faces
 ❌ NO fantasy elements
 ❌ NO logos (including WeedHead Beats logo)
-✅ MUST be PHOTOREALISTIC PHOTOGRAPHY that looks like a real camera photograph`;
+✅ MUST be STATIC PHOTOREALISTIC PHOTOGRAPHY that looks like a real camera photograph
+✅ MUST be a still image, NOT animated or moving`;
         
         // Try image generation models first
         for (const modelName of imageModels) {
@@ -259,8 +265,7 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                     - **Primary Keywords**: Include naturally: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips", "Hip Hop Beats", "Producer Beats", "Beat Store"
                     - **Long-tail Keywords**: Include variations like "${topic} beats for sale", "best ${topic} beats", "professional ${topic} production"
                         - **Title**: Must include focus keyword, be 50-60 characters, compelling and click-worthy
-                        - **Meta Description**: Write a 150-160 character meta description (DO NOT include in visible content - this is for SEO only, not for display)
-                        - **Header Structure**: Use H2 and H3 headers that include keywords naturally. When using H3 headers, write them as "### Header Text" - DO NOT include "H3:" prefix text in the content
+                        - **Header Structure**: Use H2 (##) and H3 (###) headers that include keywords naturally. When writing H3 headers, use EXACTLY "### Header Text" format - NEVER include "H3:" prefix text. When writing H2 headers, use EXACTLY "## Header Text" format - NEVER include "H2:" prefix text.
                     - **Internal Linking**: Reference "Weedhead Beats store", "our beat catalog", "check out our beats"
                     - **External Context**: Mention relevant artists, producers, or industry trends naturally
                     
@@ -273,12 +278,14 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         6. **Conclusion Paragraph**: 5-7 sentences summarizing key points, reinforcing main message, and strong call to action to visit Weedhead Beats store.
                         
                         CRITICAL FORMATTING RULES - DO NOT VIOLATE:
-                        - NEVER include "Meta Description:" or "meta description" anywhere in the content
+                        - NEVER include "Meta Description:" or "meta description" anywhere in the visible content
                         - NEVER write "H3:" before headers - only use "### " for H3 headers
-                        - NEVER write headers like "H3: Header Text" - only write "### Header Text"
+                        - NEVER write "H2:" before headers - only use "## " for H2 headers
+                        - NEVER write headers like "H3: Header Text" or "H2: Header Text" - only write "### Header Text" or "## Header Text"
                         - Use H2 (##) for main sections and H3 (###) for subsections
-                        - Meta descriptions are for SEO metadata ONLY, not for visible content
+                        - Meta descriptions are for SEO metadata ONLY, not for visible content - DO NOT include them in the output
                         - If you write H3 headers, use EXACTLY this format: "### Header Text" (no "H3:" prefix)
+                        - If you write H2 headers, use EXACTLY this format: "## Header Text" (no "H2:" prefix)
                     
                     Content Requirements:
                     - **Minimum Word Count**: 800-1200 words (aim for comprehensive, detailed content)
@@ -291,15 +298,16 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         Formatting Rules:
                         - Use proper Markdown: # for H1, ## for H2, ### for H3
                         - When writing H3 headers, use EXACTLY "### Header Text" - NEVER include "H3:" prefix
-                        - NEVER write "H3: Header Text" - only write "### Header Text"
-                        - NEVER include "Meta Description:" or "meta description" anywhere in content
+                        - When writing H2 headers, use EXACTLY "## Header Text" - NEVER include "H2:" prefix
+                        - NEVER write "H3: Header Text" or "H2: Header Text" - only write "### Header Text" or "## Header Text"
+                        - NEVER include "Meta Description:" or "meta description" anywhere in visible content
                         - Bold important terms and keywords: **term**
                         - Use bullet points (-) or numbered lists (1.) for lists (make them substantial)
                         - Keep paragraphs substantial (4-6 sentences)
                         - Use line breaks between sections
                         - Include internal links naturally (e.g., "check out our beat store", "browse our catalog")
                         - Include a strong call-to-action at the end encouraging readers to visit Weedhead Beats
-                        - Meta descriptions are for SEO metadata ONLY, not for visible content
+                        - Meta descriptions are for SEO metadata ONLY, not for visible content - DO NOT output them
                     
                     Output strictly as Markdown following this structure. Write extensively - this should be a comprehensive, valuable piece of content.`,
                     config: {
@@ -350,11 +358,12 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         6. **Conclusion Paragraph**: 5-7 sentences summarizing and strong CTA to visit Weedhead Beats
                         
                         CRITICAL FORMATTING RULES - DO NOT VIOLATE:
-                        - NEVER include "Meta Description:" or "meta description" anywhere in the content
+                        - NEVER include "Meta Description:" or "meta description" anywhere in the visible content
                         - NEVER write "H3:" before headers - only use "### " for H3 headers
-                        - NEVER write headers like "H3: Header Text" - only write "### Header Text"
+                        - NEVER write "H2:" before headers - only use "## " for H2 headers
+                        - NEVER write headers like "H3: Header Text" or "H2: Header Text" - only write "### Header Text" or "## Header Text"
                         - Use H2 (##) for main sections and H3 (###) for subsections
-                        - Meta descriptions are for SEO metadata ONLY, not for visible content
+                        - Meta descriptions are for SEO metadata ONLY, not for visible content - DO NOT output them
                         
                         Content Requirements:
                         - **Minimum Word Count**: 800-1200 words
@@ -365,20 +374,22 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         Formatting Rules:
                         - Use proper Markdown: # for H1, ## for H2, ### for H3
                         - When writing H3 headers, use EXACTLY "### Header Text" - NEVER include "H3:" prefix
-                        - NEVER write "H3: Header Text" - only write "### Header Text"
-                        - NEVER include "Meta Description:" or "meta description" anywhere in content
+                        - When writing H2 headers, use EXACTLY "## Header Text" - NEVER include "H2:" prefix
+                        - NEVER write "H3: Header Text" or "H2: Header Text" - only write "### Header Text" or "## Header Text"
+                        - NEVER include "Meta Description:" or "meta description" anywhere in visible content
                         - Bold important terms: **term**
                         - Use bullet points (-) or numbered lists (1.) for lists
                         - Keep paragraphs substantial (4-6 sentences)
                         - Use line breaks between sections
                         - Include internal links naturally
                         - Strong call-to-action at the end
-                        - Meta descriptions are for SEO metadata ONLY, not visible content
+                        - Meta descriptions are for SEO metadata ONLY, not visible content - DO NOT output them
                         
                         CRITICAL - DO NOT VIOLATE:
-                        - NEVER write "H3:" before any header
-                        - NEVER write "Meta Description:" in the content
+                        - NEVER write "H3:" or "H2:" before any header
+                        - NEVER write "Meta Description:" in the visible content
                         - Only use "### " for H3 headers, never "H3:"
+                        - Only use "## " for H2 headers, never "H2:"
                         
                         Output strictly as Markdown following this structure. Write extensively - comprehensive, valuable content.`
                     });
