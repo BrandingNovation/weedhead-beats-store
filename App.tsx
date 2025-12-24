@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   Play, 
   Pause, 
@@ -518,31 +518,44 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedColor, setSelectedColor] = useState<string>('');
     const [quantity, setQuantity] = useState<number>(1);
+    const [imageLoading, setImageLoading] = useState<boolean>(false);
     
     const sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
     const colors = ['Black', 'White', 'Navy', 'Gray', 'Green'];
     
     // Get product images if available (from product_images JSONB field or fallback to cover)
-    const productImages: string[] = (product as any).product_images && Array.isArray((product as any).product_images) 
-        ? (product as any).product_images 
-        : product.cover ? [product.cover] : [];
+    const productImages: string[] = useMemo(() => {
+        const images = (product as any).product_images && Array.isArray((product as any).product_images) 
+            ? (product as any).product_images 
+            : product.cover ? [product.cover] : [];
+        console.log('Product images loaded:', images.length, images);
+        return images;
+    }, [product]);
     
     // Map colors to images (if we have multiple images, match by index)
-    const getImageForColor = (color: string): string => {
+    const getImageForColor = useCallback((color: string): string => {
         if (productImages.length === 0) return product.cover || '';
         if (productImages.length === 1) return productImages[0];
         
         // Match color to image by index (Black=0, White=1, Navy=2, Gray=3, Green=4)
         const colorIndex = colors.indexOf(color);
         if (colorIndex >= 0 && colorIndex < productImages.length) {
-            return productImages[colorIndex];
+            const imageUrl = productImages[colorIndex];
+            console.log(`Color "${color}" (index ${colorIndex}) → Image:`, imageUrl);
+            return imageUrl;
         }
         // Fallback: if color selected but no matching image, use first image
+        console.log(`Color "${color}" not found, using first image`);
         return productImages[0];
-    };
+    }, [productImages, product.cover]);
     
-    // Current displayed image (changes based on selected color)
-    const currentImage = selectedColor ? getImageForColor(selectedColor) : (productImages[0] || product.cover || '');
+    // Current displayed image (changes based on selected color) - memoized for performance
+    const currentImage = useMemo(() => {
+        if (selectedColor) {
+            return getImageForColor(selectedColor);
+        }
+        return productImages[0] || product.cover || '';
+    }, [selectedColor, getImageForColor, productImages, product.cover]);
     
     // Reset state when modal opens
     useEffect(() => {
@@ -550,8 +563,17 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
             setSelectedSize('');
             setSelectedColor('');
             setQuantity(1);
+            setImageLoading(false);
         }
     }, [isOpen]);
+    
+    // Log color changes for debugging
+    useEffect(() => {
+        if (selectedColor && productImages.length > 1) {
+            console.log(`Color changed to: "${selectedColor}"`);
+            console.log(`Displaying image:`, currentImage);
+        }
+    }, [selectedColor, currentImage, productImages.length]);
     
     const handleAddToCart = () => {
         if (!selectedSize) {
@@ -572,12 +594,25 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto" onClick={onClose}>
             <div className="bg-brand-black border border-brand-slate rounded-xl max-w-6xl w-full flex flex-col md:flex-row max-h-[90vh] my-auto" onClick={e => e.stopPropagation()}>
                 {/* Product Image */}
-                <div className="w-full md:w-1/2 bg-brand-slate/20 p-8 flex flex-col items-center justify-center">
+                <div className="w-full md:w-1/2 bg-brand-slate/20 p-8 flex flex-col items-center justify-center relative">
+                    {imageLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-green"></div>
+                        </div>
+                    )}
                     <img 
                         src={currentImage} 
                         alt={product.title} 
-                        className="max-w-full max-h-[500px] object-contain mb-4 transition-opacity duration-300"
+                        className={`max-w-full max-h-[500px] object-contain mb-4 transition-opacity duration-300 ${
+                            imageLoading ? 'opacity-0' : 'opacity-100'
+                        }`}
                         key={currentImage} // Force re-render when image changes
+                        onLoadStart={() => setImageLoading(true)}
+                        onLoad={() => setImageLoading(false)}
+                        onError={() => {
+                            setImageLoading(false);
+                            console.error('Failed to load image:', currentImage);
+                        }}
                     />
                     {/* Image Gallery (if multiple images) */}
                     {productImages.length > 1 && (
@@ -2116,16 +2151,33 @@ const NewsletterForm = () => {
 const App = () => {
   // Suppress StorageType.persistent deprecation warning (from third-party dependencies)
   // This warning is harmless and comes from Supabase/Stripe/PayPal SDKs
-  if (typeof window !== 'undefined' && window.console) {
-    const originalWarn = console.warn;
-    console.warn = (...args: any[]) => {
-      if (args[0]?.includes?.('StorageType.persistent') || args[0]?.includes?.('navigator.storage')) {
-        // Suppress this specific deprecation warning from dependencies
-        return;
-      }
-      originalWarn.apply(console, args);
-    };
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.console) {
+      const originalWarn = console.warn;
+      console.warn = (...args: any[]) => {
+        const message = typeof args[0] === 'string' ? args[0] : String(args[0] || '');
+        if (message.includes('StorageType.persistent') || 
+            message.includes('navigator.storage') ||
+            message.includes('deprecated') && message.includes('storage')) {
+          // Suppress this specific deprecation warning from dependencies
+          return;
+        }
+        originalWarn.apply(console, args);
+      };
+      
+      // Also suppress in console.error for some browsers
+      const originalError = console.error;
+      console.error = (...args: any[]) => {
+        const message = typeof args[0] === 'string' ? args[0] : String(args[0] || '');
+        if (message.includes('StorageType.persistent') || 
+            message.includes('navigator.storage') ||
+            (message.includes('deprecated') && message.includes('storage'))) {
+          return;
+        }
+        originalError.apply(console, args);
+      };
+    }
+  }, []);
   
   // Store State
   const [activeTab, setActiveTab] = useState('store'); 
@@ -4528,8 +4580,10 @@ ${error.message}`;
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
+                        <label htmlFor="inventory-upload-stems" className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
                         <input
+                          id="inventory-upload-stems"
+                          name="inventory-upload-stems"
                           type="file"
                           accept=".zip,application/zip"
                           onChange={e => handleFileChange(e, 'stems')}
@@ -4846,8 +4900,8 @@ ${error.message}`;
                             </div>
                           ))}
                         </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
                   ) : (
                     <div>
                       <label htmlFor="upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
