@@ -2375,7 +2375,8 @@ const App = () => {
     smtp_password: '',
     from_email: '',
     from_name: 'Weedhead Beats',
-    use_tls: 'true'
+    use_tls: 'true',
+    send_order_confirmation_emails: 'false'
   });
   const [emailSettingsLoaded, setEmailSettingsLoaded] = useState(false);
   const [savingEmailSetting, setSavingEmailSetting] = useState<string | null>(null);
@@ -2991,7 +2992,8 @@ Message: ${error.message}`;
             smtp_password: '',
             from_email: '',
             from_name: 'Weedhead Beats',
-            use_tls: 'true'
+            use_tls: 'true',
+            send_order_confirmation_emails: 'false'
           };
           
           if (data && data.length > 0) {
@@ -3010,6 +3012,8 @@ Message: ${error.message}`;
                 settings.from_name = setting.setting_value || 'Weedhead Beats';
               } else if (setting.setting_name === 'use_tls') {
                 settings.use_tls = setting.setting_value || 'true';
+              } else if (setting.setting_name === 'send_order_confirmation_emails') {
+                settings.send_order_confirmation_emails = setting.setting_value || 'false';
               }
             });
           }
@@ -3030,7 +3034,8 @@ Message: ${error.message}`;
             smtp_password: '',
             from_email: '',
             from_name: 'Weedhead Beats',
-            use_tls: 'true'
+            use_tls: 'true',
+            send_order_confirmation_emails: 'false'
           });
           setEmailSettingsLoaded(true);
         }
@@ -5507,6 +5512,25 @@ ${error.message}`;
                   {!emailSettingsLoaded && (
                     <div className="text-center py-4">
                       <div className="w-8 h-8 border-2 border-brand-green border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    </div>
+                  )}
+                  
+                  {emailSettingsLoaded && (
+                    <div className="mb-4 p-4 bg-brand-slate/30 border border-brand-green/50 rounded">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={emailSettings.send_order_confirmation_emails === 'true'}
+                          onChange={(e) => setEmailSettings({ ...emailSettings, send_order_confirmation_emails: e.target.checked ? 'true' : 'false' })}
+                          className="w-5 h-5 text-brand-green rounded focus:ring-brand-green focus:ring-2"
+                        />
+                        <span className="text-white font-bold text-sm">
+                          Enable Order Confirmation Emails
+                        </span>
+                      </label>
+                      <p className="text-xs text-brand-teal mt-2 ml-8">
+                        When enabled, customers will receive email confirmations after placing orders
+                      </p>
                     </div>
                   )}
                   
