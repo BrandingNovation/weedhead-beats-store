@@ -3854,7 +3854,13 @@ Message: ${error.message}`;
         // Upload Cover
         if (uploadForm.cover instanceof File) {
             try {
-                const fileName = `${Date.now()}-${uploadForm.cover.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                // Sanitize filename: remove all special characters, spaces, and ensure safe URL
+                const sanitizedName = uploadForm.cover.name
+                  .replace(/[^a-zA-Z0-9.-]/g, '_')
+                  .replace(/\s+/g, '_')
+                  .replace(/_{2,}/g, '_')
+                  .toLowerCase();
+                const fileName = `${Date.now()}-${sanitizedName}`;
                 const { data, error } = await supabase.storage.from('covers').upload(fileName, uploadForm.cover, {
                   cacheControl: '3600',
                   upsert: false
@@ -3885,7 +3891,13 @@ Message: ${error.message}`;
         // Upload Audio
         if (uploadForm.audio instanceof File) {
              try {
-                 const fileName = `${Date.now()}-${uploadForm.audio.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                 // Sanitize filename: remove all special characters, spaces, and ensure safe URL
+                 const sanitizedName = uploadForm.audio.name
+                   .replace(/[^a-zA-Z0-9.-]/g, '_')
+                   .replace(/\s+/g, '_')
+                   .replace(/_{2,}/g, '_')
+                   .toLowerCase();
+                 const fileName = `${Date.now()}-${sanitizedName}`;
                  const { data, error } = await supabase.storage.from('audio').upload(fileName, uploadForm.audio, {
                    cacheControl: '3600',
                    upsert: false
@@ -3925,7 +3937,13 @@ Message: ${error.message}`;
           try {
             console.log(`Uploading ${uploadForm.productImages.length} product images...`);
             for (const imageFile of uploadForm.productImages) {
-              const fileName = `merch-${Date.now()}-${Math.random().toString(36).substring(7)}-${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+              // Sanitize filename: remove all special characters, spaces, and ensure safe URL
+              const sanitizedName = imageFile.name
+                .replace(/[^a-zA-Z0-9.-]/g, '_')
+                .replace(/\s+/g, '_')
+                .replace(/_{2,}/g, '_')
+                .toLowerCase();
+              const fileName = `merch-${Date.now()}-${Math.random().toString(36).substring(7)}-${sanitizedName}`;
               const { data, error } = await supabase.storage.from('covers').upload(fileName, imageFile, {
                 cacheControl: '3600',
                 upsert: false
@@ -3958,7 +3976,13 @@ Message: ${error.message}`;
         let stemsUrl: string | null = null;
         if (uploadForm.stems instanceof File) {
             try {
-                const fileName = `stems-${Date.now()}-${uploadForm.stems.name}`;
+                // Sanitize filename: remove all special characters, spaces, and ensure safe URL
+                const sanitizedName = uploadForm.stems.name
+                  .replace(/[^a-zA-Z0-9.-]/g, '_')
+                  .replace(/\s+/g, '_')
+                  .replace(/_{2,}/g, '_')
+                  .toLowerCase();
+                const fileName = `stems-${Date.now()}-${sanitizedName}`;
                 const { data, error } = await supabase.storage.from('audio').upload(fileName, uploadForm.stems);
                 if (!error && data) {
                     const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
@@ -5070,7 +5094,13 @@ ${error.message}`;
                           const file = e.target.files?.[0];
                           if (file) {
                             try {
-                              const fileName = `${Date.now()}-${file.name}`;
+                              // Sanitize filename: remove all special characters, spaces, and ensure safe URL
+                              const sanitizedName = file.name
+                                .replace(/[^a-zA-Z0-9.-]/g, '_')
+                                .replace(/\s+/g, '_')
+                                .replace(/_{2,}/g, '_')
+                                .toLowerCase();
+                              const fileName = `${Date.now()}-${sanitizedName}`;
                               const { data, error } = await supabase.storage.from('covers').upload(fileName, file);
                               if (!error && data) {
                                 const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName);

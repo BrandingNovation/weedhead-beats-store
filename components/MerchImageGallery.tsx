@@ -110,7 +110,6 @@ const MerchImageGallery: React.FC<MerchImageGalleryProps> = ({
         <img
           src={currentImageSrc}
           alt={productTitle}
-          crossOrigin="anonymous"
           className={`w-full max-h-[500px] object-contain transition-opacity duration-300 rounded-lg ${
             imageLoading ? 'opacity-0' : 'opacity-100'
           }`}
@@ -143,7 +142,6 @@ const MerchImageGallery: React.FC<MerchImageGalleryProps> = ({
                 <img
                   src={img}
                   alt={`${productTitle} - ${colorForImage}`}
-                  crossOrigin="anonymous"
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
