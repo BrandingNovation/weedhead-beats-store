@@ -5590,13 +5590,19 @@ ${error.message}`;
                               console.error('Error details:', upsertError.details);
                               console.error('Error hint:', upsertError.hint);
                               
-                              // Check for table not found
+                              // Check for table not found (404 error)
+                              const errorStr = JSON.stringify(upsertError);
                               if (upsertError.code === 'PGRST116' || 
                                   upsertError.code === '42P01' ||
+                                  upsertError.code === 'PGRST301' ||
                                   upsertError.message?.includes('404') || 
                                   upsertError.message?.includes('does not exist') ||
-                                  upsertError.message?.includes('relation')) {
-                                alert('Email settings table not found. Please run migration_add_email_settings.sql in Supabase first.');
+                                  upsertError.message?.includes('relation') ||
+                                  upsertError.message?.includes('not found') ||
+                                  errorStr.includes('404') ||
+                                  upsertError.details?.includes('404')) {
+                                alert('❌ Email settings table not found!\n\n🔧 TO FIX:\n1. Go to Supabase Dashboard → SQL Editor\n2. Run: migration_add_email_settings.sql\n3. Or copy the SQL from the file in your project\n4. Refresh this page and try again');
+                                setSavingEmailSetting(null);
                                 return;
                               }
                               
@@ -5645,12 +5651,17 @@ ${error.message}`;
                             hint: e?.hint
                           });
                           
+                          const errorStr = JSON.stringify(e);
                           if (e?.code === 'PGRST116' || 
                               e?.code === '42P01' ||
+                              e?.code === 'PGRST301' ||
                               e?.message?.includes('404') || 
                               e?.message?.includes('does not exist') ||
-                              e?.message?.includes('relation')) {
-                            alert('Email settings table not found. Please run migration_add_email_settings.sql in Supabase first.');
+                              e?.message?.includes('relation') ||
+                              e?.message?.includes('not found') ||
+                              errorStr.includes('404') ||
+                              e?.details?.includes('404')) {
+                            alert('❌ Email settings table not found!\n\n🔧 TO FIX:\n1. Go to Supabase Dashboard → SQL Editor\n2. Run: migration_add_email_settings.sql\n3. Or copy the SQL from the file in your project\n4. Refresh this page and try again');
                           } else if (e?.message?.includes('permission denied') || 
                                      e?.code === '42501' ||
                                      e?.message?.includes('policy')) {
