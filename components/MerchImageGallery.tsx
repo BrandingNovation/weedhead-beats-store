@@ -86,13 +86,29 @@ const MerchImageGallery: React.FC<MerchImageGalleryProps> = ({
     setImageLoading(false);
   };
 
-  const handleImageError = () => {
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setImageLoading(false);
+    const img = e.currentTarget;
     console.error('Failed to load image:', currentImageSrc);
+    
+    // Try to fix URL encoding issues
+    if (currentImageSrc && currentImageSrc.includes('%20')) {
+      const fixedUrl = currentImageSrc.replace(/%20/g, '_').replace(/\(/g, '_').replace(/\)/g, '_');
+      if (fixedUrl !== currentImageSrc) {
+        console.log('Attempting to fix URL:', fixedUrl);
+        setCurrentImageSrc(fixedUrl);
+        setImageLoading(true);
+        return;
+      }
+    }
+    
     // Fallback to cover image if current image fails
     if (currentImageSrc !== coverImage && coverImage) {
       setCurrentImageSrc(coverImage);
       setImageLoading(true);
+    } else {
+      // If all else fails, show placeholder
+      img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23333" width="400" height="400"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="20" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EImage not available%3C/text%3E%3C/svg%3E';
     }
   };
 
@@ -144,6 +160,13 @@ const MerchImageGallery: React.FC<MerchImageGalleryProps> = ({
                   alt={`${productTitle} - ${colorForImage}`}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  onError={(e) => {
+                    // Handle image loading errors in thumbnails
+                    const target = e.currentTarget;
+                    if (target.src && target.src.includes('%20')) {
+                      target.src = target.src.replace(/%20/g, '_').replace(/\(/g, '_').replace(/\)/g, '_');
+                    }
+                  }}
                 />
               </button>
             );

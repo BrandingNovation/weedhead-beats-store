@@ -4468,21 +4468,25 @@ ${error.message}`;
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {uploadForm.category === 'merch' ? (
                         <div className="md:col-span-2">
-                          <label htmlFor="inventory-upload-product-images" className="block text-xs font-bold uppercase text-brand-teal mb-2">
-                            Product Images * (Multiple images allowed)
-                          </label>
-                          <input
-                            id="inventory-upload-product-images"
-                            name="inventory-upload-product-images"
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={e => handleFileChange(e, 'productImages')}
-                            className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
-                          />
-                          <p className="text-xs text-brand-teal mt-1">
-                            💡 Select multiple images to show different angles, colors, or details of your product. The first image will be used as the cover/thumbnail.
-                          </p>
+                          <div className="mb-4 p-4 bg-brand-green/10 border-2 border-brand-green/50 rounded-lg">
+                            <label htmlFor="inventory-upload-product-images" className="block text-sm font-bold uppercase text-brand-green mb-2 flex items-center gap-2">
+                              <ImageIcon size={18} />
+                              Product Images * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
+                            </label>
+                            <input
+                              id="inventory-upload-product-images"
+                              name="inventory-upload-product-images"
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={e => handleFileChange(e, 'productImages')}
+                              className="w-full bg-brand-slate/50 border-2 border-brand-green/50 p-3 text-white rounded focus:border-brand-green outline-none cursor-pointer hover:bg-brand-slate/70 transition-colors"
+                              aria-label="Upload multiple product images"
+                            />
+                            <p className="text-xs text-brand-teal mt-2">
+                              💡 <strong>Tip:</strong> Select multiple images (hold Ctrl on Windows/Linux or Cmd on Mac) to show different angles, colors, or details. The first image will be used as the cover/thumbnail.
+                            </p>
+                          </div>
                           {uploadForm.productImagePreviews.length > 0 && (
                             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                               {uploadForm.productImagePreviews.map((preview, index) => (
@@ -4843,21 +4847,25 @@ ${error.message}`;
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {uploadForm.category === 'merch' ? (
                     <div className="md:col-span-2">
-                      <label htmlFor="upload-product-images" className="block text-xs font-bold uppercase text-brand-teal mb-2">
-                        Product Images * (Multiple images allowed)
-                      </label>
-                      <input
-                        id="upload-product-images"
-                        name="upload-product-images"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={e => handleFileChange(e, 'productImages')}
-                        className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
-                      />
-                      <p className="text-xs text-brand-teal mt-1">
-                        💡 Select multiple images to show different angles, colors, or details of your product. The first image will be used as the cover/thumbnail.
-                      </p>
+                      <div className="mb-4 p-4 bg-brand-green/10 border-2 border-brand-green/50 rounded-lg">
+                        <label htmlFor="upload-product-images" className="block text-sm font-bold uppercase text-brand-green mb-2 flex items-center gap-2">
+                          <ImageIcon size={18} />
+                          Product Images * (Multiple images allowed - Hold Ctrl/Cmd to select multiple)
+                        </label>
+                        <input
+                          id="upload-product-images"
+                          name="upload-product-images"
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={e => handleFileChange(e, 'productImages')}
+                          className="w-full bg-brand-slate/50 border-2 border-brand-green/50 p-3 text-white rounded focus:border-brand-green outline-none cursor-pointer hover:bg-brand-slate/70 transition-colors"
+                          aria-label="Upload multiple product images"
+                        />
+                        <p className="text-xs text-brand-teal mt-2">
+                          💡 <strong>Tip:</strong> Select multiple images (hold Ctrl on Windows/Linux or Cmd on Mac) to show different angles, colors, or details. The first image will be used as the cover/thumbnail.
+                        </p>
+                      </div>
                       {uploadForm.productImagePreviews.length > 0 && (
                         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                           {uploadForm.productImagePreviews.map((preview, index) => (
