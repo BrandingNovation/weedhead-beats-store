@@ -2948,6 +2948,110 @@ Message: ${error.message}`;
     }
   }, [adminTab, newsletterSettingsLoaded]);
 
+  // Load Email Settings when settings tab opens
+  useEffect(() => {
+    if (adminTab === 'settings' && !emailSettingsLoaded) {
+      let isCancelled = false;
+      
+      const fetchEmailSettings = async () => {
+        console.log('Loading email settings...');
+        try {
+          const { data, error } = await supabase
+            .from('email_settings')
+            .select('setting_name, setting_value')
+            .in('setting_name', [
+              'smtp_host',
+              'smtp_port',
+              'smtp_username',
+              'smtp_password',
+              'from_email',
+              'from_name',
+              'use_tls'
+            ]);
+          
+          if (isCancelled) return;
+          
+          if (error) {
+            console.error('Error fetching email settings:', error);
+            // If table doesn't exist, set loaded to true anyway to show the form
+            if (error.code === 'PGRST116' || error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('404')) {
+              console.warn('Email settings table not found - user needs to run migration');
+              if (!isCancelled) {
+                setEmailSettingsLoaded(true);
+              }
+              return;
+            }
+          }
+          
+          // Initialize with defaults
+          const settings: any = {
+            smtp_host: '',
+            smtp_port: '587',
+            smtp_username: '',
+            smtp_password: '',
+            from_email: '',
+            from_name: 'Weedhead Beats',
+            use_tls: 'true'
+          };
+          
+          if (data && data.length > 0) {
+            data.forEach((setting: any) => {
+              if (setting.setting_name === 'smtp_host') {
+                settings.smtp_host = setting.setting_value || '';
+              } else if (setting.setting_name === 'smtp_port') {
+                settings.smtp_port = setting.setting_value || '587';
+              } else if (setting.setting_name === 'smtp_username') {
+                settings.smtp_username = setting.setting_value || '';
+              } else if (setting.setting_name === 'smtp_password') {
+                settings.smtp_password = setting.setting_value || '';
+              } else if (setting.setting_name === 'from_email') {
+                settings.from_email = setting.setting_value || '';
+              } else if (setting.setting_name === 'from_name') {
+                settings.from_name = setting.setting_value || 'Weedhead Beats';
+              } else if (setting.setting_name === 'use_tls') {
+                settings.use_tls = setting.setting_value || 'true';
+              }
+            });
+          }
+          
+          console.log('Loaded email settings:', { ...settings, smtp_password: '***hidden***' });
+          if (!isCancelled) {
+            setEmailSettings(settings);
+            setEmailSettingsLoaded(true);
+          }
+        } catch (err: any) {
+          if (isCancelled) return;
+          console.error('Failed to fetch email settings:', err);
+          // Use defaults on error and set loaded to true
+          setEmailSettings({
+            smtp_host: '',
+            smtp_port: '587',
+            smtp_username: '',
+            smtp_password: '',
+            from_email: '',
+            from_name: 'Weedhead Beats',
+            use_tls: 'true'
+          });
+          setEmailSettingsLoaded(true);
+        }
+      };
+      
+      fetchEmailSettings();
+      
+      // Cleanup function
+      return () => {
+        isCancelled = true;
+      };
+    }
+  }, [adminTab, emailSettingsLoaded]);
+
+  // Reset loaded state when leaving settings tab
+  useEffect(() => {
+    if (adminTab !== 'settings' && emailSettingsLoaded) {
+      setEmailSettingsLoaded(false);
+    }
+  }, [adminTab]);
+
   // --- Handlers ---
 
   const fetchProfile = async (authUser: any) => {
