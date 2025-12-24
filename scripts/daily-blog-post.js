@@ -114,8 +114,15 @@ async function generateBlogContent(topic) {
         - **Primary Keywords**: Include naturally: "Buy Beats Online", "Trap Beats 2024", "Music Production Tips", "Hip Hop Beats", "Producer Beats", "Beat Store"
         - **Long-tail Keywords**: Include variations like "${topic} beats for sale", "best ${topic} beats", "professional ${topic} production"
         - **Title**: Must include focus keyword, be 50-60 characters, compelling and click-worthy
-        - **Header Structure**: Use H2 and H3 headers that include keywords naturally
+        - **Meta Description**: DO NOT write or include meta descriptions in the content. Meta descriptions are for SEO metadata only and should NOT appear in the blog post content.
+        - **Header Structure**: Use H2 and H3 headers that include keywords naturally. When using H3 headers, write them EXACTLY as "### Header Text" - NEVER include "H3:" prefix text. NEVER write "H3: Header Text" - only write "### Header Text"
         - **Internal Linking**: Reference "Weedhead Beats store", "our beat catalog", "check out our beats"
+        
+        CRITICAL FORMATTING RULES - DO NOT VIOLATE:
+        - NEVER include "Meta Description:" or "meta description" anywhere in the content
+        - NEVER write "H3:" before headers - only use "### " for H3 headers
+        - NEVER write headers like "H3: Header Text" - only write "### Header Text"
+        - Meta descriptions are for SEO metadata ONLY, not for visible content
         
         Standard Blog Format Protocol:
         1. **Title (H1)**: SEO-optimized headline (50-60 chars) with focus keyword, compelling and click-worthy
