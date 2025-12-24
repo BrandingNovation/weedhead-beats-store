@@ -233,8 +233,9 @@ HARD RULES (DO NOT BREAK THESE - CRITICAL):
 ❌ NO logos (including WeedHead Beats logo)
 ✅ MUST be PHOTOREALISTIC PHOTOGRAPHY that looks like a real camera photograph`;
 
-  // Try image generation models - prioritize imagen models for photorealistic images
-  const imageModels = ['imagen-3', 'imagen-3.0-generate-001', 'nano-banana', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
+  // Try image generation models - only use models that actually exist in Gemini API
+  // Removed non-existent models: imagen-3, imagen-3.0-generate-001, nano-banana
+  const imageModels = ['gemini-2.0-flash-exp-image-generation', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
   const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest'];
   
   for (const modelName of [...imageModels, ...textModels]) {

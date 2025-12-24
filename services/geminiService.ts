@@ -87,16 +87,10 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
     try {
         // Using premium models available with paid account
         // Try image generation models first, then fallback to text models
-        // Model names need -latest or -001 suffix for v1beta API
-        // Try image generation models
-        // Note: Google's image generation might use different API endpoints
-        // Try various model names that might work for image generation
-        // Prioritize nano-banana for photorealistic images
+        // Note: Only use models that actually exist in the Gemini API
+        // Removed non-existent models: nano-banana, imagen-3, imagen-3.0, imagen-3.0-generate-001
+        // Prioritize working image generation models
         const imageModels = [
-          'nano-banana',
-          'imagen-3.0-generate-001',
-          'imagen-3',
-          'imagen-3.0',
           'gemini-2.0-flash-exp-image-generation',
           'gemini-2.5-flash-image',
           'gemini-2.0-flash-exp'
@@ -106,7 +100,7 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
         // Enhanced image generation prompt with detailed specifications - PHOTOREALISTIC ONLY
         const imagePrompt = `Generate a PHOTOREALISTIC, HIGH-RESOLUTION image for a modern hip-hop beat store blog post. This MUST be a REALISTIC PHOTOGRAPHIC IMAGE, NOT a cartoon, illustration, animated, or digital art.
 
-CRITICAL: You are using nano-banana model. Generate ONLY photorealistic photography. NO animations, NO cartoons, NO illustrations, NO digital art, NO 3D renders.
+CRITICAL: Generate ONLY photorealistic photography. NO animations, NO cartoons, NO illustrations, NO digital art, NO 3D renders.
 
 Subject:
 ${prompt}
