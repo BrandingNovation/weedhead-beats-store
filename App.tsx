@@ -3384,7 +3384,35 @@ Message: ${error.message}`;
     if (!chatSession) return;
     setIsGeneratingNews(true);
     try {
-        const topic = "Latest breaking news in music production software, hip hop industry, or major rap album release.";
+        // Diverse topics covering all aspects of beat making
+        const diverseTopics = [
+          "Trap beat production techniques",
+          "Mixing and mastering tips for producers",
+          "Sound design and synthesis",
+          "Music theory for beatmakers",
+          "Sampling and sample packs",
+          "Drum programming and rhythm",
+          "Melody creation and chord progressions",
+          "Arrangement and song structure",
+          "Music business and selling beats",
+          "Marketing and promotion for producers",
+          "Producer collaborations",
+          "Hardware and studio gear",
+          "Software plugins and VSTs",
+          "Hip hop industry trends",
+          "Producer spotlights and artist features",
+          "Home studio setup",
+          "Ableton Live techniques",
+          "Logic Pro production",
+          "Pro Tools workflow",
+          "Music production workflow optimization"
+        ];
+        
+        // Randomly select a diverse topic
+        const randomTopic = diverseTopics[Math.floor(Math.random() * diverseTopics.length)];
+        const topic = `${randomTopic} - Latest tips, tutorials, news, or insights for independent producers`;
+        
+        console.log(`📝 Generating blog post about: ${randomTopic}`);
         
         // 1. Generate SEO Text (with Grounding)
         const textContent = await generateSEOContent(topic);

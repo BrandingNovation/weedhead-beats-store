@@ -88,9 +88,18 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
         // Using premium models available with paid account
         // Try image generation models first, then fallback to text models
         // Model names need -latest or -001 suffix for v1beta API
-        // Try image generation models - nano-banana might need to be 'imagen-3' or similar
-        // If nano-banana doesn't work, try other image models
-        const imageModels = ['imagen-3', 'imagen-3.0-generate-001', 'nano-banana', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
+        // Try image generation models
+        // Note: Google's image generation might use different API endpoints
+        // Try various model names that might work for image generation
+        const imageModels = [
+          'imagen-3.0-generate-001',
+          'imagen-3',
+          'imagen-3.0',
+          'gemini-2.0-flash-exp-image-generation',
+          'gemini-2.5-flash-image',
+          'gemini-2.0-flash-exp',
+          'nano-banana'
+        ];
         const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001'];
         
         // Enhanced image generation prompt with detailed specifications
@@ -157,6 +166,7 @@ HARD RULES (DO NOT BREAK THESE - CRITICAL):
         // Try image generation models first
         for (const modelName of imageModels) {
             try {
+                console.log(`🖼️ Trying image model: ${modelName}`);
                 const response = await ai.models.generateContent({
                     model: modelName,
                     contents: {
@@ -167,17 +177,28 @@ HARD RULES (DO NOT BREAK THESE - CRITICAL):
                 // Extract base64 image data
                 for (const part of response.candidates?.[0]?.content?.parts || []) {
                     if (part.inlineData) {
+                        console.log(`✅ Image generated successfully with model: ${modelName}`);
                         return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
                     }
                 }
+                
+                // Check if response has image data in different format
+                if (response.candidates?.[0]?.content?.parts) {
+                    console.log(`⚠️ Model ${modelName} responded but no inlineData found. Response structure:`, Object.keys(response.candidates[0].content.parts[0] || {}));
+                }
             } catch (error: any) {
-                console.warn(`Image model ${modelName} not available, trying next...`, error.message);
+                console.warn(`❌ Image model ${modelName} failed:`, error.message);
+                if (error.message?.includes('not found') || error.message?.includes('does not exist')) {
+                    console.warn(`   Model ${modelName} doesn't exist, trying next...`);
+                }
                 continue;
             }
         }
         
-        // If image models don't work, return null (text models can't generate images)
-        console.warn("Image generation models not available. Image generation requires specific image-capable models.");
+        // If image models don't work, log detailed error
+        console.error("❌ All image generation models failed. Image generation requires specific image-capable models.");
+        console.error("💡 Note: Google's image generation might require a different API endpoint or model name.");
+        console.error("💡 Check Google AI Studio for available image generation models.");
         return null;
     } catch (error: any) {
         console.error("Error generating image:", error);
