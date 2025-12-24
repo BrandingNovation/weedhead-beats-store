@@ -4440,27 +4440,66 @@ ${error.message}`;
                       </div>
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="inventory-upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
-                        <input
-                          id="inventory-upload-cover"
-                          name="inventory-upload-cover"
-                          type="file"
-                          accept="image/*"
-                          onChange={e => handleFileChange(e, 'cover')}
-                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
-                        />
-                        {uploadForm.coverPreview && (
-                          <div className="mt-3">
-                            <img src={uploadForm.coverPreview} alt="Preview" className="w-full h-32 object-cover rounded border border-brand-slate" />
-                            {uploadForm.cover && (
-                              <p className="mt-2 text-xs text-brand-teal">
-                                File: {uploadForm.cover.name} ({(uploadForm.cover.size / 1024 / 1024).toFixed(2)} MB)
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      {uploadForm.category === 'merch' ? (
+                        <div className="md:col-span-2">
+                          <label htmlFor="inventory-upload-product-images" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                            Product Images * (Multiple images allowed)
+                          </label>
+                          <input
+                            id="inventory-upload-product-images"
+                            name="inventory-upload-product-images"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={e => handleFileChange(e, 'productImages')}
+                            className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                          />
+                          <p className="text-xs text-brand-teal mt-1">
+                            💡 Select multiple images to show different angles, colors, or details of your product. The first image will be used as the cover/thumbnail.
+                          </p>
+                          {uploadForm.productImagePreviews.length > 0 && (
+                            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                              {uploadForm.productImagePreviews.map((preview, index) => (
+                                <div key={index} className="relative">
+                                  <img src={preview} alt={`Product image ${index + 1}`} className="w-full h-32 object-cover rounded border border-brand-slate" />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeProductImage(index)}
+                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700"
+                                  >
+                                    ×
+                                  </button>
+                                  {index === 0 && (
+                                    <span className="absolute bottom-1 left-1 bg-brand-green text-white text-xs px-2 py-1 rounded">Cover</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <label htmlFor="inventory-upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
+                          <input
+                            id="inventory-upload-cover"
+                            name="inventory-upload-cover"
+                            type="file"
+                            accept="image/*"
+                            onChange={e => handleFileChange(e, 'cover')}
+                            className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                          />
+                          {uploadForm.coverPreview && (
+                            <div className="mt-3">
+                              <img src={uploadForm.coverPreview} alt="Preview" className="w-full h-32 object-cover rounded border border-brand-slate" />
+                              {uploadForm.cover && (
+                                <p className="mt-2 text-xs text-brand-teal">
+                                  File: {uploadForm.cover.name} ({(uploadForm.cover.size / 1024 / 1024).toFixed(2)} MB)
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div>
                         <label htmlFor="inventory-upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                           Audio File {uploadForm.category === 'merch' && <span className="text-brand-teal text-xs font-normal">(Optional for Merch)</span>}
