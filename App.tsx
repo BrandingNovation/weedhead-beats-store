@@ -3734,8 +3734,14 @@ Message: ${error.message}`;
       return;
     }
     
-    // Check if audio is required (for new tracks) or if editing existing track
-    if (!editingTrackId && !uploadForm.audio && typeof uploadForm.audio !== 'string') {
+    // For merch items, description is required
+    if (uploadForm.category === 'merch' && !uploadForm.description?.trim()) {
+      alert("Please enter a description for the merchandise item. Include details like material, sizes, colors, and features.");
+      return;
+    }
+    
+    // Check if audio is required (for new tracks) - NOT required for merch items
+    if (uploadForm.category !== 'merch' && !editingTrackId && !uploadForm.audio && typeof uploadForm.audio !== 'string') {
       alert("Please upload an audio file.");
       return;
     }
@@ -3801,13 +3807,13 @@ Message: ${error.message}`;
                  alert(`Failed to upload audio file: ${err.message || 'Unknown error'}\n\nPlease check:\n1. Supabase Storage bucket 'audio' exists\n2. Bucket is set to public\n3. RLS policies allow uploads\n4. File size is under 100MB`);
                  return; // Don't continue if audio upload fails
              }
-        } else if (!audioUrl && !editingTrackId) {
+        } else if (!audioUrl && !editingTrackId && uploadForm.category !== 'merch') {
           alert("Please upload an audio file.");
           return;
         }
         
-        // Don't use placeholder - require actual upload
-        if (!audioUrl && !editingTrackId) {
+        // Don't use placeholder - require actual upload (except for merch)
+        if (!audioUrl && !editingTrackId && uploadForm.category !== 'merch') {
           alert("Audio file is required. Please upload an audio file.");
           return;
         }
@@ -4237,15 +4243,21 @@ ${error.message}`;
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="upload-description" className="block text-xs font-bold uppercase text-brand-teal mb-2">Description</label>
+                  <label htmlFor="upload-description" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                    Description {uploadForm.category === 'merch' && <span className="text-yellow-400">* (Required for Merch)</span>}
+                  </label>
                   <textarea
                     id="upload-description"
                     name="upload-description"
                     value={uploadForm.description}
                     onChange={e => setUploadForm({...uploadForm, description: e.target.value})}
+                    placeholder={uploadForm.category === 'merch' ? "Describe your merchandise item (e.g., material, sizes, colors, features)..." : "Optional description for the track..."}
                     className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
-                    style={{ color: '#ffffff', caretColor: '#0D5F11' }}
+                    style={{ color: '#000000', caretColor: '#0D5F11' }}
                   />
+                  {uploadForm.category === 'merch' && (
+                    <p className="text-xs text-yellow-400 mt-1">💡 For merchandise, include details like: material, available sizes, colors, features, and any special notes.</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="upload-youtube" className="block text-xs font-bold uppercase text-brand-teal mb-2">YouTube URL</label>
@@ -4335,7 +4347,9 @@ ${error.message}`;
                     )}
                   </div>
                   <div>
-                    <label htmlFor="upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">Audio File</label>
+                    <label htmlFor="upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      Audio File {uploadForm.category === 'merch' && <span className="text-brand-teal text-xs font-normal">(Optional for Merch)</span>}
+                    </label>
                     <input
                       id="upload-audio"
                       name="upload-audio"
@@ -4343,7 +4357,11 @@ ${error.message}`;
                       accept="audio/*"
                       onChange={e => handleFileChange(e, 'audio')}
                       className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                      disabled={uploadForm.category === 'merch'}
                     />
+                    {uploadForm.category === 'merch' && (
+                      <p className="text-xs text-brand-teal mt-1">ℹ️ Audio files are not required for merchandise items.</p>
+                    )}
                     <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
                       <p className="text-brand-green font-bold mb-1">🎵 Optimal Audio Specifications:</p>
                       <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
