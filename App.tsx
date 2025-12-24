@@ -61,6 +61,7 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 // Services & Components
 import Sidebar from './components/Sidebar';
 import Player from './components/Player';
+import MerchImageGallery from './components/MerchImageGallery';
 import { supabase } from './lib/supabaseClient';
 import { createChatSession, sendMessageStream, generateBlogImage, generateSEOContent } from './services/geminiService';
 import { AppConfig, GeminiModel, Message, Role, Attachment, GroundingSource, Track, BlogPost, ProductCategory, License, SiteContent, PageConfig, UserProfile } from './types';
@@ -518,7 +519,6 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [selectedColor, setSelectedColor] = useState<string>('');
     const [quantity, setQuantity] = useState<number>(1);
-    const [imageLoading, setImageLoading] = useState<boolean>(false);
     
     const sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
     const colors = ['Black', 'White', 'Navy', 'Gray', 'Green'];
@@ -527,35 +527,9 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
     const productImages: string[] = useMemo(() => {
         const images = (product as any).product_images && Array.isArray((product as any).product_images) 
             ? (product as any).product_images 
-            : product.cover ? [product.cover] : [];
-        console.log('Product images loaded:', images.length, images);
+            : [];
         return images;
     }, [product]);
-    
-    // Map colors to images (if we have multiple images, match by index)
-    const getImageForColor = useCallback((color: string): string => {
-        if (productImages.length === 0) return product.cover || '';
-        if (productImages.length === 1) return productImages[0];
-        
-        // Match color to image by index (Black=0, White=1, Navy=2, Gray=3, Green=4)
-        const colorIndex = colors.indexOf(color);
-        if (colorIndex >= 0 && colorIndex < productImages.length) {
-            const imageUrl = productImages[colorIndex];
-            console.log(`Color "${color}" (index ${colorIndex}) → Image:`, imageUrl);
-            return imageUrl;
-        }
-        // Fallback: if color selected but no matching image, use first image
-        console.log(`Color "${color}" not found, using first image`);
-        return productImages[0];
-    }, [productImages, product.cover]);
-    
-    // Current displayed image (changes based on selected color) - memoized for performance
-    const currentImage = useMemo(() => {
-        if (selectedColor) {
-            return getImageForColor(selectedColor);
-        }
-        return productImages[0] || product.cover || '';
-    }, [selectedColor, getImageForColor, productImages, product.cover]);
     
     // Reset state when modal opens
     useEffect(() => {
@@ -563,17 +537,8 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
             setSelectedSize('');
             setSelectedColor('');
             setQuantity(1);
-            setImageLoading(false);
         }
     }, [isOpen]);
-    
-    // Log color changes for debugging
-    useEffect(() => {
-        if (selectedColor && productImages.length > 1) {
-            console.log(`Color changed to: "${selectedColor}"`);
-            console.log(`Displaying image:`, currentImage);
-        }
-    }, [selectedColor, currentImage, productImages.length]);
     
     const handleAddToCart = () => {
         if (!selectedSize) {
@@ -594,57 +559,15 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto" onClick={onClose}>
             <div className="bg-brand-black border border-brand-slate rounded-xl max-w-6xl w-full flex flex-col md:flex-row max-h-[90vh] my-auto" onClick={e => e.stopPropagation()}>
                 {/* Product Image */}
-                <div className="w-full md:w-1/2 bg-brand-slate/20 p-8 flex flex-col items-center justify-center relative">
-                    {imageLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-green"></div>
-                        </div>
-                    )}
-                    <img 
-                        src={currentImage} 
-                        alt={product.title} 
-                        crossOrigin="anonymous"
-                        className={`max-w-full max-h-[500px] object-contain mb-4 transition-opacity duration-300 ${
-                            imageLoading ? 'opacity-0' : 'opacity-100'
-                        }`}
-                        key={currentImage} // Force re-render when image changes
-                        onLoadStart={() => setImageLoading(true)}
-                        onLoad={() => setImageLoading(false)}
-                        onError={() => {
-                            setImageLoading(false);
-                            console.error('Failed to load image:', currentImage);
-                        }}
+                <div className="w-full md:w-1/2 bg-brand-slate/20 p-8 flex flex-col items-center justify-center">
+                    <MerchImageGallery
+                        productTitle={product.title}
+                        productImages={productImages}
+                        coverImage={product.cover}
+                        selectedColor={selectedColor}
+                        onColorChange={setSelectedColor}
+                        colors={colors}
                     />
-                    {/* Image Gallery (if multiple images) */}
-                    {productImages.length > 1 && (
-                        <div className="flex gap-2 mt-4 overflow-x-auto max-w-full">
-                            {productImages.map((img, index) => {
-                                const colorForImage = colors[index] || `Image ${index + 1}`;
-                                const isActive = selectedColor === colorForImage || (!selectedColor && index === 0);
-                                return (
-                                    <button
-                                        key={index}
-                                        type="button"
-                                        onClick={() => {
-                                            setSelectedColor(colorForImage);
-                                        }}
-                                        className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden transition-all ${
-                                            isActive 
-                                                ? 'border-brand-green ring-2 ring-brand-green/50' 
-                                                : 'border-brand-slate hover:border-brand-teal'
-                                        }`}
-                                    >
-                                        <img 
-                                            src={img} 
-                                            alt={`${product.title} - ${colorForImage}`}
-                                            crossOrigin="anonymous"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
                 </div>
                 
                 {/* Product Details */}
