@@ -4597,6 +4597,10 @@ ${error.message}`;
                       <button
                         onClick={() => {
                           setEditingTrackId(beat.id);
+                          // Get product_images if available
+                          const existingProductImages = (beat as any).product_images && Array.isArray((beat as any).product_images) 
+                            ? (beat as any).product_images 
+                            : [];
                           setUploadForm({
                             title: beat.title,
                             bpm: String(beat.bpm || ''),
@@ -4614,7 +4618,9 @@ ${error.message}`;
                             stems: null,
                             coverPreview: beat.cover,
                             audioName: beat.audio ? 'Existing Audio File' : '',
-                            stemsName: ''
+                            stemsName: '',
+                            productImages: [], // New uploads will be added here
+                            productImagePreviews: existingProductImages // Show existing images as previews
                           });
                         }}
                         className="flex-1 px-3 py-2 bg-brand-slate text-white text-xs font-bold uppercase hover:bg-brand-slate/80"
