@@ -2423,7 +2423,9 @@ const App = () => {
     stemsName: '',
     spotifyUrl: '',
     appleMusicUrl: '',
-    amazonUrl: ''
+    amazonUrl: '',
+    productImages: [] as File[], // Multiple images for merch items
+    productImagePreviews: [] as string[] // Preview URLs for multiple images
   });
 
   // Blog Form State
@@ -3718,19 +3720,42 @@ Message: ${error.message}`;
 
   // --- Dashboard Logic ---
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'audio' | 'stems') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'audio' | 'stems' | 'productImages') => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      if (type === 'cover') {
-        const previewUrl = URL.createObjectURL(file);
-        setUploadForm({ ...uploadForm, cover: file, coverPreview: previewUrl });
-      } else if (type === 'audio') {
-        const audioUrl = URL.createObjectURL(file);
-        setUploadForm({ ...uploadForm, audio: file, audioName: file.name });
-      } else if (type === 'stems') {
-        setUploadForm({ ...uploadForm, stems: file, stemsName: file.name });
+      if (type === 'productImages') {
+        // Handle multiple images for merch
+        const files = Array.from(e.target.files);
+        const previewUrls = files.map(file => URL.createObjectURL(file));
+        setUploadForm({ 
+          ...uploadForm, 
+          productImages: [...uploadForm.productImages, ...files],
+          productImagePreviews: [...uploadForm.productImagePreviews, ...previewUrls]
+        });
+      } else {
+        const file = e.target.files[0];
+        if (type === 'cover') {
+          const previewUrl = URL.createObjectURL(file);
+          setUploadForm({ ...uploadForm, cover: file, coverPreview: previewUrl });
+        } else if (type === 'audio') {
+          const audioUrl = URL.createObjectURL(file);
+          setUploadForm({ ...uploadForm, audio: file, audioName: file.name });
+        } else if (type === 'stems') {
+          setUploadForm({ ...uploadForm, stems: file, stemsName: file.name });
+        }
       }
     }
+  };
+  
+  const removeProductImage = (index: number) => {
+    const newImages = uploadForm.productImages.filter((_, i) => i !== index);
+    const newPreviews = uploadForm.productImagePreviews.filter((_, i) => i !== index);
+    // Revoke object URL to free memory
+    URL.revokeObjectURL(uploadForm.productImagePreviews[index]);
+    setUploadForm({ 
+      ...uploadForm, 
+      productImages: newImages,
+      productImagePreviews: newPreviews
+    });
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
@@ -3742,9 +3767,17 @@ Message: ${error.message}`;
       return;
     }
     
-    if (!uploadForm.coverPreview && !uploadForm.cover) {
-      alert("Please upload a cover image.");
-      return;
+    // For merch, require at least one product image. For other categories, require cover image.
+    if (uploadForm.category === 'merch') {
+      if (uploadForm.productImages.length === 0 && !uploadForm.coverPreview && !uploadForm.cover) {
+        alert("Please upload at least one product image for merchandise items.");
+        return;
+      }
+    } else {
+      if (!uploadForm.coverPreview && !uploadForm.cover) {
+        alert("Please upload a cover image.");
+        return;
+      }
     }
     
     // For merch items, description is required
@@ -3849,7 +3882,7 @@ Message: ${error.message}`;
             }
         }
 
-        const trackData = {
+        const trackData: any = {
             title: uploadForm.title,
             bpm: Number(uploadForm.bpm),
             key: uploadForm.key,
@@ -3865,6 +3898,11 @@ Message: ${error.message}`;
             audio: audioUrl as string,
             stems_url: stemsUrl || null,
         };
+        
+        // Add product_images for merch items
+        if (uploadForm.category === 'merch' && productImageUrls.length > 0) {
+          trackData.product_images = productImageUrls;
+        }
 
         if (editingTrackId) {
              // Update Existing
@@ -4637,16 +4675,54 @@ ${error.message}`;
                   </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
-                    <input
-                      id="upload-cover"
-                      name="upload-cover"
-                      type="file"
-                      accept="image/*"
-                      onChange={e => handleFileChange(e, 'cover')}
-                      className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
-                    />
+                  {uploadForm.category === 'merch' ? (
+                    <div className="md:col-span-2">
+                      <label htmlFor="upload-product-images" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        Product Images * (Multiple images allowed)
+                      </label>
+                      <input
+                        id="upload-product-images"
+                        name="upload-product-images"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={e => handleFileChange(e, 'productImages')}
+                        className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                      />
+                      <p className="text-xs text-brand-teal mt-1">
+                        💡 Select multiple images to show different angles, colors, or details of your product. The first image will be used as the cover/thumbnail.
+                      </p>
+                      {uploadForm.productImagePreviews.length > 0 && (
+                        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {uploadForm.productImagePreviews.map((preview, index) => (
+                            <div key={index} className="relative">
+                              <img src={preview} alt={`Product image ${index + 1}`} className="w-full h-32 object-cover rounded border border-brand-slate" />
+                              <button
+                                type="button"
+                                onClick={() => removeProductImage(index)}
+                                className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-700"
+                              >
+                                ×
+                              </button>
+                              {index === 0 && (
+                                <span className="absolute bottom-1 left-1 bg-brand-green text-white text-xs px-2 py-1 rounded">Cover</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <label htmlFor="upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
+                      <input
+                        id="upload-cover"
+                        name="upload-cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={e => handleFileChange(e, 'cover')}
+                        className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                      />
                     <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
                       <p className="text-brand-green font-bold mb-1">📐 Optimal Image Specifications:</p>
                       <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
