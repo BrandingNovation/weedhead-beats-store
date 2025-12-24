@@ -5649,7 +5649,10 @@ ${error.message}`;
                     </div>
                     
                     <button
-                      onClick={async () => {
+                      type="button"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         // Check admin status first
                         if (!user?.isAdmin) {
                           alert('You must be logged in as an admin to save email settings.');
@@ -5694,82 +5697,107 @@ ${error.message}`;
                           ];
                           
                           // Save each setting using upsert with better error handling
+                          let successCount = 0;
+                          let errorCount = 0;
+                          
                           for (const setting of settingsToSave) {
-                            console.log(`Saving setting: ${setting.setting_name} = ${setting.setting_value}`);
-                            
-                            // Use upsert - this handles both insert and update
-                            const { data: upsertData, error: upsertError } = await supabase
-                              .from('email_settings')
-                              .upsert({
-                                setting_name: setting.setting_name,
-                                setting_value: setting.setting_value,
-                                description: setting.description,
-                                is_active: true
-                              }, {
-                                onConflict: 'setting_name',
-                                ignoreDuplicates: false
-                              })
-                              .select();
-                            
-                            if (upsertError) {
-                              console.error(`Error saving ${setting.setting_name}:`, upsertError);
-                              console.error('Error code:', upsertError.code);
-                              console.error('Error message:', upsertError.message);
-                              console.error('Error details:', upsertError.details);
-                              console.error('Error hint:', upsertError.hint);
+                            try {
+                              console.log(`Saving setting: ${setting.setting_name} = ${setting.setting_name.includes('password') ? '***hidden***' : setting.setting_value}`);
                               
-                              // Check for table not found (404 error)
-                              const errorStr = JSON.stringify(upsertError);
-                              if (upsertError.code === 'PGRST116' || 
-                                  upsertError.code === '42P01' ||
-                                  upsertError.code === 'PGRST301' ||
-                                  upsertError.message?.includes('404') || 
-                                  upsertError.message?.includes('does not exist') ||
-                                  upsertError.message?.includes('relation') ||
-                                  upsertError.message?.includes('not found') ||
-                                  errorStr.includes('404') ||
-                                  upsertError.details?.includes('404')) {
-                                alert('❌ Email settings table not found!\n\n🔧 TO FIX:\n1. Go to Supabase Dashboard → SQL Editor\n2. Run: migration_add_email_settings.sql\n3. Or copy the SQL from the file in your project\n4. Refresh this page and try again');
-                                setSavingEmailSetting(null);
-                                return;
-                              }
+                              // Use upsert - this handles both insert and update
+                              const { data: upsertData, error: upsertError } = await supabase
+                                .from('email_settings')
+                                .upsert({
+                                  setting_name: setting.setting_name,
+                                  setting_value: setting.setting_value,
+                                  description: setting.description,
+                                  is_active: true
+                                }, {
+                                  onConflict: 'setting_name',
+                                  ignoreDuplicates: false
+                                })
+                                .select();
                               
-                              // Check for permission denied
-                              if (upsertError.code === '42501' || 
-                                  upsertError.message?.includes('permission denied') ||
-                                  upsertError.message?.includes('policy')) {
-                                alert('Permission denied. Make sure you are logged in as an admin and the RLS policies are set up correctly.');
-                                return;
-                              }
-                              
-                              // If upsert fails, try insert then update
-                              if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
-                                // Already exists, try update
-                                console.log(`Key exists, trying update for ${setting.setting_name}...`);
-                                const { error: updateError } = await supabase
-                                  .from('email_settings')
-                                  .update({
-                                    setting_value: setting.setting_value,
-                                    description: setting.description,
-                                    is_active: true
-                                  })
-                                  .eq('setting_name', setting.setting_name);
+                              if (upsertError) {
+                                console.error(`Error saving ${setting.setting_name}:`, upsertError);
+                                console.error('Error code:', upsertError.code);
+                                console.error('Error message:', upsertError.message);
+                                console.error('Error details:', upsertError.details);
+                                console.error('Error hint:', upsertError.hint);
                                 
-                                if (updateError) {
-                                  console.error(`Update also failed for ${setting.setting_name}:`, updateError);
-                                  throw updateError;
+                                // Check for table not found (404 error)
+                                const errorStr = JSON.stringify(upsertError);
+                                if (upsertError.code === 'PGRST116' || 
+                                    upsertError.code === '42P01' ||
+                                    upsertError.code === 'PGRST301' ||
+                                    upsertError.message?.includes('404') || 
+                                    upsertError.message?.includes('does not exist') ||
+                                    upsertError.message?.includes('relation') ||
+                                    upsertError.message?.includes('not found') ||
+                                    errorStr.includes('404') ||
+                                    upsertError.details?.includes('404')) {
+                                  alert('❌ Email settings table not found!\n\n🔧 TO FIX:\n1. Go to Supabase Dashboard → SQL Editor\n2. Run: FIX_EMAIL_SETTINGS_NOW.sql\n3. Refresh this page and try again');
+                                  setSavingEmailSetting(null);
+                                  return;
                                 }
-                                console.log(`Successfully updated ${setting.setting_name} (via update)`);
+                                
+                                // Check for permission denied
+                                if (upsertError.code === '42501' || 
+                                    upsertError.message?.includes('permission denied') ||
+                                    upsertError.message?.includes('policy')) {
+                                  alert('❌ Permission denied!\n\nMake sure:\n1. You are logged in as an admin\n2. RLS policies are set up correctly\n3. Run FIX_EMAIL_SETTINGS_NOW.sql in Supabase');
+                                  setSavingEmailSetting(null);
+                                  return;
+                                }
+                                
+                                // If upsert fails, try insert then update
+                                if (upsertError.code === '23505' || upsertError.message?.includes('duplicate')) {
+                                  // Already exists, try update
+                                  console.log(`Key exists, trying update for ${setting.setting_name}...`);
+                                  const { error: updateError } = await supabase
+                                    .from('email_settings')
+                                    .update({
+                                      setting_value: setting.setting_value,
+                                      description: setting.description,
+                                      is_active: true
+                                    })
+                                    .eq('setting_name', setting.setting_name);
+                                  
+                                  if (updateError) {
+                                    console.error(`Update also failed for ${setting.setting_name}:`, updateError);
+                                    errorCount++;
+                                    continue; // Continue with next setting instead of throwing
+                                  }
+                                  console.log(`✅ Successfully updated ${setting.setting_name} (via update)`);
+                                  successCount++;
+                                } else {
+                                  errorCount++;
+                                  console.error(`Failed to save ${setting.setting_name}, continuing with other settings...`);
+                                  continue; // Continue with next setting
+                                }
                               } else {
-                                throw upsertError;
+                                console.log(`✅ Successfully saved ${setting.setting_name}`);
+                                successCount++;
                               }
-                            } else {
-                              console.log(`Successfully saved ${setting.setting_name}`, upsertData);
+                            } catch (settingError: any) {
+                              console.error(`Exception saving ${setting.setting_name}:`, settingError);
+                              errorCount++;
+                              // Continue with next setting
                             }
                           }
                           
-                          console.log('All email settings saved successfully!');
-                          alert('Email settings saved successfully!');
+                          if (successCount > 0) {
+                            console.log(`✅ Saved ${successCount} out of ${settingsToSave.length} email settings`);
+                            if (errorCount > 0) {
+                              alert(`⚠️ Partially saved: ${successCount} settings saved, ${errorCount} failed. Check console for details.`);
+                            } else {
+                              alert('✅ Email settings saved successfully!');
+                            }
+                            // Reload settings to show updated values
+                            setEmailSettingsLoaded(false);
+                          } else {
+                            alert(`❌ Failed to save email settings. All ${settingsToSave.length} settings failed. Check console for details.`);
+                          }
                         } catch (e: any) {
                           console.error('Failed to save email settings:', e);
                           console.error('Error details:', {
