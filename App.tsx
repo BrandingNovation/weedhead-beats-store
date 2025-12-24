@@ -522,6 +522,28 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
     const sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
     const colors = ['Black', 'White', 'Navy', 'Gray', 'Green'];
     
+    // Get product images if available (from product_images JSONB field or fallback to cover)
+    const productImages: string[] = (product as any).product_images && Array.isArray((product as any).product_images) 
+        ? (product as any).product_images 
+        : product.cover ? [product.cover] : [];
+    
+    // Map colors to images (if we have multiple images, match by index)
+    const getImageForColor = (color: string): string => {
+        if (productImages.length === 0) return product.cover || '';
+        if (productImages.length === 1) return productImages[0];
+        
+        // Match color to image by index (Black=0, White=1, Navy=2, Gray=3, Green=4)
+        const colorIndex = colors.indexOf(color);
+        if (colorIndex >= 0 && colorIndex < productImages.length) {
+            return productImages[colorIndex];
+        }
+        // Fallback: if color selected but no matching image, use first image
+        return productImages[0];
+    };
+    
+    // Current displayed image (changes based on selected color)
+    const currentImage = selectedColor ? getImageForColor(selectedColor) : (productImages[0] || product.cover || '');
+    
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
@@ -550,12 +572,42 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/95 backdrop-blur-md overflow-y-auto" onClick={onClose}>
             <div className="bg-brand-black border border-brand-slate rounded-xl max-w-6xl w-full flex flex-col md:flex-row max-h-[90vh] my-auto" onClick={e => e.stopPropagation()}>
                 {/* Product Image */}
-                <div className="w-full md:w-1/2 bg-brand-slate/20 p-8 flex items-center justify-center">
+                <div className="w-full md:w-1/2 bg-brand-slate/20 p-8 flex flex-col items-center justify-center">
                     <img 
-                        src={product.cover} 
+                        src={currentImage} 
                         alt={product.title} 
-                        className="max-w-full max-h-[500px] object-contain"
+                        className="max-w-full max-h-[500px] object-contain mb-4 transition-opacity duration-300"
+                        key={currentImage} // Force re-render when image changes
                     />
+                    {/* Image Gallery (if multiple images) */}
+                    {productImages.length > 1 && (
+                        <div className="flex gap-2 mt-4 overflow-x-auto max-w-full">
+                            {productImages.map((img, index) => {
+                                const colorForImage = colors[index] || `Image ${index + 1}`;
+                                const isActive = selectedColor === colorForImage || (!selectedColor && index === 0);
+                                return (
+                                    <button
+                                        key={index}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedColor(colorForImage);
+                                        }}
+                                        className={`flex-shrink-0 w-16 h-16 rounded border-2 overflow-hidden transition-all ${
+                                            isActive 
+                                                ? 'border-brand-green ring-2 ring-brand-green/50' 
+                                                : 'border-brand-slate hover:border-brand-teal'
+                                        }`}
+                                    >
+                                        <img 
+                                            src={img} 
+                                            alt={`${product.title} - ${colorForImage}`}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
                 
                 {/* Product Details */}
