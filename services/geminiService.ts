@@ -88,20 +88,24 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
         // Using premium models available with paid account
         // Try image generation models first, then fallback to text models
         // Model names need -latest or -001 suffix for v1beta API
-        const imageModels = ['nano-banana', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
+        // Try image generation models - nano-banana might need to be 'imagen-3' or similar
+        // If nano-banana doesn't work, try other image models
+        const imageModels = ['imagen-3', 'imagen-3.0-generate-001', 'nano-banana', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
         const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001'];
         
         // Enhanced image generation prompt with detailed specifications
-        const imagePrompt = `Create a high-resolution, photorealistic image for a modern hip-hop beat store blog post.
+        const imagePrompt = `Generate a PHOTOREALISTIC, HIGH-RESOLUTION image for a modern hip-hop beat store blog post. This MUST be a REALISTIC PHOTOGRAPHIC IMAGE, NOT a cartoon, illustration, or digital art.
 
 Subject:
 ${prompt}
 
-Visual Style & Mood:
-- Modern hip-hop culture
+CRITICAL STYLE REQUIREMENTS:
+- PHOTOREALISTIC PHOTOGRAPHY ONLY - must look like a real photograph taken with a professional camera
+- NO cartoons, NO illustrations, NO digital art, NO 3D renders, NO anime style
+- Realistic, professional photography look - like a magazine photo or documentary still
+- Modern hip-hop culture aesthetic
 - Gritty but clean
-- Cinematic lighting
-- Realistic, professional photography look (not illustration, not cartoon)
+- Cinematic lighting with natural shadows
 - Urban environments (studio spaces, city streets at night, neon accents, creative workspaces)
 
 Branding & Color Palette:
@@ -124,12 +128,13 @@ Composition:
 - Suitable for website hero images and blog thumbnails
 
 Technical Requirements:
-- Ultra-realistic
+- PHOTOREALISTIC PHOTOGRAPHY - must look like a real camera photograph
 - 16:9 aspect ratio
 - 4K quality
-- No illustration, no anime, no 3D render
-- Natural skin tones
-- Realistic shadows and lighting
+- ABSOLUTELY NO illustration, NO anime, NO 3D render, NO cartoon style, NO digital art
+- Natural skin tones and realistic textures
+- Realistic shadows and lighting (like real photography)
+- Depth of field and bokeh effects (photographic qualities)
 
 Overall Feel:
 - Premium
@@ -137,12 +142,17 @@ Overall Feel:
 - Forward-thinking hip-hop culture
 - Matches the brand identity of weedheadbeats.com
 
-HARD RULES (DO NOT BREAK THESE):
-❌ No text overlays
-❌ No cartoon or illustrated styles
-❌ No AI-looking faces
-❌ No fantasy elements
-❌ No logos (including WeedHead Beats logo)`;
+HARD RULES (DO NOT BREAK THESE - CRITICAL):
+❌ NO text overlays
+❌ NO cartoon style - MUST be photorealistic photography
+❌ NO illustration style - MUST be photorealistic photography
+❌ NO digital art style - MUST be photorealistic photography
+❌ NO 3D render style - MUST be photorealistic photography
+❌ NO anime style - MUST be photorealistic photography
+❌ NO AI-looking faces - use realistic human faces
+❌ NO fantasy elements
+❌ NO logos (including WeedHead Beats logo)
+✅ MUST be PHOTOREALISTIC PHOTOGRAPHY that looks like a real camera photograph`;
         
         // Try image generation models first
         for (const modelName of imageModels) {
@@ -194,9 +204,27 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                     contents: `You are the content engine for 'Weedhead Beats', a brand for urban home producers (ages 18-35).
                     
                     Task:
-                    1. Search for the trending news today related to: "${topic}" (Focus on Hip Hop, Trap, FL Studio, Music Business, or Rap Culture).
-                    2. Choose the most high-impact story for an independent producer trying to make it.
+                    1. Search for trending news, tips, tutorials, or insights related to: "${topic}" (Cover ALL aspects of beat making: production techniques, mixing, mastering, sound design, music theory, DAWs, hardware, software, plugins, sampling, drum programming, melody creation, chord progressions, arrangement, music business, marketing, selling beats, collaborations, industry news, artist features, producer spotlights, and more).
+                    2. Choose the most valuable and high-impact content for an independent producer trying to make it.
                     3. Write a comprehensive, SEO-optimized blog post with substantial content (minimum 800-1200 words).
+                    
+                    IMPORTANT: Do NOT focus only on FL Studio. Cover diverse beat making topics including:
+                    - All DAWs (Ableton, Logic Pro, Pro Tools, Reaper, Studio One, etc.)
+                    - Production techniques and workflows
+                    - Mixing and mastering
+                    - Sound design and synthesis
+                    - Music theory for producers
+                    - Sampling and sample packs
+                    - Drum programming and rhythm
+                    - Melody and harmony
+                    - Arrangement and structure
+                    - Music business and monetization
+                    - Marketing and promotion
+                    - Collaborations and networking
+                    - Hardware and gear
+                    - Software and plugins
+                    - Industry trends and news
+                    - Artist and producer features
                     
                     Tone & Style Guide (CRITICAL):
                     - **Target Audience**: 18-35 year old bedroom producers, beatmakers, and songwriters.
