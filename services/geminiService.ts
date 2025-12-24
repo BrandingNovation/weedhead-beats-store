@@ -272,11 +272,13 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                         5. **Examples and Case Studies**: Include real-world examples, scenarios, or brief case studies to add depth.
                         6. **Conclusion Paragraph**: 5-7 sentences summarizing key points, reinforcing main message, and strong call to action to visit Weedhead Beats store.
                         
-                        IMPORTANT FORMATTING RULES:
-                        - DO NOT include meta description in the visible content
+                        CRITICAL FORMATTING RULES - DO NOT VIOLATE:
+                        - NEVER include "Meta Description:" or "meta description" anywhere in the content
+                        - NEVER write "H3:" before headers - only use "### " for H3 headers
+                        - NEVER write headers like "H3: Header Text" - only write "### Header Text"
                         - Use H2 (##) for main sections and H3 (###) for subsections
-                        - When writing H3 headers, use "### Header Text" - DO NOT include "H3:" prefix text
-                        - Meta description is for SEO metadata only, not for display
+                        - Meta descriptions are for SEO metadata ONLY, not for visible content
+                        - If you write H3 headers, use EXACTLY this format: "### Header Text" (no "H3:" prefix)
                     
                     Content Requirements:
                     - **Minimum Word Count**: 800-1200 words (aim for comprehensive, detailed content)
@@ -288,14 +290,16 @@ export const generateSEOContent = async (topic: string): Promise<string> => {
                     
                         Formatting Rules:
                         - Use proper Markdown: # for H1, ## for H2, ### for H3
-                        - When writing H3 headers, use "### Header Text" - DO NOT include "H3:" prefix text
+                        - When writing H3 headers, use EXACTLY "### Header Text" - NEVER include "H3:" prefix
+                        - NEVER write "H3: Header Text" - only write "### Header Text"
+                        - NEVER include "Meta Description:" or "meta description" anywhere in content
                         - Bold important terms and keywords: **term**
                         - Use bullet points (-) or numbered lists (1.) for lists (make them substantial)
                         - Keep paragraphs substantial (4-6 sentences)
                         - Use line breaks between sections
                         - Include internal links naturally (e.g., "check out our beat store", "browse our catalog")
                         - Include a strong call-to-action at the end encouraging readers to visit Weedhead Beats
-                        - DO NOT include meta description in the content - it's for SEO metadata only
+                        - Meta descriptions are for SEO metadata ONLY, not for visible content
                     
                     Output strictly as Markdown following this structure. Write extensively - this should be a comprehensive, valuable piece of content.`,
                     config: {
