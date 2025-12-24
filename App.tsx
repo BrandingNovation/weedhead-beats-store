@@ -1706,12 +1706,16 @@ const cleanBlogContent = (content: string): string => {
   let cleaned = content;
   
   // Remove meta description patterns (common formats)
-  // Pattern 1: "Meta Description:" or "Meta description:" followed by text
-  cleaned = cleaned.replace(/[Mm]eta\s+[Dd]escription\s*:?\s*.{0,200}/gi, '');
+  // Pattern 1: "Meta Description:" or "Meta description:" followed by text (entire line)
+  cleaned = cleaned.replace(/^[Mm]eta\s+[Dd]escription\s*:?\s*.{0,200}$/gim, '');
   
-  // Pattern 2: Lines that look like meta descriptions (150-160 chars, standalone)
+  // Pattern 2: Standalone meta description lines (150-160 chars, no markdown)
   cleaned = cleaned.split('\n').filter(line => {
     const trimmed = line.trim();
+    // Skip lines that look like meta descriptions
+    if (trimmed.toLowerCase().includes('meta description')) {
+      return false;
+    }
     // Skip lines that are exactly meta description length and don't start with markdown
     if (trimmed.length >= 150 && trimmed.length <= 160 && !trimmed.match(/^[#\-\*\[\d]/)) {
       return false; // Likely a meta description
@@ -1724,6 +1728,8 @@ const cleanBlogContent = (content: string): string => {
   cleaned = cleaned.replace(/^###\s*H3\s*:\s*/gim, '### ');
   cleaned = cleaned.replace(/^H3\s*:\s*/gim, '');
   cleaned = cleaned.replace(/\*\*H3\s*:\s*/gi, '**');
+  // Also catch patterns like "H3: Header Text" in regular text
+  cleaned = cleaned.replace(/H3\s*:\s*([A-Z][^:]*?)(?=\n|$)/gim, '$1');
   
   // Clean up extra blank lines
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');

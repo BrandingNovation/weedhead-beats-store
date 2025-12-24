@@ -165,7 +165,59 @@ async function generateBlogContent(topic) {
  * Generate blog image using Gemini AI
  */
 async function generateBlogImage(title) {
-  const imageModels = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
+  const imagePrompt = `Create a high-resolution, photorealistic image for a modern hip-hop beat store blog post.
+
+Subject:
+${title}
+
+Visual Style & Mood:
+- Modern hip-hop culture
+- Gritty but clean
+- Cinematic lighting
+- Realistic, professional photography look (not illustration, not cartoon)
+- Urban environments (studio spaces, city streets at night, neon accents, creative workspaces)
+
+Branding & Color Palette:
+- Primary colors: black, dark green, white, and gray
+- Subtle green accents (neon lights, smoke tint, LED glow, reflections)
+- No logos or readable text in the image
+- No watermarks
+
+People & Objects (if applicable):
+- Real people only (diverse, authentic hip-hop aesthetic)
+- Natural poses, candid moments
+- No exaggerated fashion or costumes
+- Modern streetwear, studio gear, microphones, MPCs, laptops, vinyl, headphones, city textures
+
+Composition:
+- Centered focal subject
+- Clean depth of field
+- Strong contrast
+- High detail and sharpness
+- Suitable for website hero images and blog thumbnails
+
+Technical Requirements:
+- Ultra-realistic
+- 16:9 aspect ratio
+- 4K quality
+- No illustration, no anime, no 3D render
+- Natural skin tones
+- Realistic shadows and lighting
+
+Overall Feel:
+- Premium
+- Underground but polished
+- Forward-thinking hip-hop culture
+- Matches the brand identity of weedheadbeats.com
+
+HARD RULES (DO NOT BREAK THESE):
+❌ No text overlays
+❌ No cartoon or illustrated styles
+❌ No AI-looking faces
+❌ No fantasy elements
+❌ No logos (including WeedHead Beats logo)`;
+
+  const imageModels = ['nano-banana', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
   const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest'];
   
   for (const modelName of [...imageModels, ...textModels]) {
@@ -173,7 +225,7 @@ async function generateBlogImage(title) {
       const response = await ai.models.generateContent({
         model: modelName,
         contents: {
-          parts: [{ text: `Generate a high quality, cinematic, 4k digital art image for a hip-hop music producer blog post about: ${title}. Dark aesthetic, neon green accents, studio equipment, urban vibe. No text on image.` }]
+          parts: [{ text: imagePrompt }]
         }
       });
       
@@ -317,5 +369,6 @@ async function main() {
 
 // Run the script
 main();
+
 
 

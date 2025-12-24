@@ -88,7 +88,7 @@ export const generateBlogImage = async (prompt: string): Promise<string | null> 
         // Using premium models available with paid account
         // Try image generation models first, then fallback to text models
         // Model names need -latest or -001 suffix for v1beta API
-        const imageModels = ['gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
+        const imageModels = ['nano-banana', 'gemini-2.5-flash-image', 'gemini-2.0-flash-exp'];
         const textModels = ['gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-001', 'gemini-1.5-flash-001'];
         
         // Enhanced image generation prompt with detailed specifications
