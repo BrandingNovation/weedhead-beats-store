@@ -3338,7 +3338,9 @@ Message: ${error.message}`;
           audio: null,
           stems: null,
           audioName: 'Existing Audio File',
-          stemsName: ''
+          stemsName: '',
+          productImages: [],
+          productImagePreviews: []
       });
       setAdminTab('upload');
   };
@@ -3862,6 +3864,41 @@ Message: ${error.message}`;
         if (!audioUrl && !editingTrackId && uploadForm.category !== 'merch') {
           alert("Audio file is required. Please upload an audio file.");
           return;
+        }
+
+        // Upload Multiple Product Images for Merch Items
+        let productImageUrls: string[] = [];
+        if (uploadForm.category === 'merch' && uploadForm.productImages.length > 0) {
+          try {
+            console.log(`Uploading ${uploadForm.productImages.length} product images...`);
+            for (const imageFile of uploadForm.productImages) {
+              const fileName = `merch-${Date.now()}-${Math.random().toString(36).substring(7)}-${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+              const { data, error } = await supabase.storage.from('covers').upload(fileName, imageFile, {
+                cacheControl: '3600',
+                upsert: false
+              });
+              
+              if (error) {
+                console.error('Product image upload error:', error);
+                throw new Error(`Failed to upload product image: ${error.message}`);
+              }
+              
+              if (data) {
+                const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(fileName);
+                productImageUrls.push(publicUrl);
+                console.log('✅ Product image uploaded:', publicUrl);
+              }
+            }
+            console.log(`✅ Uploaded ${productImageUrls.length} product images`);
+            // If we have product images, use the first one as cover
+            if (productImageUrls.length > 0 && !coverUrl) {
+              coverUrl = productImageUrls[0];
+            }
+          } catch (err: any) {
+            console.error('Product images upload failed:', err);
+            alert(`Failed to upload product images: ${err.message || 'Unknown error'}`);
+            return;
+          }
         }
 
         // Upload Stems (ZIP file)
@@ -4710,8 +4747,8 @@ ${error.message}`;
                             </div>
                           ))}
                         </div>
-                      )}
-                    </div>
+                    )}
+                  </div>
                   ) : (
                     <div>
                       <label htmlFor="upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
@@ -4723,7 +4760,7 @@ ${error.message}`;
                         onChange={e => handleFileChange(e, 'cover')}
                         className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
                       />
-                    <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
+                      <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
                       <p className="text-brand-green font-bold mb-1">📐 Optimal Image Specifications:</p>
                       <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
                         <li><strong>Dimensions:</strong> 1200x1200px (square) or 1200x800px</li>
