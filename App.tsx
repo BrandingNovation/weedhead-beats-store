@@ -1685,7 +1685,6 @@ const BlogPostCard = ({ post, onClick }: any) => {
               <img 
                   src={post.image} 
                   alt={post.title} 
-                  crossOrigin="anonymous"
                   className="w-full h-full object-cover transition-transform duration-700 lg:grayscale lg:group-hover:grayscale-0 lg:group-hover:scale-105" 
               />
           </div>
@@ -1813,7 +1812,7 @@ const BlogPostModal = ({ post, isOpen, onClose }: { post: BlogPost | null, isOpe
         </div>
         <div className="p-8">
           {post.image && (
-            <img src={post.image} alt={post.title} crossOrigin="anonymous" className="w-full h-64 object-cover rounded-lg mb-6" />
+            <img src={post.image} alt={post.title} className="w-full h-64 object-cover rounded-lg mb-6" />
           )}
           <div className="prose prose-lg max-w-none text-gray-700">
             <ReactMarkdown components={{
