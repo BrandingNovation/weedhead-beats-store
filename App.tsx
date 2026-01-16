@@ -3192,6 +3192,35 @@ const App = () => {
     }
   }, []);
 
+  // Utility function to convert Storage Box URLs to API proxy URLs
+  const convertStorageBoxUrlToProxy = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    
+    // If it's already a proxy URL or Supabase URL, return as-is
+    if (url.includes('api.brandingnovations.com/api/storage/download') || 
+        url.includes('supabase.brandingnovations.com')) {
+      return url;
+    }
+    
+    // If it's a Storage Box URL, convert to proxy URL
+    if (url.includes('your-storagebox.de')) {
+      try {
+        const urlObj = new URL(url);
+        // Extract the path (e.g., /weedheadbeats/tracks/filename.mp3)
+        const path = urlObj.pathname;
+        // Remove leading slash and encode
+        const filePath = path.replace(/^\/+/, '');
+        // Convert to API proxy URL
+        return `https://api.brandingnovations.com/api/storage/download?file=${encodeURIComponent(filePath)}`;
+      } catch (e) {
+        console.warn('Failed to convert Storage Box URL:', url);
+        return url; // Return original if conversion fails
+      }
+    }
+    
+    return url; // Return as-is for other URLs
+  };
+
   // Function to reload tracks from Supabase (can be called after upload)
   const reloadTracks = async () => {
     try {
@@ -3260,7 +3289,7 @@ Message: ${error.message}`;
           appleMusicUrl: t.apple_music_url,
           amazonUrl: t.amazon_url,
           cover: t.cover,
-          audio: t.audio,
+          audio: convertStorageBoxUrlToProxy(t.audio), // Convert Storage Box URLs to proxy URLs
           stemsUrl: t.stems_url || undefined,
           tags: t.tags || [],
           stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 },
@@ -3350,7 +3379,7 @@ Message: ${error.message}`;
                     appleMusicUrl: t.apple_music_url,
                     amazonUrl: t.amazon_url,
                     cover: t.cover,
-                    audio: t.audio,
+                    audio: convertStorageBoxUrlToProxy(t.audio), // Convert Storage Box URLs to proxy URLs
                     stemsUrl: t.stems_url || undefined,
                     tags: t.tags || [],
                     stats: { plays: t.stats_plays || 0, sales: t.stats_sales || 0, revenue: 0 },
