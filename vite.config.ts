@@ -18,9 +18,28 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       rollupOptions: {
         output: {
-          manualChunks: undefined
-        }
-      }
+          manualChunks(id) {
+            // Split node_modules into vendor chunks for better caching
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                return 'react-vendor';
+              }
+              if (id.includes('lucide-react')) {
+                return 'ui-vendor';
+              }
+              if (id.includes('@supabase')) {
+                return 'supabase-vendor';
+              }
+              if (id.includes('@google/genai')) {
+                return 'gemini-vendor';
+              }
+              // Other node_modules
+              return 'vendor';
+            }
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000,
     },
     base: '/'
   };

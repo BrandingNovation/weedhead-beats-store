@@ -50,7 +50,22 @@ import {
   FileText,
   ChevronDown,
   Info,
-  MessageSquare
+  MessageSquare,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown,
+  Receipt,
+  Calendar,
+  Copy,
+  Link as LinkIcon,
+  Facebook,
+  Twitter,
+  MessageCircle,
+  Music,
+  Shuffle,
+  Repeat,
+  Clock,
+  Star
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Chat } from '@google/genai';
@@ -62,9 +77,19 @@ import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import Sidebar from './components/Sidebar';
 import Player from './components/Player';
 import MerchImageGallery from './components/MerchImageGallery';
+import { TrackUploaderWithDatabase } from './components/TrackUploaderWithDatabase';
+import AdminAnalytics from './components/AdminAnalytics';
+import AdminUserManagement from './components/AdminUserManagement';
+import Phase46TestPage from './components/Phase4-6TestPage';
 import { supabase } from './lib/supabaseClient';
 import { createChatSession, sendMessageStream, generateBlogImage, generateSEOContent } from './services/geminiService';
 import { AppConfig, GeminiModel, Message, Role, Attachment, GroundingSource, Track, BlogPost, ProductCategory, License, SiteContent, PageConfig, UserProfile } from './types';
+import { useFavorites } from './context/FavoritesContext';
+import { usePurchaseHistory } from './context/PurchaseHistoryContext';
+import { useListeningHistory } from './context/ListeningHistoryContext';
+import { useDownloadHistory } from './context/DownloadHistoryContext';
+import { useComments } from './context/CommentsContext';
+import { usePlaylist } from './context/PlaylistContext';
 
 declare const process: any;
 
@@ -667,12 +692,355 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
     );
 };
 
-const LicenseModal = ({ isOpen, onClose, track, onConfirm }: { isOpen: boolean, onClose: () => void, track: Track, onConfirm: (license: License) => void }) => {
+const ShareModal = ({ isOpen, onClose, track }: { isOpen: boolean, onClose: () => void, track: Track | null }) => {
+  if (!isOpen || !track) return null;
+
+  const shareUrl = `${window.location.origin}${window.location.pathname}?track=${track.id}`;
+  const shareText = `Check out "${track.title}" by ${track.producer || 'Weedhead Beats'} on Weedhead Beats! 🎵`;
+  
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert('Link copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Link copied to clipboard!');
+    }
+  };
+
+  const handleShare = (platform: string) => {
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const encodedText = encodeURIComponent(shareText);
+    
+    let shareLink = '';
+    
+    switch (platform) {
+      case 'twitter':
+        shareLink = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+        break;
+      case 'facebook':
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        break;
+      case 'whatsapp':
+        shareLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+        break;
+      case 'telegram':
+        shareLink = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+        break;
+      case 'reddit':
+        shareLink = `https://reddit.com/submit?url=${encodedUrl}&title=${encodedText}`;
+        break;
+      case 'email':
+        shareLink = `mailto:?subject=${encodeURIComponent(`Check out ${track.title}`)}&body=${encodedText}%20${encodedUrl}`;
+        break;
+      default:
+        return;
+    }
+    
+    if (shareLink) {
+      window.open(shareLink, '_blank', 'width=600,height=400');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/90 backdrop-blur-md" onClick={onClose}>
+      <div className="bg-brand-black border border-brand-slate rounded-xl max-w-md w-full" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-brand-slate flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Share Track</h2>
+            <p className="text-brand-teal text-sm">{track.title}</p>
+          </div>
+          <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
+        </div>
+        
+        <div className="p-6">
+          {/* Copy Link Section */}
+          <div className="mb-6">
+            <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">Share Link</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={shareUrl}
+                readOnly
+                className="flex-1 px-4 py-3 bg-brand-slate/20 border border-brand-slate text-white text-sm focus:outline-none focus:border-brand-green"
+              />
+              <button
+                onClick={handleCopyLink}
+                className="px-4 py-3 bg-brand-green text-white font-bold uppercase text-xs tracking-wider rounded hover:bg-brand-green/80 transition-colors flex items-center gap-2"
+              >
+                <Copy size={16} />
+                Copy
+              </button>
+            </div>
+          </div>
+
+          {/* Social Share Buttons */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-white mb-3 uppercase tracking-wider">Share on Social Media</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handleShare('twitter')}
+                className="flex items-center gap-3 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors group"
+              >
+                <Twitter size={20} className="text-blue-400 group-hover:text-blue-300" />
+                <span className="text-white font-bold text-sm">Twitter</span>
+              </button>
+              
+              <button
+                onClick={() => handleShare('facebook')}
+                className="flex items-center gap-3 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors group"
+              >
+                <Facebook size={20} className="text-blue-600 group-hover:text-blue-500" />
+                <span className="text-white font-bold text-sm">Facebook</span>
+              </button>
+              
+              <button
+                onClick={() => handleShare('whatsapp')}
+                className="flex items-center gap-3 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors group"
+              >
+                <MessageCircle size={20} className="text-green-500 group-hover:text-green-400" />
+                <span className="text-white font-bold text-sm">WhatsApp</span>
+              </button>
+              
+              <button
+                onClick={() => handleShare('telegram')}
+                className="flex items-center gap-3 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors group"
+              >
+                <MessageCircle size={20} className="text-blue-500 group-hover:text-blue-400" />
+                <span className="text-white font-bold text-sm">Telegram</span>
+              </button>
+              
+              <button
+                onClick={() => handleShare('reddit')}
+                className="flex items-center gap-3 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors group"
+              >
+                <Share2 size={20} className="text-orange-500 group-hover:text-orange-400" />
+                <span className="text-white font-bold text-sm">Reddit</span>
+              </button>
+              
+              <button
+                onClick={() => handleShare('email')}
+                className="flex items-center gap-3 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors group"
+              >
+                <Mail size={20} className="text-brand-teal group-hover:text-brand-green" />
+                <span className="text-white font-bold text-sm">Email</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Native Share API (if available) */}
+          {navigator.share && (
+            <div className="mt-6 pt-6 border-t border-brand-slate">
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.share({
+                      title: track.title,
+                      text: shareText,
+                      url: shareUrl,
+                    });
+                  } catch (err) {
+                    if ((err as Error).name !== 'AbortError') {
+                      console.error('Error sharing:', err);
+                    }
+                  }
+                }}
+                className="w-full py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors flex items-center justify-center gap-2"
+              >
+                <Share2 size={18} />
+                Share via Device
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AddToPlaylistModal = ({ isOpen, onClose, track, playlists, onCreateNew, onAddToPlaylist, isTrackInPlaylist }: {
+  isOpen: boolean;
+  onClose: () => void;
+  track: Track | null;
+  playlists: any[];
+  onCreateNew: () => void;
+  onAddToPlaylist: (playlistId: string) => void;
+  isTrackInPlaylist: (playlistId: string, trackId: string) => boolean;
+}) => {
+  if (!isOpen || !track) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/90 backdrop-blur-md" onClick={onClose}>
+      <div className="bg-brand-black border border-brand-slate rounded-xl max-w-md w-full max-h-[80vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-brand-slate flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Add to Playlist</h2>
+            <p className="text-brand-teal text-sm">{track.title}</p>
+          </div>
+          <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-6">
+          {playlists.length === 0 ? (
+            <div className="text-center py-8">
+              <Music className="mx-auto mb-4 text-brand-teal" size={48} />
+              <p className="text-brand-teal mb-4">You don't have any playlists yet.</p>
+              <button
+                onClick={() => {
+                  onCreateNew();
+                  onClose();
+                }}
+                className="px-6 py-3 bg-brand-green text-white font-bold uppercase text-sm tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+              >
+                Create Your First Playlist
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  onCreateNew();
+                  onClose();
+                }}
+                className="w-full p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors flex items-center gap-3 group"
+              >
+                <div className="w-12 h-12 bg-brand-green/20 rounded-lg flex items-center justify-center group-hover:bg-brand-green/30 transition-colors">
+                  <Plus className="text-brand-green" size={24} />
+                </div>
+                <div className="flex-1 text-left">
+                  <h3 className="text-white font-bold">Create New Playlist</h3>
+                  <p className="text-brand-teal text-xs">Start a new collection</p>
+                </div>
+              </button>
+
+              {playlists.map((playlist) => {
+                const isInPlaylist = isTrackInPlaylist(playlist.id, String(track.id));
+                return (
+                  <button
+                    key={playlist.id}
+                    onClick={() => {
+                      if (!isInPlaylist) {
+                        onAddToPlaylist(playlist.id);
+                      }
+                    }}
+                    disabled={isInPlaylist}
+                    className={`w-full p-4 border rounded-lg transition-colors flex items-center gap-3 ${
+                      isInPlaylist
+                        ? 'bg-brand-green/10 border-brand-green/50 cursor-not-allowed opacity-60'
+                        : 'bg-brand-slate/20 border-brand-slate hover:border-brand-green'
+                    }`}
+                  >
+                    <div className="w-12 h-12 bg-brand-slate rounded-lg flex items-center justify-center">
+                      <Music className="text-brand-teal" size={24} />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="text-white font-bold">{playlist.name}</h3>
+                      {playlist.description && (
+                        <p className="text-brand-teal text-xs line-clamp-1">{playlist.description}</p>
+                      )}
+                    </div>
+                    {isInPlaylist && (
+                      <CheckCircle className="text-brand-green" size={20} />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CreatePlaylistModal = ({ isOpen, onClose, onCreate, name, setName, description, setDescription, isEditing = false }: {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreate: () => void;
+  name: string;
+  setName: (name: string) => void;
+  description: string;
+  setDescription: (desc: string) => void;
+  isEditing?: boolean;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/90 backdrop-blur-md" onClick={onClose}>
+      <div className="bg-brand-black border border-brand-slate rounded-xl max-w-md w-full" onClick={e => e.stopPropagation()}>
+        <div className="p-6 border-b border-brand-slate flex justify-between items-center">
+          <h2 className="text-2xl font-black text-white uppercase tracking-tighter">{isEditing ? 'Edit Playlist' : 'Create Playlist'}</h2>
+          <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
+        </div>
+        
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">Playlist Name *</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="My Awesome Playlist"
+              className="w-full px-4 py-3 bg-brand-slate/20 border border-brand-slate text-white placeholder:text-brand-teal/50 focus:outline-none focus:border-brand-green transition-colors"
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">Description (Optional)</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What's this playlist about?"
+              rows={3}
+              className="w-full px-4 py-3 bg-brand-slate/20 border border-brand-slate text-white placeholder:text-brand-teal/50 focus:outline-none focus:border-brand-green transition-colors resize-none"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-3 border border-brand-slate text-white font-bold uppercase text-sm tracking-wider rounded hover:border-brand-teal transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onCreate}
+              disabled={!name.trim()}
+              className="flex-1 px-4 py-3 bg-brand-green text-white font-bold uppercase text-sm tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isEditing ? 'Save Changes' : 'Create'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LicenseModal = ({ isOpen, onClose, track, onConfirm, relatedTracks, onPlay, onOpenLicenseModal, isFavorite, onToggleSave }: { 
+    isOpen: boolean, 
+    onClose: () => void, 
+    track: Track, 
+    onConfirm: (license: License) => void,
+    relatedTracks?: Track[],
+    onPlay?: (track: Track) => void,
+    onOpenLicenseModal?: (track: Track) => void,
+    isFavorite?: (id: string | number) => boolean,
+    onToggleSave?: (track: Track) => void
+}) => {
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/90 backdrop-blur-md" onClick={onClose}>
-            <div className="bg-brand-black border border-brand-slate rounded-xl max-w-4xl w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <div className="bg-brand-black border border-brand-slate rounded-xl max-w-5xl w-full flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
                 <div className="p-6 border-b border-brand-slate flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Select License</h2>
@@ -681,28 +1049,95 @@ const LicenseModal = ({ isOpen, onClose, track, onConfirm }: { isOpen: boolean, 
                     <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
                 </div>
                 
-                <div className="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {LICENSES.map((license, idx) => (
-                        <div key={idx} className="bg-brand-slate/20 border border-brand-slate p-6 rounded-lg hover:border-brand-green transition-colors flex flex-col group relative">
-                            {idx === 1 && <div className="absolute top-0 right-0 bg-brand-green text-white text-[10px] font-bold px-2 py-1 uppercase rounded-bl-lg rounded-tr-lg">Best Value</div>}
-                            <h3 className="text-xl font-bold text-white mb-2">{license.name}</h3>
-                            <div className="text-3xl font-black text-white mb-6">${license.price}</div>
-                            <ul className="space-y-3 mb-8 flex-1">
-                                {license.features.map((feat, i) => (
-                                    <li key={i} className="flex items-center gap-2 text-sm text-brand-teal">
-                                        <Check size={14} className="text-brand-green" /> {feat}
-                                    </li>
+                <div className="p-6 overflow-y-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        {LICENSES.map((license, idx) => (
+                            <div key={idx} className="bg-brand-slate/20 border border-brand-slate p-6 rounded-lg hover:border-brand-green transition-colors flex flex-col group relative">
+                                {idx === 1 && <div className="absolute top-0 right-0 bg-brand-green text-white text-[10px] font-bold px-2 py-1 uppercase rounded-bl-lg rounded-tr-lg">Best Value</div>}
+                                <h3 className="text-xl font-bold text-white mb-2">{license.name}</h3>
+                                <div className="text-3xl font-black text-white mb-6">${license.price}</div>
+                                <ul className="space-y-3 mb-8 flex-1">
+                                    {license.features.map((feat, i) => (
+                                        <li key={i} className="flex items-center gap-2 text-sm text-brand-teal">
+                                            <Check size={14} className="text-brand-green" /> {feat}
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button 
+                                    type="button"
+                                    onClick={() => onConfirm(license)}
+                                    className="w-full py-3 bg-brand-slate text-white font-bold uppercase tracking-wider rounded group-hover:bg-brand-green transition-colors"
+                                >
+                                    Add to Cart
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Related Tracks Section */}
+                    {relatedTracks && relatedTracks.length > 0 && (
+                        <div className="border-t border-brand-slate pt-6 mt-6">
+                            <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-4 flex items-center gap-2">
+                                <TrendingUp className="text-brand-green" size={20} />
+                                You Might Also Like
+                            </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {relatedTracks.map((relatedTrack) => (
+                                    <div 
+                                        key={relatedTrack.id}
+                                        className="group cursor-pointer bg-brand-slate/20 border border-brand-slate rounded-lg overflow-hidden hover:border-brand-green transition-colors"
+                                        onClick={() => {
+                                            if (onOpenLicenseModal) {
+                                                onOpenLicenseModal(relatedTrack);
+                                            }
+                                        }}
+                                    >
+                                        <div className="relative aspect-square">
+                                            <img 
+                                                src={relatedTrack.cover || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200'} 
+                                                alt={relatedTrack.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (onPlay) onPlay(relatedTrack);
+                                                    }}
+                                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-3 bg-brand-green rounded-full hover:scale-110 transform transition-transform"
+                                                >
+                                                    <Play size={20} className="text-white ml-1" fill="white" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="p-3">
+                                            <h4 className="text-sm font-bold text-white mb-1 line-clamp-1">{relatedTrack.title}</h4>
+                                            <p className="text-xs text-brand-teal mb-2">{relatedTrack.producer}</p>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-brand-teal">
+                                                    {relatedTrack.bpm} BPM • {relatedTrack.key}
+                                                </span>
+                                                {isFavorite && onToggleSave && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            onToggleSave(relatedTrack);
+                                                        }}
+                                                        className="p-1 hover:scale-110 transition-transform"
+                                                    >
+                                                        <Heart 
+                                                            size={14} 
+                                                            className={isFavorite(relatedTrack.id) ? "text-brand-green fill-brand-green" : "text-brand-teal"} 
+                                                        />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
-                            </ul>
-                            <button 
-                                type="button"
-                                onClick={() => onConfirm(license)}
-                                className="w-full py-3 bg-brand-slate text-white font-bold uppercase tracking-wider rounded group-hover:bg-brand-green transition-colors"
-                            >
-                                Add to Cart
-                            </button>
+                            </div>
                         </div>
-                    ))}
+                    )}
                 </div>
             </div>
         </div>
@@ -1515,7 +1950,7 @@ const QueueDrawer = ({ isOpen, onClose, currentTrack, tracks, onPlay }: any) => 
   );
 };
 
-const BeatCard = ({ beat, isPlaying, onPlay, onOpenLicenseModal, isSaved, onToggleSave, onExport }: any) => {
+const BeatCard = ({ beat, isPlaying, onPlay, onOpenLicenseModal, isSaved, onToggleSave, onExport, onShare, onAddToPlaylist, onOpenComments, averageRating }: any) => {
   const isMerch = beat.category === 'merch';
   const isAlbum = beat.category === 'album';
   
@@ -1564,7 +1999,7 @@ const BeatCard = ({ beat, isPlaying, onPlay, onOpenLicenseModal, isSaved, onTogg
              </div>
         )}
         
-        {/* Save & Export Buttons */}
+        {/* Save, Share, Playlist & Export Buttons */}
         <div className="absolute top-3 right-3 flex flex-col gap-2">
             <button 
                 type="button"
@@ -1578,6 +2013,34 @@ const BeatCard = ({ beat, isPlaying, onPlay, onOpenLicenseModal, isSaved, onTogg
             >
                 <Heart size={16} fill={isSaved ? "currentColor" : "none"} />
             </button>
+            {onShare && (
+                <button 
+                    type="button"
+                    onClick={(e) => { 
+                        e.preventDefault();
+                        e.stopPropagation(); 
+                        onShare(beat); 
+                    }}
+                    className="p-2 rounded-full bg-brand-black/50 text-white hover:bg-brand-green transition-colors"
+                    title="Share Track"
+                >
+                    <Share2 size={16} />
+                </button>
+            )}
+            {onAddToPlaylist && (
+                <button 
+                    type="button"
+                    onClick={(e) => { 
+                        e.preventDefault();
+                        e.stopPropagation(); 
+                        onAddToPlaylist(beat); 
+                    }}
+                    className="p-2 rounded-full bg-brand-black/50 text-white hover:bg-purple-600 transition-colors"
+                    title="Add to Playlist"
+                >
+                    <Music size={16} />
+                </button>
+            )}
             <button 
                 type="button"
                 onClick={(e) => { 
@@ -1588,14 +2051,22 @@ const BeatCard = ({ beat, isPlaying, onPlay, onOpenLicenseModal, isSaved, onTogg
                 className="p-2 rounded-full bg-brand-black/50 text-white hover:bg-blue-600 transition-colors"
                 title="Export for Mobile App"
             >
-                <Share2 size={16} />
+                <Download size={16} />
             </button>
         </div>
       </div>
 
       <div className="p-4 flex flex-col flex-1">
         <div className="mb-4 flex-1">
-          <h3 className="text-lg font-bold text-white truncate tracking-tight uppercase">{beat.title}</h3>
+          <div className="flex items-start justify-between mb-1">
+            <h3 className="text-lg font-bold text-white truncate tracking-tight uppercase flex-1">{beat.title}</h3>
+            {averageRating !== undefined && averageRating > 0 && (
+              <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                <Star size={12} className="text-yellow-400 fill-yellow-400" />
+                <span className="text-xs font-bold text-yellow-400">{averageRating.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
           <p className="text-xs text-brand-teal font-mono uppercase tracking-widest">
             {beat.category === 'beat' ? `${beat.bpm} BPM • ${beat.key}` : beat.category === 'merch' ? 'Merchandise' : beat.category.replace('_', ' ')}
           </p>
@@ -2126,9 +2597,25 @@ const App = () => {
   }, []);
   
   // Store State
-  const [activeTab, setActiveTab] = useState('store'); 
+  const [activeTab, setActiveTab] = useState('store');
+  // Check for test mode via URL parameter
+  useEffect(() => {
+    if (window.location.search.includes('test-phase4-6') || window.location.hash.includes('test-phase4-6')) {
+      setActiveTab('test-phase4-6');
+    }
+  }, []);
+  // Add test tab for Phase 4-6 features (remove in production)
+  const isDevMode = window.location.search.includes('test-phase4-6') || window.location.hash.includes('test-phase4-6'); 
   const [storeSection, setStoreSection] = useState<'beat' | 'sample_pack' | 'album' | 'merch' | 'all'>('beat');
   const [activeFilter, setActiveFilter] = useState("All");
+  
+  // Advanced Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<'newest' | 'price-low' | 'price-high' | 'bpm-low' | 'bpm-high' | 'popularity'>('newest');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [bpmRange, setBpmRange] = useState<[number, number]>([0, 200]);
+  const [selectedKey, setSelectedKey] = useState<string>("");
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
   
   // Reset filter when switching sections
   useEffect(() => {
@@ -2385,15 +2872,42 @@ const App = () => {
   const [selectedProduct, setSelectedProduct] = useState<Track | null>(null);
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [selectedTrackForShare, setSelectedTrackForShare] = useState<Track | null>(null);
+  const [isAddToPlaylistModalOpen, setIsAddToPlaylistModalOpen] = useState(false);
+  const [selectedTrackForPlaylist, setSelectedTrackForPlaylist] = useState<Track | null>(null);
+  const [isCreatePlaylistModalOpen, setIsCreatePlaylistModalOpen] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [newPlaylistDescription, setNewPlaylistDescription] = useState("");
+  const [editingPlaylist, setEditingPlaylist] = useState<{ id: string; name: string; description: string } | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profileAvatar, setProfileAvatar] = useState("");
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+  const [selectedTrackForComments, setSelectedTrackForComments] = useState<Track | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [commentRating, setCommentRating] = useState<number | null>(null);
   const [cartTotal, setCartTotal] = useState("0.00");
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const [exportTrack, setExportTrack] = useState<Track | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cart, setCart] = useState<Track[]>([]);
-  const [savedTracks, setSavedTracks] = useState<Track[]>([]);
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const { playlists, currentPlaylist, createPlaylist, addTrackToPlaylist, deletePlaylist, setCurrentPlaylist, loadPlaylistTracks, playlistTracks, isTrackInPlaylist, removeTrackFromPlaylist, updatePlaylist } = usePlaylist();
+  const { addListeningEvent, history: listeningHistory, stats: listeningStats, getRecentHistory, getMostPlayedTracks } = useListeningHistory();
+  const { recordDownload, downloads: downloadHistory, stats: downloadStats, getRecentDownloads, clearDownloadHistory } = useDownloadHistory();
+  const { addComment, getCommentsForTrack, getAverageRating, getUserRating, getUserComment, updateComment, deleteComment } = useComments();
   const [showQueue, setShowQueue] = useState(false);
   const [volume, setVolume] = useState(0.8);
-  const [beats, setBeats] = useState<Track[]>([]);
+  const [isMuted, setIsMuted] = useState(false);
+  const [audioQueue, setAudioQueue] = useState<Track[]>([]);
+  const [shuffledQueue, setShuffledQueue] = useState<Track[]>([]);
+  const [isShuffleOn, setIsShuffleOn] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<'off' | 'all' | 'one'>('off');
+  const [originalQueue, setOriginalQueue] = useState<Track[]>([]); // Store original order for shuffle
+  const [beats, setBeats] = useState<Track[]>(INITIAL_BEATS);
   const [tracksLoaded, setTracksLoaded] = useState(false);
   const [posts, setPosts] = useState<BlogPost[]>(INITIAL_POSTS);
   
@@ -2414,7 +2928,7 @@ const App = () => {
   const [isGeneratingNews, setIsGeneratingNews] = useState(false);
 
   // Dashboard Form State
-  const [adminTab, setAdminTab] = useState<'upload' | 'inventory' | 'cms' | 'blog' | 'settings' | 'newsletter'>('inventory');
+  const [adminTab, setAdminTab] = useState<'upload' | 'inventory' | 'cms' | 'blog' | 'settings' | 'newsletter' | 'analytics' | 'users'>('inventory');
   
   // Newsletter Subscribers State
   const [subscribers, setSubscribers] = useState<any[]>([]);
@@ -2453,6 +2967,8 @@ const App = () => {
   const [apiKeysLoaded, setApiKeysLoaded] = useState(false);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [cmsPage, setCmsPage] = useState<keyof SiteContent>('store');
+  const [savingCmsField, setSavingCmsField] = useState<string | null>(null);
+  const [cmsSaveStatus, setCmsSaveStatus] = useState<Record<string, 'saved' | 'saving' | null>>({});
   const [editingTrackId, setEditingTrackId] = useState<string | number | null>(null);
   
   // Track Form
@@ -2466,7 +2982,7 @@ const App = () => {
     description: '',
     youtubeUrl: '',
     cover: null as File | null,
-    audio: null as File | null,
+    audio: null as File | string | null, // Can be File, Storage Box URL string, or null
     stems: null as File | null,
     coverPreview: null as string | null,
     audioName: '',
@@ -2657,16 +3173,10 @@ Message: ${error.message}`;
               console.error('Error details:', error.details);
               console.error('Error hint:', error.hint);
               
-              // Check if it's an RLS/permission error
-              if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('policy')) {
-                console.warn('⚠️ RLS policy may be blocking track access. Check Supabase RLS policies for tracks table.');
-                alert('⚠️ Cannot load tracks: Permission denied.\n\nPlease check Supabase RLS policies:\n1. Go to Supabase Dashboard → Authentication → Policies\n2. Find the "tracks" table\n3. Ensure there is a policy allowing SELECT for all users (public read access)');
-                // Don't overwrite with INITIAL_BEATS - keep empty array
-                setBeats([]);
-              } else {
-                // For other errors, still don't overwrite - keep empty array
-                setBeats([]);
-              }
+              // For local testing: use INITIAL_BEATS as fallback when Supabase auth fails
+              console.warn('⚠️ Using INITIAL_BEATS as fallback for local testing');
+              console.log('💡 To fix: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
+              setBeats(INITIAL_BEATS);
               setTracksLoaded(true);
               return;
             }
@@ -2698,25 +3208,9 @@ Message: ${error.message}`;
                 setBeats(mappedTracks);
                 console.log('✅ Tracks set in state:', mappedTracks.length);
             } else {
-                // Empty result - could mean RLS is blocking or database is empty
-                console.warn('⚠️ Query returned empty array');
-                console.log('This could mean:');
-                console.log('1. RLS policy is blocking SELECT (most likely)');
-                console.log('2. Database is truly empty');
-                console.log('3. Query issue');
-                console.log('⚠️ NOT using INITIAL_BEATS - keeping empty array to avoid overwriting');
-                
-                // Don't use INITIAL_BEATS - if tracks exist in DB but query returns empty,
-                // that means RLS is blocking. Using INITIAL_BEATS would hide the problem.
-                // Only use INITIAL_BEATS on first load if we're sure DB is empty
-                const isFirstLoad = beats.length === 0;
-                if (isFirstLoad) {
-                    console.log('First load with empty result - using INITIAL_BEATS as fallback');
-                    setBeats(INITIAL_BEATS);
-                } else {
-                    console.log('Not first load - keeping existing tracks, not overwriting with INITIAL_BEATS');
-                    // Keep existing beats, don't overwrite
-                }
+                // Empty result - for local testing, use INITIAL_BEATS as fallback
+                console.warn('⚠️ Query returned empty array - using INITIAL_BEATS for local testing');
+                setBeats(INITIAL_BEATS);
             }
         } catch (err: any) {
             console.error("❌ Exception while fetching tracks:", err);
@@ -2761,6 +3255,15 @@ Message: ${error.message}`;
     fetchTracks();
     fetchPosts();
   }, []);
+
+  // Fallback to INITIAL_BEATS if tracks failed to load (for local testing)
+  useEffect(() => {
+    if (tracksLoaded && beats.length === 0) {
+      console.warn('⚠️ No tracks loaded - using INITIAL_BEATS for local testing');
+      console.log('💡 To fix: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
+      setBeats(INITIAL_BEATS);
+    }
+  }, [tracksLoaded, beats.length]);
 
   // Audio Playback - Load audio source when track changes
   useEffect(() => {
@@ -2867,9 +3370,10 @@ Message: ${error.message}`;
       }
       if (audioRef.current) {
         audioRef.current.volume = volume;
+        audioRef.current.muted = isMuted;
       }
     }
-  }, [isPlaying, volume, currentTrack]);
+  }, [isPlaying, volume, isMuted, currentTrack]);
 
   // AI Init
   useEffect(() => {
@@ -3180,6 +3684,50 @@ Message: ${error.message}`;
       setIsAiOpen(false);
   };
 
+  const handleOpenProfileModal = () => {
+    if (user) {
+      setProfileName(user.name);
+      setProfileEmail(user.email);
+      setProfileAvatar(user.avatar || '');
+      setIsProfileModalOpen(true);
+      setIsUserMenuOpen(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    try {
+      // Update Supabase profile
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: profileName,
+          email: profileEmail,
+          avatar_url: profileAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileEmail}`,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Update local user state
+      setUser({
+        ...user,
+        name: profileName,
+        email: profileEmail,
+        avatar: profileAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileEmail}`
+      });
+
+      setIsProfileModalOpen(false);
+      setToast({ message: 'Profile updated successfully!', type: 'success' });
+      setTimeout(() => setToast(null), 3000);
+    } catch (error: any) {
+      setToast({ message: error.message || 'Failed to update profile. Please try again.', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   const handlePlay = (beat: Track) => {
     // Check if track has valid audio before playing
     if (!beat.audio || beat.audio === '' || (!beat.audio.startsWith('http://') && !beat.audio.startsWith('https://'))) {
@@ -3193,8 +3741,233 @@ Message: ${error.message}`;
     } else {
       setCurrentTrack(beat);
       setIsPlaying(true); // Set to true, but audio will only play when loaded
+      // Add to queue if not already in queue
+      setAudioQueue(prev => {
+        if (!prev.find(t => t.id === beat.id)) {
+          const newQueue = [...prev, beat];
+          // Update original queue for shuffle
+          setOriginalQueue(newQueue);
+          // If shuffle is on, create shuffled version
+          if (isShuffleOn) {
+            const shuffled = [...newQueue].sort(() => Math.random() - 0.5);
+            setShuffledQueue(shuffled);
+          }
+          return newQueue;
+        }
+        return prev;
+      });
     }
   };
+
+  const handleShuffleToggle = () => {
+    const newShuffleState = !isShuffleOn;
+    setIsShuffleOn(newShuffleState);
+    
+    if (newShuffleState) {
+      // Turn shuffle on - create shuffled queue
+      const currentQueue = audioQueue.length > 0 ? audioQueue : beats;
+      setOriginalQueue([...currentQueue]);
+      const shuffled = [...currentQueue].sort(() => Math.random() - 0.5);
+      setShuffledQueue(shuffled);
+    } else {
+      // Turn shuffle off - restore original order
+      if (originalQueue.length > 0) {
+        setAudioQueue([...originalQueue]);
+      }
+      setShuffledQueue([]);
+    }
+  };
+
+  const handleRepeatToggle = () => {
+    // Cycle through: off -> all -> one -> off
+    if (repeatMode === 'off') {
+      setRepeatMode('all');
+    } else if (repeatMode === 'all') {
+      setRepeatMode('one');
+    } else {
+      setRepeatMode('off');
+    }
+  };
+
+  const handleSkipPrevious = () => {
+    const queue = isShuffleOn ? shuffledQueue : audioQueue;
+    if (queue.length === 0 || !currentTrack) return;
+    
+    const currentIndex = queue.findIndex(t => t.id === currentTrack.id);
+    
+    if (repeatMode === 'one') {
+      // Repeat one - restart current track
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => setIsPlaying(false));
+      }
+      return;
+    }
+    
+    if (currentIndex > 0) {
+      const previousTrack = queue[currentIndex - 1];
+      setCurrentTrack(previousTrack);
+      setIsPlaying(true);
+    } else if (repeatMode === 'all' && queue.length > 0) {
+      // Loop to end
+      const lastTrack = queue[queue.length - 1];
+      setCurrentTrack(lastTrack);
+      setIsPlaying(true);
+    } else if (currentIndex === 0 && queue.length > 1) {
+      // Loop to end (no repeat mode)
+      const lastTrack = queue[queue.length - 1];
+      setCurrentTrack(lastTrack);
+      setIsPlaying(true);
+    }
+  };
+
+  const handleSkipNext = () => {
+    const queue = isShuffleOn ? shuffledQueue : audioQueue;
+    if (queue.length === 0 || !currentTrack) return;
+    
+    const currentIndex = queue.findIndex(t => t.id === currentTrack.id);
+    
+    if (repeatMode === 'one') {
+      // Repeat one - restart current track
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => setIsPlaying(false));
+      }
+      return;
+    }
+    
+    if (currentIndex < queue.length - 1) {
+      const nextTrack = queue[currentIndex + 1];
+      setCurrentTrack(nextTrack);
+      setIsPlaying(true);
+    } else if (repeatMode === 'all' && queue.length > 0) {
+      // Loop to beginning
+      const firstTrack = queue[0];
+      setCurrentTrack(firstTrack);
+      setIsPlaying(true);
+    } else if (currentIndex === queue.length - 1 && queue.length > 1) {
+      // Loop to beginning (no repeat mode)
+      const firstTrack = queue[0];
+      setCurrentTrack(firstTrack);
+      setIsPlaying(true);
+    }
+  };
+
+  // Handle track end - auto-advance based on repeat mode and track listening
+  useEffect(() => {
+    const audio = document.querySelector('audio') as HTMLAudioElement;
+    if (!audio) return;
+
+    const handleEnded = async () => {
+      // Track listening event when track finishes
+      if (currentTrack && audio.duration) {
+        try {
+          await addListeningEvent(currentTrack, Math.floor(audio.duration));
+        } catch (err) {
+          console.warn('Failed to track listening event:', err);
+        }
+      }
+
+      if (repeatMode === 'one') {
+        // Repeat current track
+        audio.currentTime = 0;
+        audio.play().catch(() => setIsPlaying(false));
+      } else if (repeatMode === 'all' || (audioQueue.length > 0 || (isShuffleOn && shuffledQueue.length > 0))) {
+        // Auto-advance to next track
+        const queue = isShuffleOn ? shuffledQueue : audioQueue;
+        if (queue.length === 0 || !currentTrack) return;
+        
+        const currentIndex = queue.findIndex(t => t.id === currentTrack.id);
+        
+        if (currentIndex < queue.length - 1) {
+          const nextTrack = queue[currentIndex + 1];
+          setCurrentTrack(nextTrack);
+          setIsPlaying(true);
+        } else if (repeatMode === 'all' && queue.length > 0) {
+          // Loop to beginning
+          const firstTrack = queue[0];
+          setCurrentTrack(firstTrack);
+          setIsPlaying(true);
+        } else if (currentIndex === queue.length - 1 && queue.length > 1) {
+          // Loop to beginning (no repeat mode)
+          const firstTrack = queue[0];
+          setCurrentTrack(firstTrack);
+          setIsPlaying(true);
+        }
+      }
+    };
+
+    audio.addEventListener('ended', handleEnded);
+    return () => audio.removeEventListener('ended', handleEnded);
+  }, [repeatMode, currentTrack, isShuffleOn, shuffledQueue, audioQueue, addListeningEvent]);
+
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  };
+
+  const handleMuteToggle = () => {
+    setIsMuted(!isMuted);
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+    }
+  };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      if ((e.target as HTMLElement).tagName === 'INPUT' || 
+          (e.target as HTMLElement).tagName === 'TEXTAREA' ||
+          (e.target as HTMLElement).isContentEditable) {
+        return;
+      }
+
+      switch (e.key) {
+        case ' ': // Spacebar - Play/Pause
+          e.preventDefault();
+          setIsPlaying(!isPlaying);
+          break;
+        case 'ArrowLeft': // Seek backward 10 seconds
+          e.preventDefault();
+          if (audioRef.current && audioRef.current.currentTime) {
+            audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
+          }
+          break;
+        case 'ArrowRight': // Seek forward 10 seconds
+          e.preventDefault();
+          if (audioRef.current && audioRef.current.duration) {
+            audioRef.current.currentTime = Math.min(
+              audioRef.current.duration,
+              audioRef.current.currentTime + 10
+            );
+          }
+          break;
+        case 'ArrowUp': // Increase volume
+          e.preventDefault();
+          const newVolumeUp = Math.min(1, volume + 0.1);
+          handleVolumeChange(newVolumeUp);
+          break;
+        case 'ArrowDown': // Decrease volume
+          e.preventDefault();
+          const newVolumeDown = Math.max(0, volume - 0.1);
+          handleVolumeChange(newVolumeDown);
+          break;
+        case 'm':
+        case 'M': // Toggle mute
+          e.preventDefault();
+          handleMuteToggle();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPlaying, volume, isMuted]);
 
   const handleOpenLicenseModal = (beat: Track) => {
       if (beat.category === 'merch') {
@@ -3260,11 +4033,7 @@ Message: ${error.message}`;
         setIsAuthModalOpen(true);
         return;
     }
-    if (savedTracks.find(t => t.id === beat.id)) {
-        setSavedTracks(savedTracks.filter(t => t.id !== beat.id));
-    } else {
-        setSavedTracks([...savedTracks, beat]);
-    }
+    toggleFavorite(beat);
   };
 
   const handleExport = (beat: Track) => {
@@ -3276,6 +4045,113 @@ Message: ${error.message}`;
     setIsExportModalOpen(true);
   };
 
+  const handleShare = (beat: Track) => {
+    setSelectedTrackForShare(beat);
+    setIsShareModalOpen(true);
+  };
+
+  const handleAddToPlaylist = (beat: Track) => {
+    setSelectedTrackForPlaylist(beat);
+    setIsAddToPlaylistModalOpen(true);
+  };
+
+  const handleOpenComments = (beat: Track) => {
+    setSelectedTrackForComments(beat);
+    setIsCommentsModalOpen(true);
+  };
+
+  const handleSubmitComment = async () => {
+    if (!selectedTrackForComments || !commentText.trim()) return;
+    
+    try {
+      const existingComment = getUserComment(String(selectedTrackForComments.id));
+      
+      if (existingComment) {
+        await updateComment(String((existingComment as any).id), commentText, commentRating || undefined);
+        setToast({ message: 'Comment updated successfully!', type: 'success' });
+      } else {
+        await addComment(String(selectedTrackForComments.id), commentText, commentRating || undefined);
+        setToast({ message: 'Comment added successfully!', type: 'success' });
+      }
+      
+      setCommentText("");
+      setCommentRating(null);
+      setTimeout(() => setToast(null), 3000);
+    } catch (error: any) {
+      setToast({ message: error.message || 'Failed to save comment. Please try again.', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  // Load user's existing comment when modal opens
+  useEffect(() => {
+    if (isCommentsModalOpen && selectedTrackForComments && user) {
+      const existingComment = getUserComment(String(selectedTrackForComments.id));
+      if (existingComment) {
+        setCommentText((existingComment as any).comment || '');
+        setCommentRating((existingComment as any).rating || null);
+      } else {
+        setCommentText("");
+        setCommentRating(null);
+      }
+    }
+  }, [isCommentsModalOpen, selectedTrackForComments, user, getUserComment]);
+
+  const handleCreatePlaylist = async () => {
+    try {
+      if (editingPlaylist) {
+        // Update existing playlist
+        await updatePlaylist(editingPlaylist.id, {
+          name: newPlaylistName,
+          description: newPlaylistDescription
+        });
+        setIsCreatePlaylistModalOpen(false);
+        setNewPlaylistName("");
+        setNewPlaylistDescription("");
+        setEditingPlaylist(null);
+        setToast({ message: 'Playlist updated successfully!', type: 'success' });
+        setTimeout(() => setToast(null), 3000);
+      } else {
+        // Create new playlist
+        const playlist = await createPlaylist(newPlaylistName, newPlaylistDescription);
+        if (playlist && selectedTrackForPlaylist) {
+          await addTrackToPlaylist(playlist.id, selectedTrackForPlaylist);
+          setIsCreatePlaylistModalOpen(false);
+          setIsAddToPlaylistModalOpen(false);
+          setNewPlaylistName("");
+          setNewPlaylistDescription("");
+          setSelectedTrackForPlaylist(null);
+          setToast({ message: 'Playlist created and track added!', type: 'success' });
+          setTimeout(() => setToast(null), 3000);
+        } else if (playlist) {
+          setIsCreatePlaylistModalOpen(false);
+          setNewPlaylistName("");
+          setNewPlaylistDescription("");
+          setToast({ message: 'Playlist created successfully!', type: 'success' });
+          setTimeout(() => setToast(null), 3000);
+        }
+      }
+    } catch (error) {
+      setToast({ message: editingPlaylist ? 'Failed to update playlist. Please try again.' : 'Failed to create playlist. Please try again.', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleAddToExistingPlaylist = async (playlistId: string) => {
+    try {
+      if (selectedTrackForPlaylist) {
+        await addTrackToPlaylist(playlistId, selectedTrackForPlaylist);
+        setIsAddToPlaylistModalOpen(false);
+        setSelectedTrackForPlaylist(null);
+        setToast({ message: 'Track added to playlist!', type: 'success' });
+        setTimeout(() => setToast(null), 3000);
+      }
+    } catch (error) {
+      setToast({ message: 'Failed to add track to playlist. Please try again.', type: 'error' });
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   const handleCheckoutTrigger = (total: string) => {
     setCartTotal(total);
     setIsCartOpen(false);
@@ -3284,6 +4160,8 @@ Message: ${error.message}`;
 
   const getFilteredBeats = () => {
      let filtered = beats;
+     
+     // Category filtering
      if (activeTab === 'collabs') {
          filtered = filtered.filter(b => b.category === 'collab');
      } else if (activeTab === 'store') {
@@ -3293,57 +4171,216 @@ Message: ${error.message}`;
             filtered = filtered.filter(b => b.category !== 'collab');
          }
      }
+     
+     // Mood filter
      if (activeFilter !== "All") {
         if (storeSection === 'merch') {
-            // For merch, filter by mood field which contains merch type
             filtered = filtered.filter(beat => beat.mood === activeFilter);
         } else {
-            // For other sections, filter by mood
             filtered = filtered.filter(beat => beat.mood === activeFilter);
         }
      }
+     
+     // Search query
+     if (searchQuery.trim()) {
+         const query = searchQuery.toLowerCase();
+         filtered = filtered.filter(beat => 
+             beat.title.toLowerCase().includes(query) ||
+             beat.producer?.toLowerCase().includes(query) ||
+             beat.description?.toLowerCase().includes(query) ||
+             beat.key?.toLowerCase().includes(query) ||
+             beat.tags?.some(tag => tag.toLowerCase().includes(query))
+         );
+     }
+     
+     // Advanced filters
+     filtered = filtered.filter(beat => {
+         // BPM range
+         const bpm = typeof beat.bpm === 'number' ? beat.bpm : parseInt(String(beat.bpm)) || 0;
+         if (bpm < bpmRange[0] || bpm > bpmRange[1]) return false;
+         
+         // Key filter
+         if (selectedKey && beat.key && beat.key.toLowerCase() !== selectedKey.toLowerCase()) {
+             return false;
+         }
+         
+         // Price range
+         const price = typeof beat.price === 'number' ? beat.price : parseFloat(String(beat.price)) || 0;
+         if (price < priceRange[0] || price > priceRange[1]) return false;
+         
+         return true;
+     });
+     
+     // Sorting
+     filtered = [...filtered].sort((a, b) => {
+         switch (sortBy) {
+             case 'price-low':
+                 const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price)) || 0;
+                 const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price)) || 0;
+                 return priceA - priceB;
+             case 'price-high':
+                 const priceA2 = typeof a.price === 'number' ? a.price : parseFloat(String(a.price)) || 0;
+                 const priceB2 = typeof b.price === 'number' ? b.price : parseFloat(String(b.price)) || 0;
+                 return priceB2 - priceA2;
+             case 'bpm-low':
+                 const bpmA = typeof a.bpm === 'number' ? a.bpm : parseInt(String(a.bpm)) || 0;
+                 const bpmB = typeof b.bpm === 'number' ? b.bpm : parseInt(String(b.bpm)) || 0;
+                 return bpmA - bpmB;
+             case 'bpm-high':
+                 const bpmA2 = typeof a.bpm === 'number' ? a.bpm : parseInt(String(a.bpm)) || 0;
+                 const bpmB2 = typeof b.bpm === 'number' ? b.bpm : parseInt(String(b.bpm)) || 0;
+                 return bpmB2 - bpmA2;
+             case 'popularity':
+                 const playsA = a.stats?.plays || 0;
+                 const playsB = b.stats?.plays || 0;
+                 return playsB - playsA;
+             case 'newest':
+             default:
+                 return 0; // Keep original order for newest
+         }
+     });
+     
      return filtered;
   };
 
   const displayedBeats = getFilteredBeats();
 
   // Recommendation System
+  // Enhanced recommendation system with similarity scoring
   const getRecommendedTracks = (): Track[] => {
-    const userInterests = [...savedTracks, ...cart];
-    if (userInterests.length === 0) return [];
+    const userInterests = [...favorites, ...cart];
+    if (userInterests.length === 0) {
+      // If no user interests, show popular/new tracks
+      return beats
+        .filter(b => b.category !== 'merch')
+        .sort((a, b) => {
+          const playsA = a.stats?.plays || 0;
+          const playsB = b.stats?.plays || 0;
+          return playsB - playsA;
+        })
+        .slice(0, 4);
+    }
 
-    // Analyze user preferences
+    // Analyze user preferences with weights
     const moodCounts: Record<string, number> = {};
     const categoryCounts: Record<string, number> = {};
+    const bpmRanges: number[] = [];
+    const keys: string[] = [];
+    const tagCounts: Record<string, number> = {};
     
     userInterests.forEach(track => {
       if (track.mood) moodCounts[track.mood] = (moodCounts[track.mood] || 0) + 1;
       categoryCounts[track.category] = (categoryCounts[track.category] || 0) + 1;
+      if (track.bpm) bpmRanges.push(typeof track.bpm === 'string' ? parseFloat(track.bpm) || 0 : track.bpm);
+      if (track.key) keys.push(track.key);
+      if (track.tags) {
+        track.tags.forEach(tag => {
+          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        });
+      }
     });
 
-    // Find most common mood and category
+    // Find most common preferences
     const topMood = Object.keys(moodCounts).reduce((a, b) => moodCounts[a] > moodCounts[b] ? a : b, '');
     const topCategory = Object.keys(categoryCounts).reduce((a, b) => categoryCounts[a] > categoryCounts[b] ? a : b, '');
+    const avgBpm = bpmRanges.length > 0 ? bpmRanges.reduce((a, b) => a + b, 0) / bpmRanges.length : 0;
+    const topTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]).slice(0, 3);
 
-    // Get recommendations based on preferences
+    // Get recommendations with similarity scoring
     const recommendations = beats
       .filter(b => 
         b.category !== 'merch' && 
-        !userInterests.some(t => t.id === b.id) &&
-        (b.mood === topMood || b.category === topCategory)
+        !userInterests.some(t => t.id === b.id)
       )
-      .sort((a, b) => {
-        let scoreA = 0;
-        let scoreB = 0;
-        if (a.mood === topMood) scoreA += 2;
-        if (a.category === topCategory) scoreA += 1;
-        if (b.mood === topMood) scoreB += 2;
-        if (b.category === topCategory) scoreB += 1;
-        return scoreB - scoreA;
+      .map(track => {
+        let score = 0;
+        
+        // Mood match (high weight)
+        if (track.mood === topMood) score += 5;
+        
+        // Category match
+        if (track.category === topCategory) score += 3;
+        
+        // BPM similarity (within 10 BPM gets points)
+        if (track.bpm && avgBpm > 0) {
+          const trackBpm = typeof track.bpm === 'string' ? parseFloat(track.bpm) || 0 : track.bpm;
+          const bpmDiff = Math.abs(trackBpm - avgBpm);
+          if (bpmDiff <= 5) score += 4;
+          else if (bpmDiff <= 10) score += 2;
+          else if (bpmDiff <= 20) score += 1;
+        }
+        
+        // Key match
+        if (track.key && keys.includes(track.key)) score += 2;
+        
+        // Tag matches
+        if (track.tags) {
+          const matchingTags = track.tags.filter(tag => topTags.includes(tag));
+          score += matchingTags.length * 2;
+        }
+        
+        // Popularity boost
+        const plays = track.stats?.plays || 0;
+        if (plays > 100) score += 1;
+        if (plays > 500) score += 1;
+        
+        return { track, score };
       })
-      .slice(0, 4);
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map(item => item.track);
 
     return recommendations;
+  };
+
+  // Get related tracks for a specific track
+  const getRelatedTracks = (track: Track, limit: number = 4): Track[] => {
+    if (!track) return [];
+
+    return beats
+      .filter(b => 
+        b.id !== track.id && 
+        b.category !== 'merch' &&
+        b.category === track.category
+      )
+      .map(candidate => {
+        let score = 0;
+        
+        // Mood match (high weight)
+        if (candidate.mood === track.mood) score += 5;
+        
+        // BPM similarity
+        if (candidate.bpm && track.bpm) {
+          const candidateBpm = typeof candidate.bpm === 'string' ? parseFloat(candidate.bpm) || 0 : candidate.bpm;
+          const trackBpm = typeof track.bpm === 'string' ? parseFloat(track.bpm) || 0 : track.bpm;
+          const bpmDiff = Math.abs(candidateBpm - trackBpm);
+          if (bpmDiff <= 5) score += 4;
+          else if (bpmDiff <= 10) score += 2;
+          else if (bpmDiff <= 20) score += 1;
+        }
+        
+        // Key match
+        if (candidate.key && track.key && candidate.key === track.key) score += 3;
+        
+        // Tag overlap
+        if (candidate.tags && track.tags) {
+          const trackTags = track.tags.map(t => t.toLowerCase());
+          const candidateTags = candidate.tags.map(t => t.toLowerCase());
+          const matchingTags = candidateTags.filter(t => trackTags.includes(t));
+          score += matchingTags.length * 2;
+        }
+        
+        // Producer match
+        if (candidate.producer && track.producer && 
+            candidate.producer.toLowerCase() === track.producer.toLowerCase()) {
+          score += 2;
+        }
+        
+        return { track: candidate, score };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+      .map(item => item.track);
   };
 
   const recommendedTracks = getRecommendedTracks();
@@ -3357,6 +4394,126 @@ Message: ${error.message}`;
               [field]: value
           }
       }));
+      // Clear save status when field is edited
+      setCmsSaveStatus(prev => ({ ...prev, [`${cmsPage}-${field}`]: null }));
+  };
+
+  // Save individual CMS field to Supabase
+  const saveCmsField = async (field: keyof PageConfig) => {
+    const fieldKey = `${cmsPage}-${field}`;
+    setSavingCmsField(fieldKey);
+    setCmsSaveStatus(prev => ({ ...prev, [fieldKey]: 'saving' }));
+
+    try {
+      const pageContent = siteContent[cmsPage];
+      
+      // Save to Supabase - content is JSONB so pass as object
+      const { error } = await supabase
+        .from('site_content')
+        .upsert({
+          page: cmsPage,
+          hero_image: pageContent.heroImage || '',
+          content: pageContent // JSONB column accepts object directly
+        }, { onConflict: 'page' });
+
+      if (error) {
+        throw error;
+      }
+
+      // Also save to localStorage as backup
+      try {
+        localStorage.setItem('weedhead_cms_content', JSON.stringify(siteContent));
+      } catch (e) {
+        console.warn('Failed to save to localStorage', e);
+      }
+
+      setCmsSaveStatus(prev => ({ ...prev, [fieldKey]: 'saved' }));
+      
+      // Show prominent success notification
+      const successMessage = document.createElement('div');
+      successMessage.textContent = `✅ ${field.charAt(0).toUpperCase() + field.slice(1)} saved successfully!`;
+      // Add CSS animations if not already added
+      if (!document.getElementById('cms-notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'cms-notification-styles';
+        style.textContent = `
+          @keyframes slideInRight {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+          @keyframes slideOutRight {
+            from {
+              transform: translateX(0);
+              opacity: 1;
+            }
+            to {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      successMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 16px;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: slideInRight 0.3s ease-out;
+      `;
+      document.body.appendChild(successMessage);
+      
+      setTimeout(() => {
+        successMessage.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => successMessage.remove(), 300);
+        setCmsSaveStatus(prev => ({ ...prev, [fieldKey]: null }));
+      }, 4000); // Show for 4 seconds instead of 2
+    } catch (error: any) {
+      console.error(`Failed to save CMS field ${field}:`, error);
+      
+      // Show prominent error notification
+      const errorMessage = document.createElement('div');
+      errorMessage.textContent = `❌ Failed to save ${field}: ${error.message || 'Unknown error'}`;
+      errorMessage.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ef4444;
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        font-weight: bold;
+        font-size: 16px;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        animation: slideInRight 0.3s ease-out;
+        max-width: 400px;
+      `;
+      document.body.appendChild(errorMessage);
+      
+      setTimeout(() => {
+        errorMessage.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => errorMessage.remove(), 300);
+      }, 5000);
+      
+      setCmsSaveStatus(prev => ({ ...prev, [fieldKey]: null }));
+    } finally {
+      setSavingCmsField(null);
+    }
   };
 
   // Track Management
@@ -3887,9 +5044,14 @@ Message: ${error.message}`;
           return;
         }
 
-        // Upload Audio
-        if (uploadForm.audio instanceof File) {
+        // Upload Audio - Check if already uploaded to Storage Box (URL string) or needs Supabase upload
+        if (uploadForm.audio && typeof uploadForm.audio === 'string' && (uploadForm.audio.startsWith('http://') || uploadForm.audio.startsWith('https://'))) {
+          // Already uploaded to Storage Box via TrackUploaderWithDatabase
+          audioUrl = uploadForm.audio;
+          console.log('✅ Using Storage Box audio URL:', audioUrl);
+        } else if (uploadForm.audio instanceof File) {
              try {
+                 // Fallback: Upload to Supabase Storage if not using Storage Box
                  // Sanitize filename: remove all special characters, spaces, and ensure safe URL
                  const sanitizedName = uploadForm.audio.name
                    .replace(/[^a-zA-Z0-9.-]/g, '_')
@@ -3910,7 +5072,7 @@ Message: ${error.message}`;
                  if (data) {
                       const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName);
                      audioUrl = publicUrl;
-                     console.log('✅ Audio file uploaded successfully:', audioUrl);
+                     console.log('✅ Audio file uploaded successfully to Supabase:', audioUrl);
                  } else {
                      throw new Error("Audio upload failed - no data returned");
                  }
@@ -4252,6 +5414,8 @@ ${error.message}`;
             { id: 'cms', label: 'CMS', icon: Edit3 },
             { id: 'blog', label: 'Blog', icon: FileText },
             { id: 'newsletter', label: 'Newsletter', icon: Mail },
+            { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+            { id: 'users', label: 'Users', icon: User },
             { id: 'settings', label: 'Settings', icon: Settings }
           ].map(tab => (
             <button
@@ -4555,15 +5719,52 @@ ${error.message}`;
                         <label htmlFor="inventory-upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                           Audio File {uploadForm.category === 'merch' && <span className="text-brand-teal text-xs font-normal">(Optional for Merch)</span>}
                         </label>
-                        <input
-                          id="inventory-upload-audio"
-                          name="inventory-upload-audio"
-                          type="file"
-                          accept="audio/*"
-                          onChange={e => handleFileChange(e, 'audio')}
-                          className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
-                          disabled={uploadForm.category === 'merch'}
+                    {uploadForm.category !== 'merch' ? (
+                      user?.id ? (
+                        <TrackUploaderWithDatabase
+                          supabaseClient={supabase}
+                          userId={user.id}
+                          skipDatabaseSave={true}
+                          onUploadComplete={(track) => {
+                            // Set the uploaded audio URL in the form
+                            setUploadForm({ 
+                              ...uploadForm, 
+                              audio: track.url as any, // Store URL as string
+                              audioName: track.fileName 
+                            });
+                            console.log('✅ Audio uploaded to Storage Box:', track.url);
+                            alert('✅ Audio uploaded successfully! Now fill in track details and submit.');
+                          }}
+                          onUploadError={(error) => {
+                            console.error('❌ Audio upload failed:', error);
+                            alert('Audio upload failed: ' + error.message);
+                          }}
+                          className="mb-3"
                         />
+                      ) : (
+                            <div className="mb-3 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded text-xs text-yellow-400">
+                              ⚠️ Please log in to use Storage Box upload. Using fallback upload.
+                              <input
+                                id="inventory-upload-audio"
+                                name="inventory-upload-audio"
+                                type="file"
+                                accept="audio/*"
+                                onChange={e => handleFileChange(e, 'audio')}
+                                className="w-full mt-2 bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                              />
+                            </div>
+                          )
+                        ) : (
+                          <input
+                            id="inventory-upload-audio"
+                            name="inventory-upload-audio"
+                            type="file"
+                            accept="audio/*"
+                            onChange={e => handleFileChange(e, 'audio')}
+                            className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                            disabled={uploadForm.category === 'merch'}
+                          />
+                        )}
                         {uploadForm.category === 'merch' && (
                           <p className="text-xs text-brand-teal mt-1">ℹ️ Audio files are not required for merchandise items.</p>
                         )}
@@ -4952,17 +6153,57 @@ ${error.message}`;
                     <label htmlFor="upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">
                       Audio File {uploadForm.category === 'merch' && <span className="text-brand-teal text-xs font-normal">(Optional for Merch)</span>}
                     </label>
-                    <input
-                      id="upload-audio"
-                      name="upload-audio"
-                      type="file"
-                      accept="audio/*"
-                      onChange={e => handleFileChange(e, 'audio')}
-                      className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
-                      disabled={uploadForm.category === 'merch'}
-                    />
+                    {uploadForm.category !== 'merch' ? (
+                      user?.id ? (
+                        <TrackUploaderWithDatabase
+                          supabaseClient={supabase}
+                          userId={user.id}
+                          skipDatabaseSave={true}
+                          onUploadComplete={(track) => {
+                            // Set the uploaded audio URL in the form
+                            setUploadForm({ 
+                              ...uploadForm, 
+                              audio: track.url as any, // Store URL as string
+                              audioName: track.fileName 
+                            });
+                            console.log('✅ Audio uploaded to Storage Box:', track.url);
+                            alert('✅ Audio uploaded successfully! Now fill in track details and submit.');
+                          }}
+                          onUploadError={(error) => {
+                            console.error('❌ Audio upload failed:', error);
+                            alert('Audio upload failed: ' + error.message);
+                          }}
+                          className="mb-3"
+                        />
+                      ) : (
+                        <div className="mb-3 p-3 bg-yellow-900/20 border border-yellow-700/50 rounded text-xs text-yellow-400">
+                          ⚠️ Please log in to use Storage Box upload. Using fallback upload.
+                          <input
+                            id="upload-audio"
+                            name="upload-audio"
+                            type="file"
+                            accept="audio/*"
+                            onChange={e => handleFileChange(e, 'audio')}
+                            className="w-full mt-2 bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                          />
+                        </div>
+                      )
+                    ) : (
+                      <input
+                        id="upload-audio"
+                        name="upload-audio"
+                        type="file"
+                        accept="audio/*"
+                        onChange={e => handleFileChange(e, 'audio')}
+                        className="w-full bg-brand-slate/50 border border-brand-slate p-3 text-white rounded focus:border-brand-green outline-none"
+                        disabled={uploadForm.category === 'merch'}
+                      />
+                    )}
                     {uploadForm.category === 'merch' && (
                       <p className="text-xs text-brand-teal mt-1">ℹ️ Audio files are not required for merchandise items.</p>
+                    )}
+                    {uploadForm.audioName && (
+                      <p className="text-xs text-brand-green mt-2">✅ {uploadForm.audioName}</p>
                     )}
                     <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
                       <p className="text-brand-green font-bold mb-1">🎵 Optimal Audio Specifications:</p>
@@ -5086,7 +6327,25 @@ ${error.message}`;
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="cms-headline" className="block text-xs font-bold uppercase text-brand-teal mb-2">Headline</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="cms-headline" className="block text-xs font-bold uppercase text-brand-teal">Headline</label>
+                    <button
+                      type="button"
+                      onClick={() => saveCmsField('headline')}
+                      disabled={savingCmsField === `${cmsPage}-headline`}
+                      className={`px-4 py-2 text-xs font-bold uppercase rounded transition-all duration-200 ${
+                        cmsSaveStatus[`${cmsPage}-headline`] === 'saved'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-500/50 scale-105'
+                          : cmsSaveStatus[`${cmsPage}-headline`] === 'saving'
+                          ? 'bg-yellow-600 text-white cursor-wait animate-pulse'
+                          : 'bg-brand-green hover:bg-brand-green/80 text-white hover:scale-105'
+                      }`}
+                    >
+                      {cmsSaveStatus[`${cmsPage}-headline`] === 'saved' ? '✓ Saved!' : 
+                       cmsSaveStatus[`${cmsPage}-headline`] === 'saving' ? '⏳ Saving...' : 
+                       '💾 Save Headline'}
+                    </button>
+                  </div>
                   <input
                     id="cms-headline"
                     name="cms-headline"
@@ -5094,24 +6353,60 @@ ${error.message}`;
                     value={siteContent[cmsPage].headline}
                     onChange={e => handleCmsUpdate('headline', e.target.value)}
                     className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
-                    style={{ color: '#ffffff', caretColor: '#0D5F11' }}
+                    style={{ color: '#000000', caretColor: '#0D5F11' }}
                     autoComplete="off"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-subheadline" className="block text-xs font-bold uppercase text-brand-teal mb-2">Subheadline</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="cms-subheadline" className="block text-xs font-bold uppercase text-brand-teal">Subheadline</label>
+                    <button
+                      type="button"
+                      onClick={() => saveCmsField('subheadline')}
+                      disabled={savingCmsField === `${cmsPage}-subheadline`}
+                      className={`px-4 py-2 text-xs font-bold uppercase rounded transition-all duration-200 ${
+                        cmsSaveStatus[`${cmsPage}-subheadline`] === 'saved'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-500/50 scale-105'
+                          : cmsSaveStatus[`${cmsPage}-subheadline`] === 'saving'
+                          ? 'bg-yellow-600 text-white cursor-wait animate-pulse'
+                          : 'bg-brand-green hover:bg-brand-green/80 text-white hover:scale-105'
+                      }`}
+                    >
+                      {cmsSaveStatus[`${cmsPage}-subheadline`] === 'saved' ? '✓ Saved!' : 
+                       cmsSaveStatus[`${cmsPage}-subheadline`] === 'saving' ? '⏳ Saving...' : 
+                       '💾 Save Subheadline'}
+                    </button>
+                  </div>
                   <textarea
                     id="cms-subheadline"
                     name="cms-subheadline"
                     value={siteContent[cmsPage].subheadline}
                     onChange={e => handleCmsUpdate('subheadline', e.target.value)}
                     className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-24 placeholder:text-gray-500"
-                    style={{ color: '#ffffff', caretColor: '#0D5F11' }}
+                    style={{ color: '#000000', caretColor: '#0D5F11' }}
                     autoComplete="off"
                   />
                 </div>
                 <div>
-                  <label htmlFor="cms-hero-image-url" className="block text-xs font-bold uppercase text-brand-teal mb-2">Hero Image URL</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="cms-hero-image-url" className="block text-xs font-bold uppercase text-brand-teal">Hero Image URL</label>
+                    <button
+                      type="button"
+                      onClick={() => saveCmsField('heroImage')}
+                      disabled={savingCmsField === `${cmsPage}-heroImage`}
+                      className={`px-4 py-2 text-xs font-bold uppercase rounded transition-all duration-200 ${
+                        cmsSaveStatus[`${cmsPage}-heroImage`] === 'saved'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-500/50 scale-105'
+                          : cmsSaveStatus[`${cmsPage}-heroImage`] === 'saving'
+                          ? 'bg-yellow-600 text-white cursor-wait animate-pulse'
+                          : 'bg-brand-green hover:bg-brand-green/80 text-white hover:scale-105'
+                      }`}
+                    >
+                      {cmsSaveStatus[`${cmsPage}-heroImage`] === 'saved' ? '✓ Saved!' : 
+                       cmsSaveStatus[`${cmsPage}-heroImage`] === 'saving' ? '⏳ Saving...' : 
+                       '💾 Save Image'}
+                    </button>
+                  </div>
                     <input
                       id="cms-hero-image-url"
                       name="cms-hero-image-url"
@@ -5161,6 +6456,85 @@ ${error.message}`;
                         <img src={siteContent[cmsPage].heroImage} alt="Preview" className="mt-3 w-full h-48 object-cover rounded border border-brand-slate" />
                       )}
                     </div>
+                </div>
+                {siteContent[cmsPage].buttonText !== undefined && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label htmlFor="cms-button-text" className="block text-xs font-bold uppercase text-brand-teal">Button Text</label>
+                      <button
+                        type="button"
+                        onClick={() => saveCmsField('buttonText')}
+                        disabled={savingCmsField === `${cmsPage}-buttonText`}
+                        className={`px-4 py-2 text-xs font-bold uppercase rounded transition-all duration-200 ${
+                          cmsSaveStatus[`${cmsPage}-buttonText`] === 'saved'
+                            ? 'bg-green-600 text-white shadow-lg shadow-green-500/50 scale-105'
+                            : cmsSaveStatus[`${cmsPage}-buttonText`] === 'saving'
+                            ? 'bg-yellow-600 text-white cursor-wait animate-pulse'
+                            : 'bg-brand-green hover:bg-brand-green/80 text-white hover:scale-105'
+                        }`}
+                      >
+                        {cmsSaveStatus[`${cmsPage}-buttonText`] === 'saved' ? '✓ Saved!' : 
+                         cmsSaveStatus[`${cmsPage}-buttonText`] === 'saving' ? '⏳ Saving...' : 
+                         '💾 Save Button Text'}
+                      </button>
+                    </div>
+                    <input
+                      id="cms-button-text"
+                      name="cms-button-text"
+                      type="text"
+                      value={siteContent[cmsPage].buttonText || ''}
+                      onChange={e => handleCmsUpdate('buttonText', e.target.value)}
+                      className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none placeholder:text-gray-500"
+                      style={{ color: '#000000', caretColor: '#0D5F11' }}
+                      placeholder="Button text (optional)"
+                      autoComplete="off"
+                    />
+                  </div>
+                )}
+                <div className="pt-4 border-t border-brand-slate">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      // Save all fields sequentially with visual feedback
+                      await saveCmsField('headline');
+                      await new Promise(resolve => setTimeout(resolve, 300));
+                      await saveCmsField('subheadline');
+                      await new Promise(resolve => setTimeout(resolve, 300));
+                      await saveCmsField('heroImage');
+                      if (siteContent[cmsPage].buttonText !== undefined) {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        await saveCmsField('buttonText');
+                      }
+                      
+                      // Show final success message
+                      setTimeout(() => {
+                        const allSavedMessage = document.createElement('div');
+                        allSavedMessage.textContent = `✅ All ${cmsPage} content saved successfully!`;
+                        allSavedMessage.style.cssText = `
+                          position: fixed;
+                          top: 20px;
+                          right: 20px;
+                          background: #10b981;
+                          color: white;
+                          padding: 20px 28px;
+                          border-radius: 8px;
+                          font-weight: bold;
+                          font-size: 18px;
+                          z-index: 10000;
+                          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                          animation: slideInRight 0.3s ease-out;
+                        `;
+                        document.body.appendChild(allSavedMessage);
+                        setTimeout(() => {
+                          allSavedMessage.style.animation = 'slideOutRight 0.3s ease-in';
+                          setTimeout(() => allSavedMessage.remove(), 300);
+                        }, 3000);
+                      }, 500);
+                    }}
+                    className="w-full px-6 py-4 bg-brand-green hover:bg-brand-green/80 text-white font-bold uppercase tracking-wider rounded transition-all duration-200 hover:scale-105 hover:shadow-lg shadow-brand-green/50"
+                  >
+                    💾 Save All {cmsPage.charAt(0).toUpperCase() + cmsPage.slice(1)} Content
+                  </button>
                 </div>
               </div>
             </div>
@@ -5650,6 +7024,14 @@ ${error.message}`;
                 </div>
               </div>
             </div>
+          )}
+          
+          {adminTab === 'analytics' && (
+            <AdminAnalytics />
+          )}
+          
+          {adminTab === 'users' && (
+            <AdminUserManagement />
           )}
           
           {adminTab === 'settings' && (
@@ -6703,12 +8085,180 @@ ${error.message}`;
          </div>
       </section>
 
-      {/* Filters */}
+      {/* Search & Advanced Filters */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-8">
+        <div className="flex flex-col lg:flex-row gap-4 mb-6">
+          {/* Search Bar */}
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-brand-teal" size={20} />
+            <input
+              type="text"
+              placeholder="Search tracks, artists, keys, tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-10 py-3 bg-brand-black border border-brand-slate text-white placeholder:text-brand-teal/50 focus:outline-none focus:border-brand-green transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brand-teal hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+            )}
+          </div>
+          
+          {/* Sort & Filter Controls */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="appearance-none pl-4 pr-10 py-3 bg-brand-black border border-brand-slate text-white text-sm font-bold uppercase tracking-wider focus:outline-none focus:border-brand-green transition-colors cursor-pointer"
+              >
+                <option value="newest">Newest First</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="bpm-low">BPM: Low to High</option>
+                <option value="bpm-high">BPM: High to Low</option>
+                <option value="popularity">Most Popular</option>
+              </select>
+              <ArrowUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-teal pointer-events-none" size={16} />
+            </div>
+            
+            {/* Advanced Filters Toggle */}
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className={`px-4 py-3 border text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
+                showAdvancedFilters
+                  ? 'bg-brand-green text-black border-brand-green'
+                  : 'bg-brand-black border-brand-slate text-brand-teal hover:border-brand-teal hover:text-white'
+              }`}
+            >
+              <SlidersHorizontal size={16} />
+              Filters
+            </button>
+          </div>
+        </div>
+        
+        {/* Advanced Filters Panel */}
+        {showAdvancedFilters && (
+          <div className="bg-brand-slate/20 border border-brand-slate p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* BPM Range */}
+              <div>
+                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
+                  BPM Range: {bpmRange[0]} - {bpmRange[1]}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="200"
+                    value={bpmRange[0]}
+                    onChange={(e) => setBpmRange([parseInt(e.target.value) || 0, bpmRange[1]])}
+                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
+                    placeholder="Min"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="200"
+                    value={bpmRange[1]}
+                    onChange={(e) => setBpmRange([bpmRange[0], parseInt(e.target.value) || 200])}
+                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+              
+              {/* Key Filter */}
+              <div>
+                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
+                  Key
+                </label>
+                <select
+                  value={selectedKey}
+                  onChange={(e) => setSelectedKey(e.target.value)}
+                  className="w-full px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
+                >
+                  <option value="">All Keys</option>
+                  <option value="C">C</option>
+                  <option value="C#">C#</option>
+                  <option value="D">D</option>
+                  <option value="D#">D#</option>
+                  <option value="E">E</option>
+                  <option value="F">F</option>
+                  <option value="F#">F#</option>
+                  <option value="G">G</option>
+                  <option value="G#">G#</option>
+                  <option value="A">A</option>
+                  <option value="A#">A#</option>
+                  <option value="B">B</option>
+                </select>
+              </div>
+              
+              {/* Price Range */}
+              <div>
+                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
+                  Price Range: ${priceRange[0]} - ${priceRange[1]}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="500"
+                    value={priceRange[0]}
+                    onChange={(e) => setPriceRange([parseFloat(e.target.value) || 0, priceRange[1]])}
+                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
+                    placeholder="Min"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max="500"
+                    value={priceRange[1]}
+                    onChange={(e) => setPriceRange([priceRange[0], parseFloat(e.target.value) || 500])}
+                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Clear Filters Button */}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setBpmRange([0, 200]);
+                  setSelectedKey("");
+                  setPriceRange([0, 500]);
+                  setSortBy('newest');
+                  setActiveFilter("All");
+                }}
+                className="px-4 py-2 text-sm font-bold uppercase tracking-wider text-brand-teal hover:text-white transition-colors flex items-center gap-2"
+              >
+                <X size={14} />
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* Mood Filters */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-brand-slate pb-6">
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <TrendingUp className="text-brand-green" /> 
             {storeSection === 'beat' ? 'Latest Beats' : storeSection === 'sample_pack' ? 'Sample Packs' : storeSection === 'album' ? 'Albums' : 'Merchandise'}
+            {displayedBeats.length !== beats.length && (
+              <span className="text-brand-teal text-sm font-normal">
+                ({displayedBeats.length} of {beats.length})
+              </span>
+            )}
           </h2>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 sm:pb-0">
             {(storeSection === 'merch' ? MERCH_TYPES : MOODS).map(filter => (
@@ -6743,9 +8293,11 @@ ${error.message}`;
                 isPlaying={currentTrack?.id === beat.id && isPlaying}
                 onPlay={handlePlay}
                 onOpenLicenseModal={handleOpenLicenseModal}
-                isSaved={savedTracks.some(t => t.id === beat.id)}
+                isSaved={isFavorite(beat.id)}
                 onToggleSave={toggleSaveTrack}
                 onExport={handleExport}
+                onShare={handleShare}
+                onAddToPlaylist={handleAddToPlaylist}
               />
             ))}
           </div>
@@ -6766,16 +8318,18 @@ ${error.message}`;
         ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
             {displayedBeats.map(beat => (
-                <BeatCard 
-                    key={beat.id} 
-                    beat={beat} 
-                    isPlaying={currentTrack?.id === beat.id && isPlaying}
-                    onPlay={handlePlay}
-                    onOpenLicenseModal={handleOpenLicenseModal}
-                    isSaved={savedTracks.some(t => t.id === beat.id)}
-                    onToggleSave={toggleSaveTrack}
-                    onExport={handleExport}
-                />
+              <BeatCard 
+                key={beat.id} 
+                beat={beat} 
+                isPlaying={currentTrack?.id === beat.id && isPlaying}
+                onPlay={handlePlay}
+                onOpenLicenseModal={handleOpenLicenseModal}
+                isSaved={isFavorite(beat.id)}
+                onToggleSave={toggleSaveTrack}
+                onExport={handleExport}
+                onShare={handleShare}
+                onAddToPlaylist={handleAddToPlaylist}
+              />
             ))}
             </div>
         )}
@@ -6842,14 +8396,18 @@ ${error.message}`;
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
               {displayedBeats.map(beat => (
                   <div key={beat.id} className="relative group">
-                    <BeatCard 
-                        beat={beat} 
+                    <BeatCard
+                        beat={beat}
                         isPlaying={currentTrack?.id === beat.id && isPlaying}
                         onPlay={handlePlay}
                         onOpenLicenseModal={handleOpenLicenseModal}
-                        isSaved={savedTracks.some(t => t.id === beat.id)}
+                        isSaved={isFavorite(beat.id)}
                         onToggleSave={toggleSaveTrack}
                         onExport={handleExport}
+                        onShare={handleShare}
+                        onAddToPlaylist={handleAddToPlaylist}
+                        onOpenComments={handleOpenComments}
+                        averageRating={getAverageRating(String(beat.id))}
                     />
                     {user?.isAdmin && (
                       <button
@@ -6892,6 +8450,758 @@ ${error.message}`;
       </div>
       </>
   );
+
+  const renderPurchaseHistoryView = () => {
+    const { orders, isLoading, error, getDownloadUrl } = usePurchaseHistory();
+
+    if (!user) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+          <Receipt size={64} className="mx-auto mb-6 text-brand-green" />
+          <h2 className="text-3xl font-black text-white mb-4">Sign In to View Purchase History</h2>
+          <p className="text-brand-teal mb-8">Sign in to view your past purchases and download your tracks.</p>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      );
+    }
+
+    if (isLoading) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+          <div className="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-brand-teal">Loading purchase history...</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+          <p className="text-red-400 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="relative mb-12 bg-brand-black border-b border-brand-slate min-h-[300px] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="w-full h-full bg-gradient-to-br from-brand-green/20 to-brand-black"></div>
+          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+            <Receipt size={64} className="mx-auto mb-6 text-brand-green" />
+            <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">PURCHASE HISTORY</h1>
+            <p className="text-lg text-brand-teal">
+              {orders.length === 0 
+                ? "You haven't made any purchases yet."
+                : `${orders.length} ${orders.length === 1 ? 'order' : 'orders'} total`}
+            </p>
+          </div>
+        </div>
+
+        {orders.length === 0 ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+            <p className="text-brand-teal text-lg mb-8">No purchases yet. Start shopping to build your collection!</p>
+            <button
+              onClick={() => setActiveTab('store')}
+              className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+            >
+              Browse Store
+            </button>
+          </div>
+        ) : (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-24">
+            <div className="space-y-6">
+              {orders.map((order) => (
+                <div key={order.id} className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 pb-4 border-b border-brand-slate">
+                    <div>
+                      <h3 className="text-xl font-black text-white mb-1">Order #{order.id.slice(0, 8).toUpperCase()}</h3>
+                      <div className="flex items-center gap-4 text-sm text-brand-teal">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={14} />
+                          {new Date(order.created_at).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <CreditCard size={14} />
+                          {order.payment_method === 'stripe' ? 'Stripe' : order.payment_method === 'paypal' ? 'PayPal' : 'Payment'}
+                        </span>
+                        <span className="px-2 py-1 bg-brand-green/20 text-brand-green text-xs font-bold uppercase rounded">
+                          {order.payment_status}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 md:mt-0">
+                      <p className="text-2xl font-black text-white">${order.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="flex flex-col sm:flex-row gap-4 p-4 bg-brand-black/50 rounded-lg">
+                        {item.track && (
+                          <>
+                            <img 
+                              src={item.track.cover || 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200'} 
+                              alt={item.track.title}
+                              className="w-full sm:w-24 h-24 object-cover rounded"
+                            />
+                            <div className="flex-1">
+                              <h4 className="text-lg font-bold text-white mb-1">{item.track.title}</h4>
+                              <p className="text-sm text-brand-teal mb-2">{item.track.producer}</p>
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-brand-teal">
+                                <span>{item.track.bpm} BPM</span>
+                                <span>•</span>
+                                <span>{item.track.key}</span>
+                                <span>•</span>
+                                <span className="px-2 py-1 bg-brand-green/20 text-brand-green rounded uppercase font-bold">
+                                  {item.license_type || 'basic'} License
+                                </span>
+                                <span>•</span>
+                                <span>${item.price.toFixed(2)}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={async () => {
+                                  const url = await getDownloadUrl(item.track_id, item.license_type);
+                                  if (url) {
+                                    // Record download
+                                    if (item.track) {
+                                      const fileName = `${item.track.title}.mp3`;
+                                      await recordDownload(
+                                        item.track,
+                                        item.license_type as 'basic' | 'premium' | 'exclusive',
+                                        'audio',
+                                        url,
+                                        fileName
+                                      );
+                                    }
+                                    window.open(url, '_blank');
+                                  } else {
+                                    setToast({ message: 'Download URL not available', type: 'error' });
+                                    setTimeout(() => setToast(null), 3000);
+                                  }
+                                }}
+                                className="px-4 py-2 bg-brand-green text-white font-bold uppercase text-xs tracking-wider rounded hover:bg-brand-green/80 transition-colors flex items-center gap-2"
+                              >
+                                <Download size={14} />
+                                Download
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </>
+    );
+  };
+
+  const renderListeningHistoryView = () => {
+    if (!user) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+          <BarChart3 size={64} className="mx-auto mb-6 text-brand-green" />
+          <h2 className="text-3xl font-black text-white mb-4">Sign In to View Listening History</h2>
+          <p className="text-brand-teal mb-8">Sign in to track your listening history and get personalized recommendations.</p>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      );
+    }
+
+    const recentHistory = getRecentHistory(20);
+    const mostPlayed = getMostPlayedTracks(10);
+
+    return (
+      <>
+        <div className="relative mb-12 bg-brand-black border-b border-brand-slate min-h-[300px] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="w-full h-full bg-gradient-to-br from-purple-600/20 to-brand-black"></div>
+          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+            <BarChart3 size={64} className="mx-auto mb-6 text-brand-green" />
+            <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">LISTENING HISTORY</h1>
+            <p className="text-lg text-brand-teal">
+              {listeningStats.totalPlays === 0 
+                ? "Start listening to tracks to build your history!"
+                : `${listeningStats.totalPlays} plays • ${listeningStats.uniqueTracks} unique tracks`}
+            </p>
+          </div>
+        </div>
+
+        {listeningStats.totalPlays === 0 ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+            <p className="text-brand-teal text-lg mb-8">No listening history yet. Play some tracks to get started!</p>
+            <button
+              onClick={() => setActiveTab('store')}
+              className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+            >
+              Browse Store
+            </button>
+          </div>
+        ) : (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-24">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Music size={24} className="text-brand-green" />
+                  <h3 className="text-lg font-bold text-white">Total Plays</h3>
+                </div>
+                <p className="text-3xl font-black text-brand-green">{listeningStats.totalPlays}</p>
+              </div>
+              <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <TrendingUp size={24} className="text-brand-teal" />
+                  <h3 className="text-lg font-bold text-white">Unique Tracks</h3>
+                </div>
+                <p className="text-3xl font-black text-brand-teal">{listeningStats.uniqueTracks}</p>
+              </div>
+              <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Clock size={24} className="text-purple-400" />
+                  <h3 className="text-lg font-bold text-white">Total Time</h3>
+                </div>
+                <p className="text-3xl font-black text-purple-400">
+                  {Math.floor(listeningStats.totalDuration / 60)}m
+                </p>
+              </div>
+            </div>
+
+            {/* Most Played Tracks */}
+            {mostPlayed.length > 0 && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-2">
+                  <TrendingUp size={24} className="text-brand-green" />
+                  Most Played Tracks
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {mostPlayed.map(({ track, playCount }) => (
+                    <BeatCard 
+                      key={track.id} 
+                      beat={track} 
+                      isPlaying={currentTrack?.id === track.id && isPlaying}
+                      onPlay={handlePlay}
+                      onOpenLicenseModal={handleOpenLicenseModal}
+                      isSaved={isFavorite(track.id)}
+                      onToggleSave={toggleSaveTrack}
+                      onExport={handleExport}
+                      onShare={handleShare}
+                      onAddToPlaylist={handleAddToPlaylist}
+                      onOpenComments={handleOpenComments}
+                      averageRating={getAverageRating(String(track.id))}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recent History */}
+            <div>
+              <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-2">
+                <Clock size={24} className="text-brand-teal" />
+                Recent Listening
+              </h2>
+              <div className="space-y-3">
+                {recentHistory.map((item) => (
+                  <div 
+                    key={item.id}
+                    className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4 flex items-center gap-4 hover:bg-brand-slate/30 transition-colors cursor-pointer"
+                    onClick={() => {
+                      const track = beats.find(b => b.id.toString() === item.track_id);
+                      if (track) handlePlay(track);
+                    }}
+                  >
+                    <div className="w-12 h-12 bg-brand-black rounded flex items-center justify-center">
+                      <Music size={20} className="text-brand-teal" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-white">{item.track_title}</h4>
+                      <p className="text-sm text-brand-teal">
+                        {new Date(item.listened_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+      </>
+    );
+  };
+
+  const renderDownloadsView = () => {
+    if (!user) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+          <Download size={64} className="mx-auto mb-6 text-brand-green" />
+          <h2 className="text-3xl font-black text-white mb-4">Sign In to View Downloads</h2>
+          <p className="text-brand-teal mb-8">Sign in to view your download history and manage your files.</p>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      );
+    }
+
+    const recentDownloads = getRecentDownloads(20);
+    const formatFileSize = (bytes: number) => {
+      if (bytes === 0) return 'Unknown size';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    };
+
+    return (
+      <>
+        <div className="relative mb-12 bg-brand-black border-b border-brand-slate min-h-[300px] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="w-full h-full bg-gradient-to-br from-blue-600/20 to-brand-black"></div>
+          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+            <Download size={64} className="mx-auto mb-6 text-brand-green" />
+            <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">MY DOWNLOADS</h1>
+            <p className="text-lg text-brand-teal">
+              {downloadStats.totalDownloads === 0 
+                ? "No downloads yet. Purchase tracks to download them!"
+                : `${downloadStats.totalDownloads} downloads • ${downloadStats.uniqueTracks} tracks`}
+            </p>
+          </div>
+        </div>
+
+        {downloadStats.totalDownloads === 0 ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+            <p className="text-brand-teal text-lg mb-8">No downloads yet. Purchase tracks to download them!</p>
+            <button
+              onClick={() => setActiveTab('store')}
+              className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+            >
+              Browse Store
+            </button>
+          </div>
+        ) : (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-24">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Download size={24} className="text-brand-green" />
+                  <h3 className="text-lg font-bold text-white">Total Downloads</h3>
+                </div>
+                <p className="text-3xl font-black text-brand-green">{downloadStats.totalDownloads}</p>
+              </div>
+              <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Music size={24} className="text-brand-teal" />
+                  <h3 className="text-lg font-bold text-white">Unique Tracks</h3>
+                </div>
+                <p className="text-3xl font-black text-brand-teal">{downloadStats.uniqueTracks}</p>
+              </div>
+              <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Package size={24} className="text-blue-400" />
+                  <h3 className="text-lg font-bold text-white">Total Size</h3>
+                </div>
+                <p className="text-3xl font-black text-blue-400">
+                  {formatFileSize(downloadStats.totalSize)}
+                </p>
+              </div>
+            </div>
+
+            {/* Download History */}
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                <Clock size={24} className="text-brand-teal" />
+                Recent Downloads
+              </h2>
+              {downloadHistory.length > 0 && (
+                <button
+                  onClick={async () => {
+                    if (confirm('Clear all download history? This cannot be undone.')) {
+                      try {
+                        await clearDownloadHistory();
+                        setToast({ message: 'Download history cleared', type: 'success' });
+                        setTimeout(() => setToast(null), 3000);
+                      } catch (error) {
+                        setToast({ message: 'Failed to clear history', type: 'error' });
+                        setTimeout(() => setToast(null), 3000);
+                      }
+                    }
+                  }}
+                  className="px-4 py-2 text-sm text-red-400 hover:text-red-300 border border-red-400/30 hover:border-red-400 rounded transition-colors"
+                >
+                  Clear History
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {recentDownloads.map((download) => (
+                <div 
+                  key={download.id}
+                  className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4 hover:bg-brand-slate/30 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 bg-brand-black rounded flex items-center justify-center">
+                        {download.file_type === 'audio' ? (
+                          <FileAudio size={20} className="text-brand-teal" />
+                        ) : download.file_type === 'stems' ? (
+                          <Layers size={20} className="text-brand-green" />
+                        ) : (
+                          <FileText size={20} className="text-blue-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-white truncate">{download.track_title}</h4>
+                        <div className="flex items-center gap-3 text-sm text-brand-teal mt-1">
+                          <span className="capitalize">{download.file_type}</span>
+                          <span>•</span>
+                          <span className="capitalize">{download.license_type} License</span>
+                          {download.file_size && download.file_size > 0 && (
+                            <>
+                              <span>•</span>
+                              <span>{formatFileSize(download.file_size)}</span>
+                            </>
+                          )}
+                        </div>
+                        <p className="text-xs text-brand-teal/70 mt-1">
+                          {new Date(download.downloaded_at).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => window.open(download.file_url, '_blank')}
+                        className="px-4 py-2 bg-brand-green text-white font-bold uppercase text-xs tracking-wider rounded hover:bg-brand-green/80 transition-colors flex items-center gap-2"
+                        title="Download Again"
+                      >
+                        <Download size={14} />
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </>
+    );
+  };
+
+  const renderPlaylistsView = () => {
+    if (!user) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+          <Music size={64} className="mx-auto mb-6 text-brand-green" />
+          <h2 className="text-3xl font-black text-white mb-4">Sign In to Manage Playlists</h2>
+          <p className="text-brand-teal mb-8">Sign in to create and manage your playlists.</p>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="relative mb-12 bg-brand-black border-b border-brand-slate min-h-[300px] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="w-full h-full bg-gradient-to-br from-purple-600/20 to-brand-black"></div>
+          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+            <Music size={64} className="mx-auto mb-6 text-brand-green" />
+            <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">MY PLAYLISTS</h1>
+            <p className="text-lg text-brand-teal mb-6">
+              {playlists.length === 0 
+                ? "You don't have any playlists yet."
+                : `${playlists.length} ${playlists.length === 1 ? 'playlist' : 'playlists'}`}
+            </p>
+            <button
+              onClick={() => setIsCreatePlaylistModalOpen(true)}
+              className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors flex items-center gap-2 mx-auto"
+            >
+              <Plus size={20} />
+              Create Playlist
+            </button>
+          </div>
+        </div>
+
+        {playlists.length === 0 ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+            <p className="text-brand-teal text-lg mb-8">Create your first playlist to organize your favorite tracks!</p>
+            <button
+              onClick={() => setIsCreatePlaylistModalOpen(true)}
+              className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+            >
+              Create Playlist
+            </button>
+          </div>
+        ) : currentPlaylist ? (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-24">
+            <div className="mb-6 flex items-center gap-4">
+              <button
+                onClick={() => setCurrentPlaylist(null)}
+                className="p-2 text-brand-teal hover:text-white hover:bg-brand-slate/20 rounded transition-colors"
+                title="Back to Playlists"
+              >
+                <ChevronRight size={20} className="rotate-180" />
+              </button>
+              <div className="flex-1">
+                <h2 className="text-3xl font-black text-white mb-2">{currentPlaylist.name}</h2>
+                {currentPlaylist.description && (
+                  <p className="text-brand-teal">{currentPlaylist.description}</p>
+                )}
+                <p className="text-sm text-brand-teal mt-2">
+                  {playlistTracks.length} {playlistTracks.length === 1 ? 'track' : 'tracks'}
+                </p>
+              </div>
+              <button
+                onClick={async () => {
+                  setEditingPlaylist({
+                    id: currentPlaylist.id,
+                    name: currentPlaylist.name,
+                    description: currentPlaylist.description || ''
+                  });
+                  setNewPlaylistName(currentPlaylist.name);
+                  setNewPlaylistDescription(currentPlaylist.description || '');
+                  setIsCreatePlaylistModalOpen(true);
+                }}
+                className="px-4 py-2 border border-brand-slate text-white font-bold uppercase text-xs tracking-wider rounded hover:border-brand-green transition-colors flex items-center gap-2"
+                title="Edit Playlist"
+              >
+                <Edit3 size={16} />
+                Edit
+              </button>
+            </div>
+
+            {playlistTracks.length === 0 ? (
+              <div className="text-center py-24">
+                <Music size={64} className="mx-auto mb-6 text-brand-teal opacity-50" />
+                <p className="text-brand-teal text-lg mb-8">This playlist is empty. Add tracks from the store!</p>
+                <button
+                  onClick={() => setActiveTab('store')}
+                  className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+                >
+                  Browse Store
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {playlistTracks.map((track) => (
+                  <div key={track.id} className="relative">
+                    <BeatCard 
+                      beat={track} 
+                      isPlaying={currentTrack?.id === track.id && isPlaying}
+                      onPlay={handlePlay}
+                      onOpenLicenseModal={handleOpenLicenseModal}
+                      isSaved={isFavorite(track.id)}
+                      onToggleSave={toggleSaveTrack}
+                      onExport={handleExport}
+                      onShare={handleShare}
+                      onAddToPlaylist={handleAddToPlaylist}
+                    />
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await removeTrackFromPlaylist(currentPlaylist.id, String(track.id));
+                          setToast({ message: `"${track.title}" removed from playlist`, type: 'success' });
+                          setTimeout(() => setToast(null), 3000);
+                        } catch (error) {
+                          setToast({ message: 'Failed to remove track. Please try again.', type: 'error' });
+                          setTimeout(() => setToast(null), 3000);
+                        }
+                      }}
+                      className="absolute top-3 left-3 p-2 bg-red-500/90 text-white rounded-full hover:bg-red-500 transition-colors z-10"
+                      title="Remove from Playlist"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-24">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {playlists.map((playlist) => (
+                <div
+                  key={playlist.id}
+                  onClick={async () => {
+                    setCurrentPlaylist(playlist);
+                    await loadPlaylistTracks(playlist.id);
+                  }}
+                  className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6 cursor-pointer hover:border-brand-green transition-colors group"
+                >
+                  <div className="aspect-square bg-brand-black rounded-lg mb-4 flex items-center justify-center group-hover:bg-brand-green/10 transition-colors">
+                    <Music className="text-brand-teal group-hover:text-brand-green" size={48} />
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-1 truncate">{playlist.name}</h3>
+                  {playlist.description && (
+                    <p className="text-sm text-brand-teal line-clamp-2 mb-3">{playlist.description}</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-brand-teal">
+                      {playlist.isPublic ? 'Public' : 'Private'}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          setCurrentPlaylist(playlist);
+                          await loadPlaylistTracks(playlist.id);
+                        }}
+                        className="p-2 text-brand-teal hover:text-brand-green hover:bg-brand-green/10 rounded transition-colors"
+                        title="View Playlist"
+                      >
+                        <ListMusic size={16} />
+                      </button>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            await deletePlaylist(playlist.id);
+                            setToast({ message: `"${playlist.name}" deleted successfully`, type: 'success' });
+                            setTimeout(() => setToast(null), 3000);
+                          } catch (error) {
+                            setToast({ message: 'Failed to delete playlist. Please try again.', type: 'error' });
+                            setTimeout(() => setToast(null), 3000);
+                          }
+                        }}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/10 rounded transition-colors"
+                        title="Delete Playlist"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+      </>
+    );
+  };
+
+  const renderFavoritesView = () => {
+    if (!user) {
+      return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+          <Heart size={64} className="mx-auto mb-6 text-brand-green" />
+          <h2 className="text-3xl font-black text-white mb-4">Sign In to View Favorites</h2>
+          <p className="text-brand-teal mb-8">Create an account or sign in to save and view your favorite tracks.</p>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="relative mb-12 bg-brand-black border-b border-brand-slate min-h-[300px] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="w-full h-full bg-gradient-to-br from-brand-green/20 to-brand-black"></div>
+          </div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
+            <Heart size={64} className="mx-auto mb-6 text-brand-green" fill="currentColor" />
+            <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">MY FAVORITES</h1>
+            <p className="text-lg text-brand-teal">
+              {favorites.length === 0 
+                ? "You haven't saved any tracks yet. Start exploring!"
+                : `${favorites.length} ${favorites.length === 1 ? 'track' : 'tracks'} saved`}
+            </p>
+          </div>
+        </div>
+
+        {favorites.length === 0 ? (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
+            <p className="text-brand-teal text-lg mb-8">No favorites yet. Browse the store and click the heart icon to save tracks you love!</p>
+            <button
+              onClick={() => setActiveTab('store')}
+              className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
+            >
+              Browse Store
+            </button>
+          </div>
+        ) : (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-24">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {favorites.map((beat) => (
+              <BeatCard 
+                key={beat.id} 
+                beat={beat} 
+                isPlaying={currentTrack?.id === beat.id && isPlaying}
+                onPlay={handlePlay}
+                onOpenLicenseModal={handleOpenLicenseModal}
+                isSaved={isFavorite(beat.id)}
+                onToggleSave={toggleSaveTrack}
+                onExport={handleExport}
+                onShare={handleShare}
+                onAddToPlaylist={handleAddToPlaylist}
+                onOpenComments={handleOpenComments}
+                averageRating={getAverageRating(String(beat.id))}
+              />
+              ))}
+            </div>
+          </section>
+        )}
+      </>
+    );
+  };
 
   const renderLicensesView = () => (
     <>
@@ -7047,23 +9357,47 @@ ${error.message}`;
       {/* Navigation */}
       <nav className="sticky top-0 z-40 bg-brand-black/80 backdrop-blur-md border-b border-brand-slate">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+          {/* Test Tab - Only show in dev or with URL parameter */}
+          {(window.location.search.includes('test-phase4-6') || window.location.hash.includes('test-phase4-6')) && (
+            <div 
+              className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'test-phase4-6' ? 'bg-brand-green/20 text-brand-green' : 'text-zinc-400 hover:text-white'
+              }`}
+              onClick={() => setActiveTab('test-phase4-6')}
+            >
+              <Sparkles size={14} />
+              <span className="text-sm font-medium">Test Phase 4-6</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('store')}>
             <div className="w-10 h-10 bg-brand-green rounded flex items-center justify-center font-black text-white italic text-xl shadow-[0_0_15px_rgba(34,197,94,0.4)]">WH</div>
             <span className="font-black text-xl tracking-tighter hidden sm:block">WEEDHEADBEATS</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8">
-            {['store', 'collabs', 'licenses', 'blog'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`text-xs font-bold uppercase tracking-widest transition-colors ${
-                  activeTab === tab ? 'text-brand-green' : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
+            {['store', 'collabs', 'licenses', 'blog', 'favorites'].map((tab) => {
+              const tabLabels: Record<string, string> = {
+                listening: 'Listening',
+                store: 'Store',
+                collabs: 'Collabs',
+                licenses: 'Licenses',
+                blog: 'Blog',
+                favorites: 'Favorites'
+              };
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`text-xs font-bold uppercase tracking-widest transition-colors flex items-center gap-2 ${
+                    activeTab === tab ? 'text-brand-green' : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {tab === 'favorites' && <Heart size={14} fill={activeTab === tab ? 'currentColor' : 'none'} />}
+                  {tab === 'listening' && <BarChart3 size={14} />}
+                  {tabLabels[tab] || tab}
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex items-center gap-4">
@@ -7107,6 +9441,18 @@ ${error.message}`;
                              <LayoutDashboard size={14} /> Dashboard
                          </button>
                     )}
+                    <button onClick={() => { setActiveTab('playlists'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                        <Music size={14} /> My Playlists
+                    </button>
+                    <button onClick={() => { setActiveTab('purchases'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                        <Receipt size={14} /> Purchase History
+                    </button>
+                    <button onClick={() => { setActiveTab('downloads'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                        <Download size={14} /> My Downloads
+                    </button>
+                    <button onClick={handleOpenProfileModal} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                        <User size={14} /> Profile Settings
+                    </button>
                     <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-900/10 hover:text-red-300 flex items-center gap-2">
                         <LogOut size={14} /> Sign Out
                     </button>
@@ -7133,7 +9479,7 @@ ${error.message}`;
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-30 bg-brand-black/95 backdrop-blur-lg pt-24 px-6 md:hidden">
           <div className="flex flex-col gap-6 text-center">
-            {['store', 'collabs', 'licenses', 'blog'].map((tab) => (
+            {['store', 'collabs', 'licenses', 'blog', 'favorites', 'listening'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
@@ -7153,10 +9499,16 @@ ${error.message}`;
 
       {/* Main View Render */}
       <main>
+        {activeTab === 'test-phase4-6' && <Phase46TestPage />}
         {activeTab === 'store' && renderStoreView()}
         {activeTab === 'collabs' && renderCollabsView()}
         {activeTab === 'licenses' && renderLicensesView()}
         {activeTab === 'blog' && renderBlogView()}
+        {activeTab === 'favorites' && renderFavoritesView()}
+        {activeTab === 'listening' && renderListeningHistoryView()}
+        {activeTab === 'purchases' && renderPurchaseHistoryView()}
+        {activeTab === 'downloads' && renderDownloadsView()}
+        {activeTab === 'playlists' && renderPlaylistsView()}
         {activeTab === 'dashboard' && user?.isAdmin && renderDashboardView()}
         {activeTab === 'dashboard' && !user?.isAdmin && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
@@ -7195,6 +9547,16 @@ ${error.message}`;
         currentTrack={currentTrack}
         isPlaying={isPlaying}
         onPlayPause={() => setIsPlaying(!isPlaying)}
+        volume={volume}
+        onVolumeChange={handleVolumeChange}
+        onSkipPrevious={handleSkipPrevious}
+        onSkipNext={handleSkipNext}
+        isMuted={isMuted}
+        onMuteToggle={handleMuteToggle}
+        isShuffleOn={isShuffleOn}
+        onShuffleToggle={handleShuffleToggle}
+        repeatMode={repeatMode}
+        onRepeatToggle={handleRepeatToggle}
       />
 
       <CartDrawer 
@@ -7228,7 +9590,287 @@ ${error.message}`;
         }}
         track={selectedBeatForLicense!}
         onConfirm={handleConfirmLicense}
+        relatedTracks={selectedBeatForLicense ? getRelatedTracks(selectedBeatForLicense, 4) : []}
+        onPlay={handlePlay}
+        onOpenLicenseModal={handleOpenLicenseModal}
+        isFavorite={isFavorite}
+        onToggleSave={toggleSaveTrack}
       />
+
+      <ShareModal 
+        isOpen={isShareModalOpen} 
+        onClose={() => {
+          setIsShareModalOpen(false);
+          setSelectedTrackForShare(null);
+        }}
+        track={selectedTrackForShare}
+      />
+
+      <AddToPlaylistModal
+        isOpen={isAddToPlaylistModalOpen}
+        onClose={() => {
+          setIsAddToPlaylistModalOpen(false);
+          setSelectedTrackForPlaylist(null);
+        }}
+        track={selectedTrackForPlaylist}
+        playlists={playlists}
+        onCreateNew={() => setIsCreatePlaylistModalOpen(true)}
+        onAddToPlaylist={handleAddToExistingPlaylist}
+        isTrackInPlaylist={isTrackInPlaylist}
+      />
+
+      <CreatePlaylistModal
+        isOpen={isCreatePlaylistModalOpen}
+        onClose={() => {
+          setIsCreatePlaylistModalOpen(false);
+          setNewPlaylistName("");
+          setNewPlaylistDescription("");
+          setEditingPlaylist(null);
+        }}
+        onCreate={handleCreatePlaylist}
+        name={newPlaylistName}
+        setName={setNewPlaylistName}
+        description={newPlaylistDescription}
+        setDescription={setNewPlaylistDescription}
+        isEditing={!!editingPlaylist}
+      />
+
+      {/* Comments & Ratings Modal */}
+      {isCommentsModalOpen && selectedTrackForComments && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/90 backdrop-blur-md" onClick={() => setIsCommentsModalOpen(false)}>
+          <div className="bg-brand-black border border-brand-slate rounded-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-brand-slate flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Comments & Ratings</h2>
+                <p className="text-sm text-brand-teal mt-1">{selectedTrackForComments.title}</p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsCommentsModalOpen(false);
+                  setSelectedTrackForComments(null);
+                  setCommentText("");
+                  setCommentRating(null);
+                }}
+                className="text-brand-teal hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Rating Input */}
+              {user && (
+                <div className="mb-6 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
+                  <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Your Rating</label>
+                  <div className="flex items-center gap-2 mb-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onClick={() => setCommentRating(star)}
+                        className={`transition-colors ${
+                          commentRating !== null && star <= commentRating
+                            ? 'text-yellow-400'
+                            : 'text-zinc-600 hover:text-yellow-400'
+                        }`}
+                      >
+                        <Star size={24} fill={commentRating !== null && star <= commentRating ? 'currentColor' : 'none'} />
+                      </button>
+                    ))}
+                    {getUserRating(String(selectedTrackForComments.id)) && (
+                      <span className="text-sm text-brand-teal ml-2">
+                        (Current: {getUserRating(String(selectedTrackForComments.id))}/5)
+                      </span>
+                    )}
+                  </div>
+                  
+                  <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Your Comment</label>
+                  <textarea
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Share your thoughts about this track..."
+                    className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green resize-none"
+                    rows={3}
+                  />
+                  
+                  <button
+                    onClick={handleSubmitComment}
+                    disabled={!commentText.trim()}
+                    className="mt-4 w-full px-4 py-3 bg-brand-green text-white font-bold uppercase text-sm tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {getUserComment(String(selectedTrackForComments.id)) ? 'Update Comment' : 'Post Comment'}
+                  </button>
+                </div>
+              )}
+
+              {/* Average Rating Display */}
+              {getAverageRating(String(selectedTrackForComments.id)) > 0 && (
+                <div className="mb-6 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <Star size={20} className="text-yellow-400 fill-yellow-400" />
+                      <span className="text-2xl font-black text-white">{getAverageRating(String(selectedTrackForComments.id)).toFixed(1)}</span>
+                    </div>
+                    <span className="text-sm text-brand-teal">
+                      ({getCommentsForTrack(String(selectedTrackForComments.id)).filter(c => (c as any).rating).length} ratings)
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Comments List */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold text-white mb-4">
+                  Comments ({getCommentsForTrack(String(selectedTrackForComments.id)).length})
+                </h3>
+                
+                {getCommentsForTrack(String(selectedTrackForComments.id)).length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare size={48} className="mx-auto mb-4 text-brand-teal opacity-50" />
+                    <p className="text-brand-teal">No comments yet. Be the first to share your thoughts!</p>
+                  </div>
+                ) : (
+                  getCommentsForTrack(String(selectedTrackForComments.id)).map((comment) => {
+                    const commentAny = comment as any;
+                    return (
+                      <div key={commentAny.id} className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-brand-black flex items-center justify-center">
+                            <User size={16} className="text-brand-teal" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-white text-sm">{commentAny.user_name || 'Anonymous'}</p>
+                            <p className="text-xs text-brand-teal">
+                              {new Date(commentAny.createdAt || commentAny.created_at || '').toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        {commentAny.rating && (
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star 
+                                key={star} 
+                                size={12} 
+                                className={star <= commentAny.rating ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'} 
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-white text-sm">{commentAny.comment}</p>
+                      {user && (commentAny.userId || commentAny.user_id) === user.id && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await deleteComment(commentAny.id);
+                                setToast({ message: 'Comment deleted', type: 'success' });
+                                setTimeout(() => setToast(null), 3000);
+                              } catch (error) {
+                                setToast({ message: 'Failed to delete comment', type: 'error' });
+                                setTimeout(() => setToast(null), 3000);
+                              }
+                            }}
+                            className="text-xs text-red-400 hover:text-red-300"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Edit Modal */}
+      {isProfileModalOpen && user && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-brand-black/90 backdrop-blur-md" onClick={() => setIsProfileModalOpen(false)}>
+          <div className="bg-brand-black border border-brand-slate rounded-xl max-w-md w-full" onClick={e => e.stopPropagation()}>
+            <div className="p-6 border-b border-brand-slate flex justify-between items-center">
+              <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Edit Profile</h2>
+              <button
+                onClick={() => setIsProfileModalOpen(false)}
+                className="text-brand-teal hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Avatar URL</label>
+                <div className="flex items-center gap-4 mb-4">
+                  {profileAvatar && (
+                    <img 
+                      src={profileAvatar} 
+                      alt="Avatar preview" 
+                      className="w-16 h-16 rounded-full border border-brand-slate object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileEmail}`;
+                      }}
+                    />
+                  )}
+                  <input
+                    type="text"
+                    value={profileAvatar}
+                    onChange={(e) => setProfileAvatar(e.target.value)}
+                    placeholder="https://example.com/avatar.jpg"
+                    className="flex-1 px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green"
+                  />
+                </div>
+                <p className="text-xs text-brand-teal/70">Leave empty to use auto-generated avatar</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Name</label>
+                <input
+                  type="text"
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder="Your name"
+                  className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Email</label>
+                <input
+                  type="email"
+                  value={profileEmail}
+                  onChange={(e) => setProfileEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-brand-slate flex gap-3">
+              <button
+                onClick={() => setIsProfileModalOpen(false)}
+                className="flex-1 px-4 py-3 border border-brand-slate text-white font-bold uppercase text-sm tracking-wider rounded hover:border-brand-teal transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={!profileName.trim() || !profileEmail.trim()}
+                className="flex-1 px-4 py-3 bg-brand-green text-white font-bold uppercase text-sm tracking-wider rounded hover:bg-brand-green/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {isProductModalOpen && selectedProduct && (
         <ProductModal 
@@ -7260,6 +9902,28 @@ ${error.message}`;
         onClose={() => setIsExportModalOpen(false)}
         track={exportTrack!}
       />
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-[100] px-6 py-4 rounded-lg shadow-2xl border-2 flex items-center gap-3 animate-slide-in-right ${
+          toast.type === 'success' 
+            ? 'bg-brand-green/90 border-brand-green text-white' 
+            : toast.type === 'error'
+            ? 'bg-red-500/90 border-red-500 text-white'
+            : 'bg-brand-teal/90 border-brand-teal text-white'
+        }`}>
+          {toast.type === 'success' && <CheckCircle size={20} />}
+          {toast.type === 'error' && <X size={20} />}
+          {toast.type === 'info' && <Info size={20} />}
+          <span className="font-bold text-sm">{toast.message}</span>
+          <button 
+            onClick={() => setToast(null)}
+            className="ml-2 hover:opacity-70 transition-opacity"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Audio Element */}
       <audio
