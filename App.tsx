@@ -265,15 +265,30 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                 });
                 if (error) {
                     console.error('Login error:', error);
+                    console.error('Error details:', {
+                        message: error.message,
+                        status: error.status,
+                        code: (error as any)?.code,
+                        details: (error as any)?.details,
+                        hint: (error as any)?.hint
+                    });
                     // Check if it's an authentication error (invalid anon key)
-                    if (error.message?.includes('Invalid authentication credentials') || error.status === 401) {
-                        throw new Error('Authentication service error. Please check Supabase configuration. If you are the admin, update VITE_SUPABASE_ANON_KEY in Coolify.');
+                    if (error.message?.includes('Invalid authentication credentials') || 
+                        error.message?.includes('JWT') || 
+                        error.message?.includes('Unauthorized') ||
+                        error.status === 401) {
+                        throw new Error('Authentication service error. The Supabase anon key may be invalid. Please check the Debug DB tab in Admin Dashboard or contact support.');
                     }
                     // Check if it's a user/password error
-                    if (error.message?.includes('Invalid login credentials') || error.message?.includes('email') || error.message?.includes('password')) {
-                        throw new Error('Invalid email or password. Please check your credentials.');
+                    if (error.message?.includes('Invalid login credentials') || 
+                        error.message?.includes('Invalid email') ||
+                        error.message?.includes('Invalid password') ||
+                        error.message?.includes('email') || 
+                        error.message?.includes('password')) {
+                        throw new Error('Invalid email or password. Please check your credentials and try again.');
                     }
-                    throw error;
+                    // Generic error
+                    throw new Error(error.message || 'Login failed. Please try again.');
                 }
                 
                 // After successful login, fetch user profile and call onLogin
