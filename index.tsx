@@ -1,6 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+// import './index.css'; // Commented out - using Tailwind CDN
 import App from './App';
+import { FavoritesProvider } from './context/FavoritesContext';
+import { PurchaseHistoryProvider } from './context/PurchaseHistoryContext';
+import { ListeningHistoryProvider } from './context/ListeningHistoryContext';
+import { DownloadHistoryProvider } from './context/DownloadHistoryContext';
+import { CommentsProvider } from './context/CommentsContext';
+import { PlaylistProvider } from './context/PlaylistContext';
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
@@ -96,7 +103,19 @@ if (!rootElement) {
     root.render(
       <React.StrictMode>
         <ErrorBoundary>
-          <App />
+          <FavoritesProvider>
+            <PurchaseHistoryProvider>
+              <ListeningHistoryProvider>
+                <DownloadHistoryProvider>
+                  <CommentsProvider>
+                    <PlaylistProvider>
+                      <App />
+                    </PlaylistProvider>
+                  </CommentsProvider>
+                </DownloadHistoryProvider>
+              </ListeningHistoryProvider>
+            </PurchaseHistoryProvider>
+          </FavoritesProvider>
         </ErrorBoundary>
       </React.StrictMode>
     );

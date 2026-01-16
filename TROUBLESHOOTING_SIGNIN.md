@@ -253,3 +253,4 @@ I've also fixed the `supabaseClient.ts` file to properly read environment variab
 **Next step:** Redeploy your app in Coolify after the fix is pushed to GitHub!
 
 
+

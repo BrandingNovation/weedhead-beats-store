@@ -235,3 +235,4 @@ CREATE POLICY "Users can insert own profile"
 **Run the "Quick All-in-One Fix" SQL above, then sign out and back in!** 🚀
 
 
+

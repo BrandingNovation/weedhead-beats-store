@@ -75,3 +75,4 @@ Examples:
 **After adding these and restarting Supabase, verification emails will work!** 📧
 
 
+

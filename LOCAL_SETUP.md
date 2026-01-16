@@ -119,3 +119,4 @@ VITE_PAYPAL_CLIENT_ID=your_paypal_id
 **After setting up `.env` and restarting, your app should work!** 🚀
 
 
+

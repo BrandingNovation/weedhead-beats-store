@@ -47,3 +47,4 @@ After filling in `.env` and restarting, the errors will be gone!
 ENVEOF
 
 
+

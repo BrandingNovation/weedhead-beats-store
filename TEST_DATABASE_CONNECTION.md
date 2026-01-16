@@ -165,3 +165,4 @@ cat .env | grep VITE_SUPABASE
 Want me to help you test it? Share what you see in the browser console when you try to sign in!
 
 
+

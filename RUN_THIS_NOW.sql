@@ -27,3 +27,4 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 -- ✅ Done! Now sign out and sign back in to your app.
 
 
+

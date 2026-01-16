@@ -4,7 +4,8 @@ import {
   Pause, 
   ShoppingBag, 
   X, 
-  ChevronRight, 
+  ChevronRight,
+  ChevronLeft, 
   Music2, 
   Check, 
   TrendingUp, 
@@ -65,7 +66,9 @@ import {
   Shuffle,
   Repeat,
   Clock,
-  Star
+  Star,
+  Gauge,
+  Send
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Chat } from '@google/genai';
@@ -81,6 +84,8 @@ import { TrackUploaderWithDatabase } from './components/TrackUploaderWithDatabas
 import AdminAnalytics from './components/AdminAnalytics';
 import AdminUserManagement from './components/AdminUserManagement';
 import Phase46TestPage from './components/Phase4-6TestPage';
+import AdvancedSearch from './components/AdvancedSearch';
+import Recommendations from './components/Recommendations';
 import { supabase } from './lib/supabaseClient';
 import { createChatSession, sendMessageStream, generateBlogImage, generateSEOContent } from './services/geminiService';
 import { AppConfig, GeminiModel, Message, Role, Attachment, GroundingSource, Track, BlogPost, ProductCategory, License, SiteContent, PageConfig, UserProfile } from './types';
@@ -257,7 +262,79 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                     email,
                     password,
                 });
-                if (error) throw error;
+                if (error) {
+                    console.error('Login error:', error);
+                    // Check if it's an authentication error (invalid anon key)
+                    if (error.message?.includes('Invalid authentication credentials') || error.status === 401) {
+                        throw new Error('Authentication service error. Please check Supabase configuration. If you are the admin, update VITE_SUPABASE_ANON_KEY in Coolify.');
+                    }
+                    // Check if it's a user/password error
+                    if (error.message?.includes('Invalid login credentials') || error.message?.includes('email') || error.message?.includes('password')) {
+                        throw new Error('Invalid email or password. Please check your credentials.');
+                    }
+                    throw error;
+                }
+                
+                // After successful login, fetch user profile and call onLogin
+                if (data.user && data.session) {
+                    // Fetch profile from database
+                    const { data: profileData, error: profileError } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', data.user.id)
+                        .single();
+                    
+                    // If profile doesn't exist, create it
+                    if (profileError && (profileError.code === 'PGRST116' || profileError.message?.includes('No rows'))) {
+                        const isAdminUser = data.user.email?.toLowerCase().includes('admin');
+                        const { data: newProfile } = await supabase.from('profiles').insert([{
+                            id: data.user.id,
+                            email: data.user.email!,
+                            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+                            avatar_url: data.user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.email}`,
+                            is_admin: isAdminUser,
+                            is_pro: true,
+                            updated_at: new Date().toISOString()
+                        }]).select().single();
+                        
+                        const userProfile: UserProfile = {
+                            id: data.user.id,
+                            email: data.user.email!,
+                            name: newProfile?.name || data.user.email?.split('@')[0] || 'User',
+                            avatar: newProfile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.email}`,
+                            isPro: newProfile?.is_pro ?? true,
+                            isAdmin: newProfile?.is_admin ?? isAdminUser,
+                            orders: 0
+                        };
+                        onLogin(userProfile);
+                    } else if (profileData) {
+                        // Profile exists, use it
+                        const isAdminUser = data.user.email?.toLowerCase().includes('admin');
+                        const userProfile: UserProfile = {
+                            id: data.user.id,
+                            email: data.user.email!,
+                            name: profileData.name || data.user.email?.split('@')[0] || 'User',
+                            avatar: profileData.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.email}`,
+                            isPro: profileData.is_pro ?? true,
+                            isAdmin: profileData.is_admin ?? isAdminUser,
+                            orders: 0
+                        };
+                        onLogin(userProfile);
+                    } else {
+                        // Fallback if profile fetch fails
+                        const isAdminUser = data.user.email?.toLowerCase().includes('admin');
+                        const userProfile: UserProfile = {
+                            id: data.user.id,
+                            email: data.user.email!,
+                            name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+                            avatar: data.user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.user.email}`,
+                            isPro: true,
+                            isAdmin: isAdminUser,
+                            orders: 0
+                        };
+                        onLogin(userProfile);
+                    }
+                }
             } else {
                 // Supabase Signup
                 const { data, error } = await supabase.auth.signUp({
@@ -281,15 +358,29 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                 }
                 
                 // Manual profile insertion if signup successful to ensure data exists
-                if (data.user) {
-                    await supabase.from('profiles').insert([{
+                if (data.user && data.session) {
+                    // Only create profile if we have a session (no email confirmation needed)
+                    const { data: profileData } = await supabase.from('profiles').insert([{
                         id: data.user.id,
                         email: email,
                         name: name || email.split('@')[0],
                         avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
                         is_admin: email.toLowerCase().includes('admin'),
                         updated_at: new Date()
-                    }]).select();
+                    }]).select().single();
+                    
+                    // Call onLogin with the new user profile
+                    const isAdminUser = email.toLowerCase().includes('admin');
+                    const userProfile: UserProfile = {
+                        id: data.user.id,
+                        email: email,
+                        name: profileData?.name || name || email.split('@')[0],
+                        avatar: profileData?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+                        isPro: profileData?.is_pro ?? true,
+                        isAdmin: profileData?.is_admin ?? isAdminUser,
+                        orders: 0
+                    };
+                    onLogin(userProfile);
                 }
             }
             onClose();
@@ -316,14 +407,27 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
             
             if (data.user) {
                 // Create profile after verification
-                await supabase.from('profiles').insert([{
+                const { data: profileData } = await supabase.from('profiles').insert([{
                     id: data.user.id,
                     email: email,
                     name: name || email.split('@')[0],
                     avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
                     is_admin: email.toLowerCase().includes('admin'),
                     updated_at: new Date()
-                }]).select();
+                }]).select().single();
+                
+                // Call onLogin with the verified user profile
+                const isAdminUser = email.toLowerCase().includes('admin');
+                const userProfile: UserProfile = {
+                    id: data.user.id,
+                    email: email,
+                    name: profileData?.name || name || email.split('@')[0],
+                    avatar: profileData?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+                    isPro: profileData?.is_pro ?? true,
+                    isAdmin: profileData?.is_admin ?? isAdminUser,
+                    orders: 0
+                };
+                onLogin(userProfile);
                 
                 setNeedsVerification(false);
                 onClose();
@@ -2418,9 +2522,10 @@ const NewsletterForm = () => {
                             });
 
                             if (emailError) {
-                                console.warn('Welcome email not sent (Edge Function may not be deployed):', emailError);
+                                console.warn('⚠️ Welcome email not sent via Edge Function:', emailError);
+                                console.warn('💡 Check: 1) Edge Function "send-email" is deployed, 2) Zoho SMTP settings are configured');
                             } else {
-                                console.log('✅ Welcome email sent successfully');
+                                console.log('✅ Welcome email sent successfully via Edge Function');
                             }
                         }
                     }
@@ -2604,6 +2709,11 @@ const App = () => {
       setActiveTab('test-phase4-6');
     }
   }, []);
+
+  // Scroll to top when tab changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeTab]);
   // Add test tab for Phase 4-6 features (remove in production)
   const isDevMode = window.location.search.includes('test-phase4-6') || window.location.hash.includes('test-phase4-6'); 
   const [storeSection, setStoreSection] = useState<'beat' | 'sample_pack' | 'album' | 'merch' | 'all'>('beat');
@@ -2625,6 +2735,7 @@ const App = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   
   // Auth State
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -2894,6 +3005,10 @@ const App = () => {
   const [exportTrack, setExportTrack] = useState<Track | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cart, setCart] = useState<Track[]>([]);
+  
+  // Contact form state
+  const [contactFormData, setContactFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [contactFormStatus, setContactFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const { playlists, currentPlaylist, createPlaylist, addTrackToPlaylist, deletePlaylist, setCurrentPlaylist, loadPlaylistTracks, playlistTracks, isTrackInPlaylist, removeTrackFromPlaylist, updatePlaylist } = usePlaylist();
   const { addListeningEvent, history: listeningHistory, stats: listeningStats, getRecentHistory, getMostPlayedTracks } = useListeningHistory();
@@ -2902,6 +3017,7 @@ const App = () => {
   const [showQueue, setShowQueue] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
   const [audioQueue, setAudioQueue] = useState<Track[]>([]);
   const [shuffledQueue, setShuffledQueue] = useState<Track[]>([]);
   const [isShuffleOn, setIsShuffleOn] = useState(false);
@@ -3173,9 +3289,28 @@ Message: ${error.message}`;
               console.error('Error details:', error.details);
               console.error('Error hint:', error.hint);
               
+              // Check for authentication errors
+              if (error.code === 'PGRST301' || error.message?.includes('Invalid authentication credentials') || error.message?.includes('401')) {
+                console.error('');
+                console.error('🔴 AUTHENTICATION ERROR DETECTED!');
+                console.error('   Your Supabase anon key is invalid or expired.');
+                console.error('');
+                console.error('🔧 To fix this:');
+                console.error('   1. Go to https://supabase.com/dashboard');
+                console.error('   2. Select your project');
+                console.error('   3. Go to Settings → API');
+                console.error('   4. Copy the "anon" or "public" key (NOT service_role)');
+                console.error('   5. Go to Coolify → Your App → Environment Variables');
+                console.error('   6. Update VITE_SUPABASE_ANON_KEY with the new key');
+                console.error('   7. Make sure "Available at Buildtime & Runtime" is checked');
+                console.error('   8. Redeploy your application');
+                console.error('');
+                console.error('   Current URL:', import.meta.env.VITE_SUPABASE_URL || 'NOT SET');
+                console.error('   Current Key:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set (but invalid)' : 'NOT SET');
+              }
+              
               // For local testing: use INITIAL_BEATS as fallback when Supabase auth fails
               console.warn('⚠️ Using INITIAL_BEATS as fallback for local testing');
-              console.log('💡 To fix: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local');
               setBeats(INITIAL_BEATS);
               setTracksLoaded(true);
               return;
@@ -3271,6 +3406,11 @@ Message: ${error.message}`;
     lastErrorUrlRef.current = null;
     errorCountRef.current = 0;
     
+    // Apply playback rate to audio element
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
+    }
+    
     if (currentTrack && audioRef.current) {
         // Only set src if it's a valid HTTP/HTTPS URL (avoid blob URLs which can become invalid)
         if (currentTrack.audio && (currentTrack.audio.startsWith('http://') || currentTrack.audio.startsWith('https://'))) {
@@ -3289,10 +3429,12 @@ Message: ${error.message}`;
                 const trackUrl = new URL(currentTrack.audio).href;
                 if (fullUrl !== trackUrl) {
                   audioRef.current.src = currentTrack.audio;
+                  audioRef.current.playbackRate = playbackRate;
                   audioRef.current.load();
                   // Wait for audio to be ready before allowing play
                   audioRef.current.addEventListener('canplay', () => {
                     if (isPlaying && audioRef.current) {
+                      audioRef.current.playbackRate = playbackRate;
                       audioRef.current.play().catch(() => {
                         setIsPlaying(false);
                       });
@@ -3900,6 +4042,13 @@ Message: ${error.message}`;
     audio.addEventListener('ended', handleEnded);
     return () => audio.removeEventListener('ended', handleEnded);
   }, [repeatMode, currentTrack, isShuffleOn, shuffledQueue, audioQueue, addListeningEvent]);
+
+  const handlePlaybackRateChange = (rate: number) => {
+    setPlaybackRate(rate);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = rate;
+    }
+  };
 
   const handleVolumeChange = (newVolume: number) => {
     setVolume(newVolume);
@@ -8085,168 +8234,77 @@ ${error.message}`;
          </div>
       </section>
 
-      {/* Search & Advanced Filters */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-8">
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          {/* Search Bar */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-brand-teal" size={20} />
-            <input
-              type="text"
-              placeholder="Search tracks, artists, keys, tags..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-10 py-3 bg-brand-black border border-brand-slate text-white placeholder:text-brand-teal/50 focus:outline-none focus:border-brand-green transition-colors"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-brand-teal hover:text-white transition-colors"
-              >
-                <X size={18} />
-              </button>
-            )}
-          </div>
-          
-          {/* Sort & Filter Controls */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Sort Dropdown */}
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
-                className="appearance-none pl-4 pr-10 py-3 bg-brand-black border border-brand-slate text-white text-sm font-bold uppercase tracking-wider focus:outline-none focus:border-brand-green transition-colors cursor-pointer"
-              >
-                <option value="newest">Newest First</option>
-                <option value="price-low">Price: Low to High</option>
-                <option value="price-high">Price: High to Low</option>
-                <option value="bpm-low">BPM: Low to High</option>
-                <option value="bpm-high">BPM: High to Low</option>
-                <option value="popularity">Most Popular</option>
-              </select>
-              <ArrowUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-teal pointer-events-none" size={16} />
-            </div>
-            
-            {/* Advanced Filters Toggle */}
-            <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={`px-4 py-3 border text-sm font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${
-                showAdvancedFilters
-                  ? 'bg-brand-green text-black border-brand-green'
-                  : 'bg-brand-black border-brand-slate text-brand-teal hover:border-brand-teal hover:text-white'
-              }`}
+      {/* Search & Sort Controls - Minimal */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-6">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setIsSearchModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-transparent border border-white/10 rounded-lg hover:bg-white/5 transition-colors text-brand-teal hover:text-white"
+          >
+            <Search size={18} />
+            <span className="text-sm font-medium">Search & Filter</span>
+          </button>
+          <div className="relative">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="sort-dropdown appearance-none pl-4 pr-10 py-2 bg-transparent border border-white/10 rounded-lg text-white text-sm font-medium focus:outline-none focus:border-brand-green transition-colors cursor-pointer"
+              style={{ colorScheme: 'dark', color: '#ffffff' }}
             >
-              <SlidersHorizontal size={16} />
-              Filters
-            </button>
+              <option value="newest" style={{ background: '#000', color: '#fff' }}>Newest First</option>
+              <option value="price-low" style={{ background: '#000', color: '#fff' }}>Price: Low to High</option>
+              <option value="price-high" style={{ background: '#000', color: '#fff' }}>Price: High to Low</option>
+              <option value="bpm-low" style={{ background: '#000', color: '#fff' }}>BPM: Low to High</option>
+              <option value="bpm-high" style={{ background: '#000', color: '#fff' }}>BPM: High to Low</option>
+              <option value="popularity" style={{ background: '#000', color: '#fff' }}>Most Popular</option>
+            </select>
+            <ArrowUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-teal pointer-events-none" size={14} />
           </div>
         </div>
-        
-        {/* Advanced Filters Panel */}
-        {showAdvancedFilters && (
-          <div className="bg-brand-slate/20 border border-brand-slate p-6 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* BPM Range */}
-              <div>
-                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
-                  BPM Range: {bpmRange[0]} - {bpmRange[1]}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="200"
-                    value={bpmRange[0]}
-                    onChange={(e) => setBpmRange([parseInt(e.target.value) || 0, bpmRange[1]])}
-                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
-                    placeholder="Min"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    max="200"
-                    value={bpmRange[1]}
-                    onChange={(e) => setBpmRange([bpmRange[0], parseInt(e.target.value) || 200])}
-                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
-                    placeholder="Max"
-                  />
+      </section>
+
+      {/* Search Modal */}
+      {isSearchModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsSearchModalOpen(false);
+          }}
+        >
+          <div className="bg-brand-black border border-brand-slate rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-brand-slate">
+              <h2 className="text-xl font-bold text-white">Search & Filter</h2>
+              {currentTrack && (
+                <div className="flex items-center gap-3 text-sm">
+                  <img src={currentTrack.cover} alt={currentTrack.title} className="w-12 h-12 rounded object-cover" />
+                  <div>
+                    <div className="text-white font-medium">{currentTrack.title}</div>
+                    <div className="text-brand-teal text-xs">{currentTrack.producer}</div>
+                  </div>
                 </div>
-              </div>
-              
-              {/* Key Filter */}
-              <div>
-                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
-                  Key
-                </label>
-                <select
-                  value={selectedKey}
-                  onChange={(e) => setSelectedKey(e.target.value)}
-                  className="w-full px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
-                >
-                  <option value="">All Keys</option>
-                  <option value="C">C</option>
-                  <option value="C#">C#</option>
-                  <option value="D">D</option>
-                  <option value="D#">D#</option>
-                  <option value="E">E</option>
-                  <option value="F">F</option>
-                  <option value="F#">F#</option>
-                  <option value="G">G</option>
-                  <option value="G#">G#</option>
-                  <option value="A">A</option>
-                  <option value="A#">A#</option>
-                  <option value="B">B</option>
-                </select>
-              </div>
-              
-              {/* Price Range */}
-              <div>
-                <label className="block text-sm font-bold text-white mb-2 uppercase tracking-wider">
-                  Price Range: ${priceRange[0]} - ${priceRange[1]}
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    max="500"
-                    value={priceRange[0]}
-                    onChange={(e) => setPriceRange([parseFloat(e.target.value) || 0, priceRange[1]])}
-                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
-                    placeholder="Min"
-                  />
-                  <input
-                    type="number"
-                    min="0"
-                    max="500"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseFloat(e.target.value) || 500])}
-                    className="flex-1 px-3 py-2 bg-brand-black border border-brand-slate text-white focus:outline-none focus:border-brand-green"
-                    placeholder="Max"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            {/* Clear Filters Button */}
-            <div className="mt-4 flex justify-end">
+              )}
               <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setBpmRange([0, 200]);
-                  setSelectedKey("");
-                  setPriceRange([0, 500]);
-                  setSortBy('newest');
-                  setActiveFilter("All");
-                }}
-                className="px-4 py-2 text-sm font-bold uppercase tracking-wider text-brand-teal hover:text-white transition-colors flex items-center gap-2"
+                onClick={() => setIsSearchModalOpen(false)}
+                className="p-2 hover:bg-brand-slate/20 rounded-lg transition-colors"
               >
-                <X size={14} />
-                Clear All Filters
+                <X size={20} className="text-brand-teal" />
               </button>
             </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <AdvancedSearch
+                tracks={beats}
+                onSearch={(results) => {
+                  // Update displayed beats when search results change
+                }}
+                onSelectTrack={(track) => {
+                  handlePlay(track);
+                  setIsSearchModalOpen(false);
+                }}
+              />
+            </div>
           </div>
-        )}
-      </section>
+        </div>
+      )}
 
       {/* Mood Filters */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-12">
@@ -8278,29 +8336,22 @@ ${error.message}`;
         </div>
       </section>
 
-      {/* Recommendations Section */}
-      {recommendedTracks.length > 0 && storeSection !== 'merch' && (
+      {/* Recommendations Section - Enhanced with AI Recommendations */}
+      {storeSection !== 'merch' && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-12">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-            <TrendingUp className="text-brand-green" /> 
-            Recommended For You
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
-            {recommendedTracks.map(beat => (
-              <BeatCard 
-                key={beat.id} 
-                beat={beat} 
-                isPlaying={currentTrack?.id === beat.id && isPlaying}
-                onPlay={handlePlay}
-                onOpenLicenseModal={handleOpenLicenseModal}
-                isSaved={isFavorite(beat.id)}
-                onToggleSave={toggleSaveTrack}
-                onExport={handleExport}
-                onShare={handleShare}
-                onAddToPlaylist={handleAddToPlaylist}
-              />
-            ))}
-          </div>
+          <Recommendations
+            tracks={beats}
+            listeningHistory={listeningHistory.map(item => ({
+              trackId: item.track_id,
+              playedAt: item.listened_at,
+              playCount: 1, // Default play count
+              completed: true // Assume completed if in history
+            }))}
+            currentTrack={currentTrack || undefined}
+            onSelectTrack={(track) => {
+              handlePlay(track);
+            }}
+          />
         </section>
       )}
 
@@ -8333,6 +8384,15 @@ ${error.message}`;
             ))}
             </div>
         )}
+      </section>
+
+      {/* Newsletter Section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-12 mt-16">
+        <div className="bg-brand-slate/20 border border-brand-slate rounded-xl p-8">
+          <h2 className="text-2xl font-bold text-white mb-4">Stay Updated</h2>
+          <p className="text-brand-teal mb-6">Get the latest beats and exclusive offers</p>
+          <NewsletterForm />
+        </div>
       </section>
     </>
   );
@@ -9346,9 +9406,177 @@ ${error.message}`;
         
         <div className="mt-20">
            <NewsletterForm />
+      </div>
+    </div>
+    </>
+  );
+
+  const renderHelpCenterView = () => (
+    <div className="min-h-screen bg-brand-black text-white p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-12">
+          <HelpCircle className="w-16 h-16 text-brand-green mx-auto mb-4" />
+          <h1 className="text-4xl font-black text-white mb-4">Help Center</h1>
+          <p className="text-brand-teal">Find answers to common questions</p>
+        </div>
+        <div className="space-y-6 mb-12">
+          {[
+            { q: "How do I purchase a beat?", a: "Browse our store, click on a beat you like, and select your license type. Complete the checkout process to download your beat." },
+            { q: "What license types are available?", a: "We offer Basic, Premium, and Exclusive licenses. Each comes with different usage rights and stem files." },
+            { q: "Can I preview beats before buying?", a: "Yes! All beats have preview audio. Click the play button on any beat card to listen." },
+            { q: "How do I download my purchased beats?", a: "After purchase, go to your Downloads tab to access all your purchased beats and stems." },
+            { q: "What payment methods do you accept?", a: "We accept credit cards via Stripe and PayPal for secure payments." },
+            { q: "Can I get a refund?", a: "Due to the digital nature of our products, refunds are handled on a case-by-case basis. Contact support for assistance." }
+          ].map((faq, i) => (
+            <div key={i} className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
+              <h3 className="text-lg font-bold text-white mb-2">{faq.q}</h3>
+              <p className="text-brand-teal">{faq.a}</p>
+            </div>
+          ))}
+        </div>
+        <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Still need help?</h2>
+          <p className="text-brand-teal mb-6">Contact our support team</p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button onClick={() => setActiveTab('contact')} className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-green hover:bg-brand-green/80 text-white rounded-lg transition-colors">
+              <Mail size={18} />
+              Email Support
+            </button>
+          </div>
         </div>
       </div>
-    </>
+    </div>
+  );
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setContactFormStatus('sending');
+    try {
+      const { error } = await supabase.from('contact_submissions').insert([{
+        name: contactFormData.name,
+        email: contactFormData.email,
+        subject: contactFormData.subject,
+        message: contactFormData.message,
+        created_at: new Date().toISOString()
+      }]);
+      
+      if (error) {
+        // Check if table doesn't exist
+        if (error.code === '42P01' || error.message?.includes('does not exist') || error.message?.includes('relation')) {
+          console.error('Contact submissions table does not exist. Please run database/create-contact-submissions-table.sql in Supabase SQL Editor.');
+          setContactFormStatus('error');
+          setTimeout(() => {
+            setContactFormStatus('idle');
+            setToast({ message: 'Contact form table not set up. Please contact support.', type: 'error' });
+            setTimeout(() => setToast(null), 5000);
+          }, 3000);
+          return;
+        }
+        throw error;
+      }
+      
+      setContactFormStatus('success');
+      setContactFormData({ name: '', email: '', subject: '', message: '' });
+      setToast({ message: 'Message sent successfully! We\'ll get back to you soon.', type: 'success' });
+      setTimeout(() => {
+        setContactFormStatus('idle');
+        setToast(null);
+      }, 3000);
+    } catch (err: any) {
+      console.error('Contact form error:', err);
+      setContactFormStatus('error');
+      setToast({ message: err.message || 'Failed to send message. Please try again.', type: 'error' });
+      setTimeout(() => {
+        setContactFormStatus('idle');
+        setToast(null);
+      }, 3000);
+    }
+  };
+
+  const renderContactView = () => (
+    <div className="min-h-screen bg-brand-black text-white p-8">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-12">
+          <Mail className="w-16 h-16 text-brand-green mx-auto mb-4" />
+          <h1 className="text-4xl font-black text-white mb-4">Contact Us</h1>
+          <p className="text-brand-teal">We'd love to hear from you</p>
+        </div>
+        <form onSubmit={handleContactSubmit} className="space-y-6 bg-transparent">
+          <div>
+            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Name</label>
+            <input type="text" value={contactFormData.name} onChange={(e) => setContactFormData({ ...contactFormData, name: e.target.value })} required className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green" placeholder="Your name" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Email</label>
+            <input type="email" value={contactFormData.email} onChange={(e) => setContactFormData({ ...contactFormData, email: e.target.value })} required className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green" placeholder="your@email.com" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Subject</label>
+            <input type="text" value={contactFormData.subject} onChange={(e) => setContactFormData({ ...contactFormData, subject: e.target.value })} required className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green" placeholder="What's this about?" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Message</label>
+            <textarea value={contactFormData.message} onChange={(e) => setContactFormData({ ...contactFormData, message: e.target.value })} required rows={6} className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green resize-none" placeholder="Tell us what you need..." />
+          </div>
+          <button type="submit" disabled={contactFormStatus === 'sending'} className="w-full py-4 bg-brand-green hover:bg-brand-green/80 text-white font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+            {contactFormStatus === 'sending' ? 'Sending...' : contactFormStatus === 'success' ? '✓ Sent!' : <><Send size={18} /> Send Message</>}
+          </button>
+          {contactFormStatus === 'error' && <div className="text-red-400 text-sm text-center">Failed to send message. Please try again.</div>}
+        </form>
+      </div>
+    </div>
+  );
+
+  const renderTermsView = () => (
+    <div className="min-h-screen bg-brand-black text-white p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-black text-white mb-8">Terms of Service</h1>
+        <div className="space-y-8 text-brand-teal">
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">1. License Agreement</h2>
+            <p className="mb-4">By purchasing a beat from Weedhead Beats, you agree to the terms of the selected license type (Basic, Premium, or Exclusive).</p>
+          </section>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">2. Usage Rights</h2>
+            <p className="mb-4">Basic License: Non-exclusive rights for streaming and distribution. Premium License: Extended rights including commercial use. Exclusive License: Full ownership and exclusive rights.</p>
+          </section>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">3. Payment & Refunds</h2>
+            <p className="mb-4">All sales are final. Refunds are handled on a case-by-case basis for digital products.</p>
+          </section>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">4. Intellectual Property</h2>
+            <p className="mb-4">All beats remain the property of Weedhead Beats until an Exclusive License is purchased.</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderPrivacyView = () => (
+    <div className="min-h-screen bg-brand-black text-white p-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-4xl font-black text-white mb-8">Privacy Policy</h1>
+        <div className="space-y-8 text-brand-teal">
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">1. Information We Collect</h2>
+            <p className="mb-4">We collect information you provide when creating an account, making purchases, or subscribing to our newsletter.</p>
+          </section>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">2. How We Use Your Information</h2>
+            <p className="mb-4">We use your information to process orders, send updates, and improve our services. We never sell your personal data.</p>
+          </section>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">3. Data Security</h2>
+            <p className="mb-4">We use industry-standard security measures to protect your data. All payments are processed securely through Stripe and PayPal.</p>
+          </section>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-4">4. Your Rights</h2>
+            <p className="mb-4">You have the right to access, update, or delete your personal information at any time through your account settings.</p>
+          </section>
+        </div>
+      </div>
+    </div>
   );
 
   // Main Render
@@ -9516,18 +9744,66 @@ ${error.message}`;
             <p className="text-brand-teal">You must be an admin to access the dashboard.</p>
           </div>
         )}
+        {activeTab === 'help' && renderHelpCenterView()}
+        {activeTab === 'contact' && renderContactView()}
+        {activeTab === 'terms' && renderTermsView()}
+        {activeTab === 'privacy' && renderPrivacyView()}
       </main>
 
       {/* Footer */}
-      <footer className="bg-brand-black border-t border-brand-slate py-12 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left">
-            <h4 className="font-black text-white tracking-tighter text-lg">WEEDHEAD BEATS</h4>
-            <p className="text-zinc-500 text-xs mt-1">© 2025 All Rights Reserved.</p>
+      <footer className="bg-brand-black border-t border-brand-slate py-16 mt-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-10 h-10 bg-brand-green rounded flex items-center justify-center font-black text-white italic text-xl">WH</div>
+                <span className="font-black text-xl tracking-tighter">WEEDHEADBEATS</span>
+              </div>
+              <p className="text-brand-teal text-sm">Premium beats for your next hit.</p>
+            </div>
+            
+            {/* Quick Links */}
+            <div>
+              <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Quick Links</h3>
+              <ul className="space-y-2">
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('store'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Store</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('licenses'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Licenses</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('blog'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Blog</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('collabs'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Collabs</a></li>
+              </ul>
+            </div>
+            
+            {/* Support */}
+            <div>
+              <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Support</h3>
+              <ul className="space-y-2">
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('help'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Help Center</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('contact'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Contact</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('terms'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Terms</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('privacy'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Privacy</a></li>
+              </ul>
+            </div>
+            
+            {/* Social */}
+            <div>
+              <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Connect</h3>
+              <div className="flex gap-4">
+                <a href="https://twitter.com/weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-teal hover:text-brand-green transition-colors">
+                  <Twitter size={20} />
+                </a>
+                <a href="https://facebook.com/weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-teal hover:text-brand-green transition-colors">
+                  <Facebook size={20} />
+                </a>
+                <a href="https://youtube.com/@weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-teal hover:text-brand-green transition-colors">
+                  <Youtube size={20} />
+                </a>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-6">
-             <a href="#" className="text-zinc-500 hover:text-white transition-colors"><Youtube size={20} /></a>
-             <a href="#" className="text-zinc-500 hover:text-white transition-colors"><MessageSquare size={20} /></a>
+          
+          <div className="border-t border-brand-slate pt-8 text-center">
+            <p className="text-brand-teal text-sm">© {new Date().getFullYear()} Weedhead Beats. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -9557,6 +9833,8 @@ ${error.message}`;
         onShuffleToggle={handleShuffleToggle}
         repeatMode={repeatMode}
         onRepeatToggle={handleRepeatToggle}
+        playbackRate={playbackRate}
+        onPlaybackRateChange={handlePlaybackRateChange}
       />
 
       <CartDrawer 

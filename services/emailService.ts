@@ -96,16 +96,34 @@ export const sendOrderConfirmationEmail = async (emailData: OrderEmailData): Pro
 
       if (error) {
         console.error('Error sending email via Edge Function:', error);
+        console.log('⚠️ Edge Function failed, trying API fallback...');
         // Fallback: Try direct API call if Edge Function doesn't exist
-        return await sendEmailViaAPI(emailData, settings as EmailSettings);
+        const apiResult = await sendEmailViaAPI(emailData, settings as EmailSettings);
+        if (apiResult) {
+          console.log('✅ Order confirmation email sent via API fallback');
+          return true;
+        }
+        // If API also fails, log the email details for manual sending
+        console.warn('⚠️ Both Edge Function and API failed. Email details logged above.');
+        return false;
       }
 
-      console.log('✅ Order confirmation email sent successfully');
+      console.log('✅ Order confirmation email sent successfully via Edge Function');
       return true;
     } catch (edgeFunctionError: any) {
       console.warn('Edge Function not available or failed:', edgeFunctionError?.message || edgeFunctionError);
+      console.log('⚠️ Trying API fallback...');
       // Fallback: Try direct API call if Edge Function doesn't exist
-      return await sendEmailViaAPI(emailData, settings as EmailSettings);
+      const apiResult = await sendEmailViaAPI(emailData, settings as EmailSettings);
+      if (apiResult) {
+        console.log('✅ Order confirmation email sent via API fallback');
+        return true;
+      }
+      // Log email details for debugging
+      console.warn('⚠️ Email sending failed. Check SMTP settings and Edge Function/API configuration.');
+      console.log('Email would be sent to:', emailData.to);
+      console.log('Subject:', `Order Confirmation - ${emailData.orderNumber}`);
+      return false;
     }
   } catch (error) {
     console.error('Error in sendOrderConfirmationEmail:', error);
@@ -123,15 +141,18 @@ const sendEmailViaAPI = async (emailData: OrderEmailData, settings: EmailSetting
     const apiUrl = import.meta.env.VITE_API_URL;
     
     if (!apiUrl) {
-      console.warn('⚠️ Email API URL not configured. Email details:', {
+      console.warn('⚠️ Email API URL not configured (VITE_API_URL).');
+      console.warn('Email details that would be sent:', {
         to: emailData.to,
         subject: `Order Confirmation - ${emailData.orderNumber}`,
         orderNumber: emailData.orderNumber,
-        total: emailData.total
+        total: emailData.total,
+        items: emailData.items.length
       });
       console.warn('💡 To enable email sending, either:');
-      console.warn('   1. Deploy the Supabase Edge Function (see EDGE_FUNCTION_SETUP.md)');
-      console.warn('   2. Set up a backend API and configure VITE_API_URL');
+      console.warn('   1. Deploy the Supabase Edge Function "send-email"');
+      console.warn('   2. Set up a backend API endpoint and set VITE_API_URL environment variable');
+      console.warn('   3. Check that Zoho SMTP settings are configured in email_settings table');
       return false;
     }
 

@@ -130,3 +130,4 @@ After configuring:
 **After setting the correct SITE_URL, verification emails will work!** ✅
 
 
+

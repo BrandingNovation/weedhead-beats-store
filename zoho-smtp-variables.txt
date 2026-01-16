@@ -64,3 +64,4 @@ SMTP_SENDER_NAME=Weedhead Beats
 # - Check Supabase logs if emails aren't sending
 
 
+

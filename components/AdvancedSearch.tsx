@@ -247,7 +247,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                 if (suggestions.length > 0) setShowSuggestions(true);
               }}
               placeholder="Search tracks, artists, genres..."
-              className="w-full bg-surface border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-primary"
+              className="w-full bg-transparent border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-500 focus:outline-none focus:border-primary"
             />
             {query && (
               <button
@@ -270,10 +270,10 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-3 rounded-xl transition-colors ${
+            className={`px-4 py-3 rounded-xl transition-colors border ${
               showFilters
-                ? 'bg-primary text-white'
-                : 'bg-surface border border-white/10 text-gray-300 hover:bg-surface-highlight'
+                ? 'bg-primary text-white border-primary'
+                : 'bg-transparent border-white/10 text-gray-300 hover:bg-white/5'
             }`}
           >
             <Filter className="w-5 h-5" />
@@ -284,7 +284,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
         {showSuggestions && suggestions.length > 0 && (
           <div
             ref={suggestionsRef}
-            className="absolute z-50 w-full mt-2 bg-surface border border-white/10 rounded-xl shadow-xl max-h-96 overflow-y-auto"
+            className="absolute z-50 w-full mt-2 bg-black/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-xl max-h-96 overflow-y-auto"
           >
             {suggestions.map((track) => (
               <button
@@ -294,7 +294,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                   setShowSuggestions(false);
                   if (onSelectTrack) onSelectTrack(track);
                 }}
-                className="w-full px-4 py-3 text-left hover:bg-surface-highlight transition-colors flex items-center gap-3"
+                className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors flex items-center gap-3"
               >
                 <Music className="w-5 h-5 text-gray-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -310,7 +310,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
 
         {/* Recent Searches */}
         {showSuggestions && suggestions.length === 0 && query === '' && recentSearches.length > 0 && (
-          <div className="absolute z-50 w-full mt-2 bg-surface border border-white/10 rounded-xl shadow-xl">
+          <div className="absolute z-50 w-full mt-2 bg-black/80 backdrop-blur-sm border border-white/10 rounded-xl shadow-xl">
             <div className="px-4 py-2 text-xs text-gray-400 border-b border-white/10 flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Recent Searches
@@ -322,7 +322,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                   setQuery(search);
                   handleSearch();
                 }}
-                className="w-full px-4 py-2 text-left hover:bg-surface-highlight transition-colors text-gray-300"
+                className="w-full px-4 py-2 text-left hover:bg-white/5 transition-colors text-gray-300"
               >
                 {search}
               </button>
@@ -331,22 +331,22 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
         )}
       </div>
 
-      {/* Filters Panel */}
+        {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-surface border border-white/10 rounded-xl p-4 space-y-4">
+        <div className="bg-transparent border border-white/10 rounded-xl p-4 space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Filters</h3>
             <div className="flex gap-2">
               <button
                 onClick={handleSaveSearch}
-                className="px-3 py-1.5 text-sm bg-surface-highlight hover:bg-surface-highlight/80 rounded-lg transition-colors flex items-center gap-2"
+                className="px-3 py-1.5 text-sm bg-transparent border border-white/10 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 Save Search
               </button>
               <button
                 onClick={() => setShowSavedSearches(!showSavedSearches)}
-                className="px-3 py-1.5 text-sm bg-surface-highlight hover:bg-surface-highlight/80 rounded-lg transition-colors flex items-center gap-2"
+                className="px-3 py-1.5 text-sm bg-transparent border border-white/10 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2"
               >
                 <Clock className="w-4 h-4" />
                 Saved ({savedSearches.length})
@@ -362,12 +362,12 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
 
           {/* Saved Searches Dropdown */}
           {showSavedSearches && savedSearches.length > 0 && (
-            <div className="bg-surface-highlight border border-white/10 rounded-lg p-3 space-y-2">
+            <div className="bg-transparent border border-white/10 rounded-lg p-3 space-y-2">
               {savedSearches.map((saved) => (
                 <button
                   key={saved.id}
                   onClick={() => handleLoadSavedSearch(saved)}
-                  className="w-full px-3 py-2 text-left hover:bg-surface rounded-lg transition-colors flex items-center justify-between"
+                  className="w-full px-3 py-2 text-left hover:bg-white/5 rounded-lg transition-colors flex items-center justify-between"
                 >
                   <div>
                     <div className="text-white font-medium">{saved.name}</div>
@@ -408,7 +408,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                       className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                         filters.category?.includes(category)
                           ? 'bg-primary text-white'
-                          : 'bg-surface-highlight text-gray-300 hover:bg-surface-highlight/80'
+                          : 'bg-transparent border border-white/10 text-gray-300 hover:bg-white/5'
                       }`}
                     >
                       {category}
@@ -437,7 +437,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
                       className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                         filters.mood?.includes(mood)
                           ? 'bg-primary text-white'
-                          : 'bg-surface-highlight text-gray-300 hover:bg-surface-highlight/80'
+                          : 'bg-transparent border border-white/10 text-gray-300 hover:bg-white/5'
                       }`}
                     >
                       {mood}

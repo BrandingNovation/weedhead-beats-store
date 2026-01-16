@@ -113,3 +113,4 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 **Run the complete SQL block above, then sign out and back in!** 🚀
 
 
+

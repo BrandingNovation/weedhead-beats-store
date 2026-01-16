@@ -102,3 +102,4 @@ But your app needs:
 **Go to your APP's Environment Variables and add the VITE_ variables!** 🚀
 
 
+

@@ -36,3 +36,4 @@ SELECT * FROM profiles WHERE id = 'f9022176-6007-43e1-9cd0-c54c4abbeaf4';
 -- that doesn't cause recursion (like using a SECURITY DEFINER function)
 
 
+
