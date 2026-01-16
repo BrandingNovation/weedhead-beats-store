@@ -29,7 +29,7 @@ interface DownloadHistoryContextType {
   stats: DownloadStats;
   isLoading: boolean;
   error: string | null;
-  recordDownload: (track: Track, licenseType: string, fileType: 'audio' | 'stems' | 'license', fileUrl: string, fileName: string, fileSize?: number) => Promise<void>;
+  recordDownload: (track: Track, licenseType: 'basic' | 'premium' | 'exclusive', fileType: 'audio' | 'stems' | 'license', fileUrl: string, fileName: string, fileSize?: number) => Promise<void>;
   getRecentDownloads: (limit?: number) => DownloadRecord[];
   getDownloadsByTrack: (trackId: string) => DownloadRecord[];
   clearDownloadHistory: () => Promise<void>;

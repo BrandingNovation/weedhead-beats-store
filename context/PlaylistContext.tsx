@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Playlist, PlaylistTrack, Track } from '../types';
+import { Playlist, PlaylistTrack, Track, ProductCategory } from '../types';
 import { supabase } from '../lib/supabaseClient';
 
 interface PlaylistContextType {
@@ -333,7 +333,7 @@ export const PlaylistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           .map(pt => {
             const trackData = tracksData.find(t => t.id === pt.track_id);
             if (!trackData) return null;
-            return {
+            const track: Track = {
               id: trackData.id,
               title: trackData.title || trackData.name || 'Untitled',
               producer: trackData.producer || trackData.artist || 'Unknown',
@@ -345,9 +345,10 @@ export const PlaylistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               cover: trackData.cover_image || trackData.image_url || '',
               audio: trackData.audio_url || trackData.url || '',
               description: trackData.description || '',
-              category: (trackData.category || 'beat') as any,
+              category: (trackData.category || 'beat') as ProductCategory,
               youtubeUrl: trackData.youtube_url || '',
             };
+            return track;
           })
           .filter((t): t is Track => t !== null);
 

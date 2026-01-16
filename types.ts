@@ -113,3 +113,51 @@ export interface UserProfile {
   isAdmin?: boolean; // Added for dashboard access
   orders: number;
 }
+
+// Comment types
+export interface TrackComment {
+  id: string;
+  trackId: string;
+  userId: string;
+  comment: string;
+  rating?: number;
+  createdAt: string;
+  updatedAt?: string;
+  user?: {
+    name?: string;
+    avatar_url?: string;
+  };
+}
+
+// Playlist types
+export interface PlaylistTrack {
+  id: string;
+  playlistId: string;
+  trackId: string;
+  position: number;
+  addedAt: string;
+  track?: Track;
+}
+
+export interface Playlist {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  isPublic: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  trackCount?: number;
+}
+
+// Purchase types
+export interface Purchase {
+  id: string;
+  userId: string;
+  trackId: string;
+  licenseType: 'basic' | 'premium' | 'exclusive';
+  price: number;
+  purchaseDate: string;
+  downloadUrl?: string;
+  track?: Track;
+}
