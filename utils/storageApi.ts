@@ -33,10 +33,13 @@ export interface UploadResult {
  */
 export const uploadTrack = async (file: File, path: string = 'weedheadbeats/tracks'): Promise<UploadResult> => {
   try {
-    // Validate file type
-    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/x-m4a', 'audio/mp4'];
-    if (!allowedTypes.includes(file.type)) {
-      throw new Error(`File type ${file.type} not allowed. Allowed types: MP3, WAV, OGG, M4A`);
+    // Validate file type - check both MIME type and file extension
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/x-m4a', 'audio/mp4', 'audio/x-m4a'];
+    const allowedExtensions = ['.mp3', '.wav', '.ogg', '.m4a', '.mp4'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      throw new Error(`File type ${file.type || fileExtension} not allowed. Allowed types: MP3, WAV, OGG, M4A`);
     }
     
     // Validate file size (100MB limit)
@@ -44,8 +47,22 @@ export const uploadTrack = async (file: File, path: string = 'weedheadbeats/trac
       throw new Error('File size must be less than 100MB');
     }
     
+    // Ensure file size is not 0
+    if (file.size === 0) {
+      throw new Error('File is empty. Please select a valid audio file.');
+    }
+    
     const formData = new FormData();
     formData.append('file', file);
+    
+    // Log file details for debugging
+    console.log('[Storage API] File details:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      extension: fileExtension,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
     
     console.log('[Storage API] Uploading file:', {
       fileName: file.name,
@@ -57,36 +74,74 @@ export const uploadTrack = async (file: File, path: string = 'weedheadbeats/trac
       apiKeyLength: API_KEY?.length || 0
     });
 
-    const response = await fetch(`${STORAGE_API}/upload?path=${encodeURIComponent(path)}`, {
-      method: 'POST',
-      headers: {
-        'X-API-Key': API_KEY
-      },
-      body: formData
-    });
+    let response: Response;
+    try {
+      response = await fetch(`${STORAGE_API}/upload?path=${encodeURIComponent(path)}`, {
+        method: 'POST',
+        headers: {
+          'X-API-Key': API_KEY
+        },
+        body: formData
+      });
+    } catch (networkError: any) {
+      console.error('[Storage API] Network error:', networkError);
+      throw new Error(`Network error: ${networkError.message || 'Failed to connect to storage server'}`);
+    }
     
     console.log('[Storage API] Response status:', response.status, response.statusText);
+    console.log('[Storage API] Response headers:', Object.fromEntries(response.headers.entries()));
     
     if (!response.ok) {
       let errorMessage = 'Upload failed';
+      let errorDetails: any = {};
+      
+      // Try to get error details
+      const contentType = response.headers.get('content-type');
+      console.log('[Storage API] Error content-type:', contentType);
+      
       try {
-        const errorData = await response.json();
-        errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
-        console.error('[Storage API] Error response:', errorData);
-      } catch (e) {
-        const errorText = await response.text();
-        errorMessage = `HTTP ${response.status}: ${response.statusText}${errorText ? ` - ${errorText}` : ''}`;
-        console.error('[Storage API] Error response (text):', errorText);
+        if (contentType?.includes('application/json')) {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+          errorDetails = errorData;
+          console.error('[Storage API] Error response (JSON):', errorData);
+        } else {
+          // Try to parse HTML error or plain text
+          const errorText = await response.text();
+          console.error('[Storage API] Error response (text/HTML):', errorText.substring(0, 500));
+          
+          // Try to extract error message from HTML
+          const errorMatch = errorText.match(/<pre>([^<]+)/i) || errorText.match(/Error:\s*([^\n<]+)/i);
+          if (errorMatch) {
+            errorMessage = errorMatch[1].trim();
+          } else {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+            if (errorText.length < 200) {
+              errorMessage += ` - ${errorText}`;
+            }
+          }
+          errorDetails = { rawResponse: errorText.substring(0, 500) };
+        }
+      } catch (parseError) {
+        console.error('[Storage API] Failed to parse error response:', parseError);
+        errorMessage = `HTTP ${response.status}: ${response.statusText} - Unable to parse error response`;
       }
       
       // Provide specific error messages
       if (response.status === 401 || response.status === 403) {
-        errorMessage = `Authentication failed (${response.status}). Please check your Storage API key.`;
+        errorMessage = `Authentication failed (${response.status}). Please check your Storage API key. ${errorMessage}`;
       } else if (response.status === 413) {
         errorMessage = 'File too large. Maximum file size is 100MB.';
       } else if (response.status === 500) {
-        errorMessage = 'Server error. Please try again later or contact support.';
+        errorMessage = `Server error (500). ${errorMessage}. Please check the browser console for details.`;
       }
+      
+      console.error('[Storage API] Full error details:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorMessage,
+        errorDetails
+      });
       
       throw new Error(errorMessage);
     }
