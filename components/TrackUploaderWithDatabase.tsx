@@ -113,7 +113,15 @@ export const TrackUploaderWithDatabase: React.FC<TrackUploaderWithDatabaseProps>
 
       // Step 1: Upload to Storage Box
       setUploadProgress(30);
-      const result: UploadResult = await uploadTrack(file, 'weedheadbeats/tracks');
+      let result: UploadResult;
+      try {
+        result = await uploadTrack(file, 'weedheadbeats/tracks');
+        console.log('[TrackUploader] ✅ File uploaded to Storage Box:', result.url);
+      } catch (uploadError: any) {
+        clearInterval(progressInterval);
+        console.error('[TrackUploader] ❌ Storage Box upload failed:', uploadError);
+        throw new Error(`Storage upload failed: ${uploadError.message || 'Unknown error'}. Please check your API key and network connection.`);
+      }
 
       clearInterval(progressInterval);
       setUploadProgress(70);
