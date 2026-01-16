@@ -478,7 +478,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                         <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-1">
                             {isLogin ? 'Welcome Back' : 'Join the Squad'}
                         </h2>
-                        <p className="text-brand-teal text-sm">
+                        <p className="text-brand-green text-sm">
                             {isLogin ? 'Access your beats and dashboard.' : 'Sign up to start collecting high-quality sounds.'}
                         </p>
                     </div>
@@ -486,10 +486,10 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                     {needsVerification ? (
                         <form onSubmit={handleVerifyEmail} className="space-y-5">
                             <div className="mb-4">
-                                <p className="text-brand-teal text-sm mb-2">
+                                <p className="text-brand-green text-sm mb-2">
                                     We sent a verification code to <strong className="text-white">{email}</strong>
                                 </p>
-                                <p className="text-xs text-brand-teal/70">
+                                <p className="text-xs text-brand-green/70">
                                     Enter the code from your email to verify your account.
                                 </p>
                             </div>
@@ -501,7 +501,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                             )}
                             
                             <div className="space-y-1">
-                                <label htmlFor="verification-code" className="text-xs font-bold uppercase text-brand-teal ml-1">Verification Code</label>
+                                <label htmlFor="verification-code" className="text-xs font-bold uppercase text-brand-green ml-1">Verification Code</label>
                                 <div className="relative">
                                     <input 
                                         id="verification-code"
@@ -531,7 +531,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                 <button
                                     type="button"
                                     onClick={handleResendCode}
-                                    className="text-xs text-brand-teal hover:text-brand-green transition-colors"
+                                    className="text-xs text-brand-green hover:text-brand-green transition-colors"
                                 >
                                     Didn't receive code? Resend
                                 </button>
@@ -545,7 +545,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                         setVerificationCode('');
                                         setError('');
                                     }}
-                                    className="text-xs text-brand-teal hover:text-brand-green transition-colors"
+                                    className="text-xs text-brand-green hover:text-brand-green transition-colors"
                                 >
                                     ← Back to sign up
                                 </button>
@@ -561,9 +561,9 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                 )}
                                 {!isLogin && (
                                     <div className="space-y-1">
-                                        <label htmlFor="signup-name" className="text-xs font-bold uppercase text-brand-teal ml-1">Artist Name</label>
+                                        <label htmlFor="signup-name" className="text-xs font-bold uppercase text-brand-green ml-1">Artist Name</label>
                                         <div className="relative">
-                                            <User className="absolute left-3 top-3.5 text-brand-teal" size={18} />
+                                            <User className="absolute left-3 top-3.5 text-brand-green" size={18} />
                                             <input 
                                                 id="signup-name"
                                                 name="name"
@@ -580,9 +580,9 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                     </div>
                                 )}
                                 <div className="space-y-1">
-                                    <label htmlFor={isLogin ? "login-email" : "signup-email"} className="text-xs font-bold uppercase text-brand-teal ml-1">Email</label>
+                                    <label htmlFor={isLogin ? "login-email" : "signup-email"} className="text-xs font-bold uppercase text-brand-green ml-1">Email</label>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-3.5 text-brand-teal" size={18} />
+                                        <Mail className="absolute left-3 top-3.5 text-brand-green" size={18} />
                                         <input 
                                             id={isLogin ? "login-email" : "signup-email"}
                                             name="email"
@@ -598,9 +598,9 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <label htmlFor={isLogin ? "login-password" : "signup-password"} className="text-xs font-bold uppercase text-brand-teal ml-1">Password</label>
+                                    <label htmlFor={isLogin ? "login-password" : "signup-password"} className="text-xs font-bold uppercase text-brand-green ml-1">Password</label>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-3.5 text-brand-teal" size={18} />
+                                        <Lock className="absolute left-3 top-3.5 text-brand-green" size={18} />
                                         <input 
                                             id={isLogin ? "login-password" : "signup-password"}
                                             name="password"
@@ -628,7 +628,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }: { isOpen: boolean, onClose: () 
                             <div className="mt-8 text-center text-sm border-t border-brand-slate pt-6">
                                 <button 
                                     onClick={() => setIsLogin(!isLogin)}
-                                    className="text-brand-teal hover:text-white transition-colors"
+                                    className="text-brand-green hover:text-white transition-colors"
                                 >
                                     {isLogin ? (
                                         <span>Don't have an account? <span className="text-brand-green font-bold">Sign Up</span></span>
@@ -703,19 +703,19 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                 {/* Product Details */}
                 <div className="w-full md:w-1/2 p-8 flex flex-col overflow-y-auto">
                     <div className="mb-6">
-                        <button type="button" onClick={onClose} className="mb-4 text-brand-teal hover:text-white">
+                        <button type="button" onClick={onClose} className="mb-4 text-brand-green hover:text-white">
                             <X size={24} />
                         </button>
                         <h1 className="text-3xl font-black text-white uppercase tracking-tighter mb-2">{product.title}</h1>
                         <p className="text-2xl font-bold text-brand-green mb-4">${product.price}</p>
                         {product.description && (
-                            <p className="text-brand-teal mb-6">{product.description}</p>
+                            <p className="text-brand-green mb-6">{product.description}</p>
                         )}
                     </div>
                     
                     {/* Size Selection */}
                     <div className="mb-6">
-                        <label className="block text-sm font-bold uppercase text-brand-teal mb-3">
+                        <label className="block text-sm font-bold uppercase text-brand-green mb-3">
                             Size <span className="text-brand-green">*</span>
                         </label>
                         <div className="grid grid-cols-4 gap-3">
@@ -727,7 +727,7 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                                     className={`px-4 py-3 border-2 text-sm font-bold uppercase transition-colors ${
                                         selectedSize === size
                                             ? 'border-brand-green bg-brand-green text-white'
-                                            : 'border-brand-slate text-brand-teal hover:border-brand-teal'
+                                            : 'border-brand-slate text-brand-green hover:border-brand-green'
                                     }`}
                                 >
                                     {size}
@@ -738,7 +738,7 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                     
                     {/* Color Selection */}
                     <div className="mb-6">
-                        <label className="block text-sm font-bold uppercase text-brand-teal mb-3">
+                        <label className="block text-sm font-bold uppercase text-brand-green mb-3">
                             Color <span className="text-brand-green">*</span>
                         </label>
                         <div className="flex flex-wrap gap-3">
@@ -750,7 +750,7 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                                     className={`px-6 py-3 border-2 text-sm font-bold uppercase transition-colors ${
                                         selectedColor === color
                                             ? 'border-brand-green bg-brand-green text-white'
-                                            : 'border-brand-slate text-brand-teal hover:border-brand-teal'
+                                            : 'border-brand-slate text-brand-green hover:border-brand-green'
                                     }`}
                                 >
                                     {color}
@@ -761,14 +761,14 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                     
                     {/* Quantity Selection */}
                     <div className="mb-6">
-                        <label className="block text-sm font-bold uppercase text-brand-teal mb-3">
+                        <label className="block text-sm font-bold uppercase text-brand-green mb-3">
                             Quantity
                         </label>
                         <div className="flex items-center gap-4">
                             <button
                                 type="button"
                                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                className="w-10 h-10 border-2 border-brand-slate text-brand-teal hover:border-brand-green hover:text-brand-green font-bold transition-colors"
+                                className="w-10 h-10 border-2 border-brand-slate text-brand-green hover:border-brand-green hover:text-brand-green font-bold transition-colors"
                             >
                                 -
                             </button>
@@ -776,7 +776,7 @@ const ProductModal = ({ isOpen, onClose, product, onAddToCart }: { isOpen: boole
                             <button
                                 type="button"
                                 onClick={() => setQuantity(quantity + 1)}
-                                className="w-10 h-10 border-2 border-brand-slate text-brand-teal hover:border-brand-green hover:text-brand-green font-bold transition-colors"
+                                className="w-10 h-10 border-2 border-brand-slate text-brand-green hover:border-brand-green hover:text-brand-green font-bold transition-colors"
                             >
                                 +
                             </button>
@@ -860,9 +860,9 @@ const ShareModal = ({ isOpen, onClose, track }: { isOpen: boolean, onClose: () =
         <div className="p-6 border-b border-brand-slate flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Share Track</h2>
-            <p className="text-brand-teal text-sm">{track.title}</p>
+            <p className="text-brand-green text-sm">{track.title}</p>
           </div>
-          <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
+          <button type="button" onClick={onClose}><X className="text-brand-green hover:text-white" /></button>
         </div>
         
         <div className="p-6">
@@ -934,7 +934,7 @@ const ShareModal = ({ isOpen, onClose, track }: { isOpen: boolean, onClose: () =
                 onClick={() => handleShare('email')}
                 className="flex items-center gap-3 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg hover:border-brand-green transition-colors group"
               >
-                <Mail size={20} className="text-brand-teal group-hover:text-brand-green" />
+                <Mail size={20} className="text-brand-green group-hover:text-brand-green" />
                 <span className="text-white font-bold text-sm">Email</span>
               </button>
             </div>
@@ -987,16 +987,16 @@ const AddToPlaylistModal = ({ isOpen, onClose, track, playlists, onCreateNew, on
         <div className="p-6 border-b border-brand-slate flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Add to Playlist</h2>
-            <p className="text-brand-teal text-sm">{track.title}</p>
+            <p className="text-brand-green text-sm">{track.title}</p>
           </div>
-          <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
+          <button type="button" onClick={onClose}><X className="text-brand-green hover:text-white" /></button>
         </div>
         
         <div className="flex-1 overflow-y-auto p-6">
           {playlists.length === 0 ? (
             <div className="text-center py-8">
-              <Music className="mx-auto mb-4 text-brand-teal" size={48} />
-              <p className="text-brand-teal mb-4">You don't have any playlists yet.</p>
+              <Music className="mx-auto mb-4 text-brand-green" size={48} />
+              <p className="text-brand-green mb-4">You don't have any playlists yet.</p>
               <button
                 onClick={() => {
                   onCreateNew();
@@ -1021,7 +1021,7 @@ const AddToPlaylistModal = ({ isOpen, onClose, track, playlists, onCreateNew, on
                 </div>
                 <div className="flex-1 text-left">
                   <h3 className="text-white font-bold">Create New Playlist</h3>
-                  <p className="text-brand-teal text-xs">Start a new collection</p>
+                  <p className="text-brand-green text-xs">Start a new collection</p>
                 </div>
               </button>
 
@@ -1043,12 +1043,12 @@ const AddToPlaylistModal = ({ isOpen, onClose, track, playlists, onCreateNew, on
                     }`}
                   >
                     <div className="w-12 h-12 bg-brand-slate rounded-lg flex items-center justify-center">
-                      <Music className="text-brand-teal" size={24} />
+                      <Music className="text-brand-green" size={24} />
                     </div>
                     <div className="flex-1 text-left">
                       <h3 className="text-white font-bold">{playlist.name}</h3>
                       {playlist.description && (
-                        <p className="text-brand-teal text-xs line-clamp-1">{playlist.description}</p>
+                        <p className="text-brand-green text-xs line-clamp-1">{playlist.description}</p>
                       )}
                     </div>
                     {isInPlaylist && (
@@ -1082,7 +1082,7 @@ const CreatePlaylistModal = ({ isOpen, onClose, onCreate, name, setName, descrip
       <div className="bg-brand-black border border-brand-slate rounded-xl max-w-md w-full" onClick={e => e.stopPropagation()}>
         <div className="p-6 border-b border-brand-slate flex justify-between items-center">
           <h2 className="text-2xl font-black text-white uppercase tracking-tighter">{isEditing ? 'Edit Playlist' : 'Create Playlist'}</h2>
-          <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
+          <button type="button" onClick={onClose}><X className="text-brand-green hover:text-white" /></button>
         </div>
         
         <div className="p-6 space-y-4">
@@ -1093,7 +1093,7 @@ const CreatePlaylistModal = ({ isOpen, onClose, onCreate, name, setName, descrip
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="My Awesome Playlist"
-              className="w-full px-4 py-3 bg-brand-slate/20 border border-brand-slate text-white placeholder:text-brand-teal/50 focus:outline-none focus:border-brand-green transition-colors"
+              className="w-full px-4 py-3 bg-brand-slate/20 border border-brand-slate text-white placeholder:text-brand-green/50 focus:outline-none focus:border-brand-green transition-colors"
               autoFocus
             />
           </div>
@@ -1105,14 +1105,14 @@ const CreatePlaylistModal = ({ isOpen, onClose, onCreate, name, setName, descrip
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What's this playlist about?"
               rows={3}
-              className="w-full px-4 py-3 bg-brand-slate/20 border border-brand-slate text-white placeholder:text-brand-teal/50 focus:outline-none focus:border-brand-green transition-colors resize-none"
+              className="w-full px-4 py-3 bg-brand-slate/20 border border-brand-slate text-white placeholder:text-brand-green/50 focus:outline-none focus:border-brand-green transition-colors resize-none"
             />
           </div>
 
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-3 border border-brand-slate text-white font-bold uppercase text-sm tracking-wider rounded hover:border-brand-teal transition-colors"
+              className="flex-1 px-4 py-3 border border-brand-slate text-white font-bold uppercase text-sm tracking-wider rounded hover:border-brand-green transition-colors"
             >
               Cancel
             </button>
@@ -1149,9 +1149,9 @@ const LicenseModal = ({ isOpen, onClose, track, onConfirm, relatedTracks, onPlay
                 <div className="p-6 border-b border-brand-slate flex justify-between items-center">
                     <div>
                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Select License</h2>
-                        <p className="text-brand-teal text-sm">for <span className="text-brand-green font-bold">{track.title}</span></p>
+                        <p className="text-brand-green text-sm">for <span className="text-brand-green font-bold">{track.title}</span></p>
                     </div>
-                    <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" /></button>
+                    <button type="button" onClick={onClose}><X className="text-brand-green hover:text-white" /></button>
                 </div>
                 
                 <div className="p-6 overflow-y-auto">
@@ -1163,7 +1163,7 @@ const LicenseModal = ({ isOpen, onClose, track, onConfirm, relatedTracks, onPlay
                                 <div className="text-3xl font-black text-white mb-6">${license.price}</div>
                                 <ul className="space-y-3 mb-8 flex-1">
                                     {license.features.map((feat, i) => (
-                                        <li key={i} className="flex items-center gap-2 text-sm text-brand-teal">
+                                        <li key={i} className="flex items-center gap-2 text-sm text-brand-green">
                                             <Check size={14} className="text-brand-green" /> {feat}
                                         </li>
                                     ))}
@@ -1217,9 +1217,9 @@ const LicenseModal = ({ isOpen, onClose, track, onConfirm, relatedTracks, onPlay
                                         </div>
                                         <div className="p-3">
                                             <h4 className="text-sm font-bold text-white mb-1 line-clamp-1">{relatedTrack.title}</h4>
-                                            <p className="text-xs text-brand-teal mb-2">{relatedTrack.producer}</p>
+                                            <p className="text-xs text-brand-green mb-2">{relatedTrack.producer}</p>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs text-brand-teal">
+                                                <span className="text-xs text-brand-green">
                                                     {relatedTrack.bpm} BPM • {relatedTrack.key}
                                                 </span>
                                                 {isFavorite && onToggleSave && (
@@ -1232,7 +1232,7 @@ const LicenseModal = ({ isOpen, onClose, track, onConfirm, relatedTracks, onPlay
                                                     >
                                                         <Heart 
                                                             size={14} 
-                                                            className={isFavorite(relatedTrack.id) ? "text-brand-green fill-brand-green" : "text-brand-teal"} 
+                                                            className={isFavorite(relatedTrack.id) ? "text-brand-green fill-brand-green" : "text-brand-green"} 
                                                         />
                                                     </button>
                                                 )}
@@ -1309,7 +1309,7 @@ const StripePaymentForm = ({ total, onSuccess }: { total: string, onSuccess: () 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-                <label htmlFor="newsletter-email" className="block text-xs font-bold uppercase text-brand-teal mb-2">Email Address</label>
+                <label htmlFor="newsletter-email" className="block text-xs font-bold uppercase text-brand-green mb-2">Email Address</label>
                 <input 
                     id="newsletter-email"
                     name="newsletter-email"
@@ -1323,7 +1323,7 @@ const StripePaymentForm = ({ total, onSuccess }: { total: string, onSuccess: () 
             </div>
 
             <div className="space-y-4">
-                <label className="block text-xs font-bold uppercase text-brand-teal flex items-center justify-between">
+                <label className="block text-xs font-bold uppercase text-brand-green flex items-center justify-between">
                     Card Details
                     <span className="flex items-center gap-1 text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded border border-indigo-500/30">
                         <span className="w-2 h-2 rounded-full bg-indigo-500"></span> Stripe Secured
@@ -1433,7 +1433,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                 <img src={item.cover} className="w-12 h-12 rounded object-cover" alt="" />
                                 <div className="flex-1">
                                     <h4 className="font-bold text-white text-sm">{item.title}</h4>
-                                    <p className="text-xs text-brand-teal">{item.selectedLicense?.name}</p>
+                                    <p className="text-xs text-brand-green">{item.selectedLicense?.name}</p>
                                 </div>
                                 <div className="font-bold text-white">${item.selectedLicense?.price}</div>
                             </div>
@@ -1449,13 +1449,13 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                  <div className="p-8 relative">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Secure Checkout</h2>
-                        <button type="button" onClick={onClose}><X className="text-brand-teal hover:text-white" size={20} /></button>
+                        <button type="button" onClick={onClose}><X className="text-brand-green hover:text-white" size={20} /></button>
                     </div>
                     
                     <button 
                         type="button"
                         onClick={onClose}
-                        className="mb-4 text-sm text-brand-teal hover:text-white flex items-center gap-2 transition-colors"
+                        className="mb-4 text-sm text-brand-green hover:text-white flex items-center gap-2 transition-colors"
                     >
                         <ChevronRight size={14} className="rotate-180" /> Return to Shopping
                     </button>
@@ -1468,7 +1468,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="md:col-span-2">
-                                    <label htmlFor="shipping-name" className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Name *</label>
+                                    <label htmlFor="shipping-name" className="block text-xs font-bold uppercase text-brand-green mb-2">Full Name *</label>
                                     <input
                                         id="shipping-name"
                                         name="shipping-name"
@@ -1483,7 +1483,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label htmlFor="shipping-street" className="block text-xs font-bold uppercase text-brand-teal mb-2">Street Address *</label>
+                                    <label htmlFor="shipping-street" className="block text-xs font-bold uppercase text-brand-green mb-2">Street Address *</label>
                                     <input
                                         id="shipping-street"
                                         name="shipping-street"
@@ -1498,7 +1498,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="shipping-city" className="block text-xs font-bold uppercase text-brand-teal mb-2">City *</label>
+                                    <label htmlFor="shipping-city" className="block text-xs font-bold uppercase text-brand-green mb-2">City *</label>
                                     <input
                                         id="shipping-city"
                                         name="shipping-city"
@@ -1513,7 +1513,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="shipping-state" className="block text-xs font-bold uppercase text-brand-teal mb-2">State/Province *</label>
+                                    <label htmlFor="shipping-state" className="block text-xs font-bold uppercase text-brand-green mb-2">State/Province *</label>
                                     <input
                                         id="shipping-state"
                                         name="shipping-state"
@@ -1528,7 +1528,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="shipping-zip" className="block text-xs font-bold uppercase text-brand-teal mb-2">ZIP/Postal Code *</label>
+                                    <label htmlFor="shipping-zip" className="block text-xs font-bold uppercase text-brand-green mb-2">ZIP/Postal Code *</label>
                                     <input
                                         id="shipping-zip"
                                         name="shipping-zip"
@@ -1543,7 +1543,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="shipping-country" className="block text-xs font-bold uppercase text-brand-teal mb-2">Country *</label>
+                                    <label htmlFor="shipping-country" className="block text-xs font-bold uppercase text-brand-green mb-2">Country *</label>
                                     <input
                                         id="shipping-country"
                                         name="shipping-country"
@@ -1557,7 +1557,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                     />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label htmlFor="shipping-phone" className="block text-xs font-bold uppercase text-brand-teal mb-2">Phone Number</label>
+                                    <label htmlFor="shipping-phone" className="block text-xs font-bold uppercase text-brand-green mb-2">Phone Number</label>
                                     <input
                                         id="shipping-phone"
                                         name="shipping-phone"
@@ -1577,13 +1577,13 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                     <div className="flex gap-4 mb-6">
                         <button 
                             onClick={() => setPaymentMethod('stripe')}
-                            className={`flex-1 py-3 px-4 rounded-lg font-bold uppercase text-xs tracking-wider border transition-all flex items-center justify-center gap-2 ${paymentMethod === 'stripe' ? 'bg-brand-slate border-brand-green text-white' : 'bg-brand-black border-brand-slate text-brand-teal hover:text-white'}`}
+                            className={`flex-1 py-3 px-4 rounded-lg font-bold uppercase text-xs tracking-wider border transition-all flex items-center justify-center gap-2 ${paymentMethod === 'stripe' ? 'bg-brand-slate border-brand-green text-white' : 'bg-brand-black border-brand-slate text-brand-green hover:text-white'}`}
                         >
                             <CreditCard size={16} /> Credit Card
                         </button>
                         <button 
                             onClick={() => setPaymentMethod('paypal')}
-                            className={`flex-1 py-3 px-4 rounded-lg font-bold uppercase text-xs tracking-wider border transition-all flex items-center justify-center gap-2 ${paymentMethod === 'paypal' ? 'bg-brand-slate border-brand-green text-white' : 'bg-brand-black border-brand-slate text-brand-teal hover:text-white'}`}
+                            className={`flex-1 py-3 px-4 rounded-lg font-bold uppercase text-xs tracking-wider border transition-all flex items-center justify-center gap-2 ${paymentMethod === 'paypal' ? 'bg-brand-slate border-brand-green text-white' : 'bg-brand-black border-brand-slate text-brand-green hover:text-white'}`}
                         >
                             <span className="italic font-serif font-black">Pay</span>Pal
                         </button>
@@ -1850,7 +1850,7 @@ const CheckoutModal = ({ isOpen, onClose, cart, total }: { isOpen: boolean, onCl
                                 </PayPalScriptProvider>
                             ) : (
                                 <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6 text-center">
-                                    <p className="text-brand-teal mb-4">PayPal is not configured. Please use Credit Card or contact support.</p>
+                                    <p className="text-brand-green mb-4">PayPal is not configured. Please use Credit Card or contact support.</p>
                                     <button 
                                         onClick={() => setPaymentMethod('stripe')}
                                         className="px-6 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -1877,7 +1877,7 @@ const ExportModal = ({ isOpen, onClose, track }: { isOpen: boolean, onClose: () 
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
             <Layers className="text-brand-green" /> Studio Export
           </h3>
-          <button type="button" onClick={onClose} className="text-brand-teal hover:text-white"><X size={20} /></button>
+          <button type="button" onClick={onClose} className="text-brand-green hover:text-white"><X size={20} /></button>
         </div>
         
         <div className="mb-6">
@@ -1885,10 +1885,10 @@ const ExportModal = ({ isOpen, onClose, track }: { isOpen: boolean, onClose: () 
             <img src={track.cover} alt={track.title} className="w-16 h-16 rounded-md object-cover" />
             <div>
               <h4 className="font-bold text-white">{track.title}</h4>
-              <p className="text-xs text-brand-teal">Ready for export</p>
+              <p className="text-xs text-brand-green">Ready for export</p>
             </div>
           </div>
-          <p className="text-sm text-brand-teal">
+          <p className="text-sm text-brand-green">
             Download files optimized for mobile DAWs like BandLab, GarageBand, or FL Studio Mobile.
           </p>
         </div>
@@ -1902,13 +1902,13 @@ const ExportModal = ({ isOpen, onClose, track }: { isOpen: boolean, onClose: () 
             className="w-full flex items-center justify-between p-4 bg-brand-slate/30 hover:bg-brand-slate/50 rounded-lg border border-brand-slate transition-colors group cursor-pointer"
           >
             <div className="flex items-center gap-3">
-              <Music2 className="text-brand-teal group-hover:text-brand-green" />
+              <Music2 className="text-brand-green group-hover:text-brand-green" />
               <div className="text-left">
                 <div className="font-bold text-white text-sm">MP3 / WAV</div>
-                <div className="text-xs text-brand-teal">Mastered Audio file</div>
+                <div className="text-xs text-brand-green">Mastered Audio file</div>
               </div>
             </div>
-            <Download size={16} className="text-brand-teal" />
+            <Download size={16} className="text-brand-green" />
           </a>
         </div>
       </div>
@@ -1944,13 +1944,13 @@ const CartDrawer = ({ isOpen, onClose, cart, removeFromCart, checkout }: any) =>
       <div className="flex flex-col h-full">
         <div className="p-6 border-b border-brand-slate flex justify-between items-center bg-brand-black">
           <h2 className="text-xl font-bold text-white tracking-tight">Your Cart</h2>
-          <button onClick={onClose} className="text-brand-teal hover:text-white transition-colors">
+          <button onClick={onClose} className="text-brand-green hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
 
         <div className="px-6 py-4 bg-brand-slate/20 border-b border-brand-slate/50">
-          <div className="flex justify-between text-xs uppercase tracking-wider text-brand-teal mb-2">
+          <div className="flex justify-between text-xs uppercase tracking-wider text-brand-green mb-2">
             <span className="font-bold">Deal Progress</span>
             <span className="text-brand-green font-bold">Buy 2 Get 1 Free</span>
           </div>
@@ -1960,7 +1960,7 @@ const CartDrawer = ({ isOpen, onClose, cart, removeFromCart, checkout }: any) =>
               style={{ width: `${(cart.length % 3 === 0 && cart.length > 0) ? 100 : (cart.length % 3) / 3 * 100}%` }}
             />
           </div>
-          <p className="text-xs text-brand-teal mt-2 font-medium">
+          <p className="text-xs text-brand-green mt-2 font-medium">
             {cart.length % 3 === 0 && cart.length > 0 
               ? "🔥 Deal Unlocked! Add 2 more to stack another." 
               : `Add ${3 - (cart.length % 3)} more beat${3 - (cart.length % 3) > 1 ? 's' : ''} to get one free.`}
@@ -1969,7 +1969,7 @@ const CartDrawer = ({ isOpen, onClose, cart, removeFromCart, checkout }: any) =>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {cart.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-brand-teal space-y-4">
+            <div className="h-full flex flex-col items-center justify-center text-brand-green space-y-4">
               <ShoppingBag size={48} className="opacity-20" />
               <p>Your cart is empty.</p>
             </div>
@@ -1985,7 +1985,7 @@ const CartDrawer = ({ isOpen, onClose, cart, removeFromCart, checkout }: any) =>
                   <div className="font-mono text-white text-sm font-bold">
                     {(index + 1) % 3 === 0 ? <span className="text-brand-green">FREE</span> : `$${item.selectedLicense?.price}`}
                   </div>
-                  <button onClick={() => removeFromCart(index)} className="text-xs text-brand-teal hover:text-white mt-1 underline">
+                  <button onClick={() => removeFromCart(index)} className="text-xs text-brand-green hover:text-white mt-1 underline">
                     Remove
                   </button>
                 </div>
@@ -1996,7 +1996,7 @@ const CartDrawer = ({ isOpen, onClose, cart, removeFromCart, checkout }: any) =>
 
         <div className="p-6 border-t border-brand-slate bg-brand-black">
           <div className="flex justify-between items-end mb-4">
-            <span className="text-brand-teal">Total</span>
+            <span className="text-brand-green">Total</span>
             <span className="text-3xl font-black text-white tracking-tighter">${calculateTotal()}</span>
           </div>
           <button 
@@ -2020,7 +2020,7 @@ const QueueDrawer = ({ isOpen, onClose, currentTrack, tracks, onPlay }: any) => 
       <div className="flex flex-col h-full">
         <div className="p-6 border-b border-brand-slate flex justify-between items-center bg-brand-black">
           <h2 className="text-xl font-bold text-white tracking-tight">Current Queue</h2>
-          <button onClick={onClose} className="text-brand-teal hover:text-white transition-colors">
+          <button onClick={onClose} className="text-brand-green hover:text-white transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -2042,9 +2042,9 @@ const QueueDrawer = ({ isOpen, onClose, currentTrack, tracks, onPlay }: any) => 
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className={`font-bold text-sm truncate ${currentTrack?.id === track.id ? 'text-brand-green' : 'text-white'}`}>{track.title}</h4>
-                  <p className="text-xs text-brand-teal">{track.producer}</p>
+                  <p className="text-xs text-brand-green">{track.producer}</p>
                 </div>
-                <div className="text-xs font-mono text-brand-teal">
+                <div className="text-xs font-mono text-brand-green">
                     {track.bpm} BPM
                 </div>
               </div>
@@ -2172,24 +2172,24 @@ const BeatCard = ({ beat, isPlaying, onPlay, onOpenLicenseModal, isSaved, onTogg
               </div>
             )}
           </div>
-          <p className="text-xs text-brand-teal font-mono uppercase tracking-widest">
+          <p className="text-xs text-brand-green font-mono uppercase tracking-widest">
             {beat.category === 'beat' ? `${beat.bpm} BPM • ${beat.key}` : beat.category === 'merch' ? 'Merchandise' : beat.category.replace('_', ' ')}
           </p>
-          {beat.description && <p className="text-xs text-brand-teal/80 mt-2 line-clamp-2">{beat.description}</p>}
+          {beat.description && <p className="text-xs text-brand-green/80 mt-2 line-clamp-2">{beat.description}</p>}
           {isAlbum && (beat.spotifyUrl || beat.appleMusicUrl || beat.amazonUrl) && (
             <div className="flex gap-2 mt-3 flex-wrap">
               {beat.spotifyUrl && (
-                <a href={beat.spotifyUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-brand-green hover:text-brand-teal underline">
+                <a href={beat.spotifyUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-brand-green hover:text-brand-green underline">
                   Spotify
                 </a>
               )}
               {beat.appleMusicUrl && (
-                <a href={beat.appleMusicUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-brand-green hover:text-brand-teal underline">
+                <a href={beat.appleMusicUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-brand-green hover:text-brand-green underline">
                   Apple Music
                 </a>
               )}
               {beat.amazonUrl && (
-                <a href={beat.amazonUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-brand-green hover:text-brand-teal underline">
+                <a href={beat.amazonUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-xs text-brand-green hover:text-brand-green underline">
                   Amazon
                 </a>
               )}
@@ -2208,7 +2208,7 @@ const BeatCard = ({ beat, isPlaying, onPlay, onOpenLicenseModal, isSaved, onTogg
                 e.stopPropagation(); 
                 onOpenLicenseModal(beat); 
             }}
-            className="px-4 py-2 bg-white text-black hover:bg-brand-teal text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
+            className="px-4 py-2 bg-white text-black hover:bg-brand-green text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-2"
           >
             {isMerch ? 'View Details' : 'Add to Cart'}
           </button>
@@ -2228,11 +2228,11 @@ const PricingTier = ({ title, price, features, recommended }: any) => (
     <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">{title}</h3>
     <div className="mb-6">
       <span className="text-4xl font-bold text-white">${price}</span>
-      <span className="text-brand-teal ml-2">/ track</span>
+      <span className="text-brand-green ml-2">/ track</span>
     </div>
     <ul className="space-y-4 mb-8 flex-1">
       {features.map((feature: string, i: number) => (
-        <li key={i} className="flex items-start gap-3 text-sm text-brand-teal">
+        <li key={i} className="flex items-start gap-3 text-sm text-brand-green">
           <Check size={16} className="text-brand-green mt-0.5 shrink-0" />
           <span>{feature}</span>
         </li>
@@ -2265,7 +2265,7 @@ const BlogPostCard = ({ post, onClick }: any) => {
               />
           </div>
       )}
-      <div className="flex items-center gap-2 text-xs text-brand-teal font-mono mb-2">
+      <div className="flex items-center gap-2 text-xs text-brand-green font-mono mb-2">
         <span>{post.date}</span>
         <span>•</span>
         <span>{post.isAiGenerated ? 'AI Daily Brief' : 'Education'}</span>
@@ -2273,7 +2273,7 @@ const BlogPostCard = ({ post, onClick }: any) => {
       <h3 className="text-xl font-bold text-white mb-2 lg:group-hover:text-brand-green transition-colors leading-tight">
         {post.title}
       </h3>
-      <div className="text-brand-teal text-sm leading-relaxed mb-4 line-clamp-3">
+      <div className="text-brand-green text-sm leading-relaxed mb-4 line-clamp-3">
           {post.isAiGenerated ? (
               <ReactMarkdown components={{
                   a: ({node, ...props}: any) => <span className="text-brand-green" {...props} onClick={(e: any) => e.stopPropagation()} />
@@ -2558,7 +2558,7 @@ const NewsletterForm = () => {
             <div className="relative z-10">
                 <Mail className="mx-auto text-brand-green mb-4" size={32} />
                 <h3 className="text-2xl font-black text-white uppercase tracking-tighter mb-2">Join the Inner Circle</h3>
-                <p className="text-brand-teal mb-6 max-w-sm mx-auto text-sm">Get exclusive free beats, plugin deals, and mixing tips delivered to your inbox.</p>
+                <p className="text-brand-green mb-6 max-w-sm mx-auto text-sm">Get exclusive free beats, plugin deals, and mixing tips delivered to your inbox.</p>
                 <form className="flex flex-col gap-3 max-w-md mx-auto" onSubmit={handleSubmit}>
                     <label htmlFor="newsletter-name" className="sr-only">Your name (optional)</label>
                     <input 
@@ -2595,7 +2595,7 @@ const NewsletterForm = () => {
                         </button>
                     </div>
                     {message && (
-                        <p className={`text-sm mt-2 ${status === 'success' ? 'text-brand-green' : status === 'error' ? 'text-red-400' : 'text-brand-teal'}`}>
+                        <p className={`text-sm mt-2 ${status === 'success' ? 'text-brand-green' : status === 'error' ? 'text-red-400' : 'text-brand-green'}`}>
                             {message}
                         </p>
                     )}
@@ -2637,7 +2637,7 @@ const NewsletterForm = () => {
                                     setStatus('error');
                                 }
                             }}
-                            className="text-xs text-brand-teal hover:text-red-400 transition-colors underline"
+                            className="text-xs text-brand-green hover:text-red-400 transition-colors underline"
                         >
                             Unsubscribe
                         </a>
@@ -5553,7 +5553,7 @@ ${error.message}`;
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-2">Admin Dashboard</h1>
-          <p className="text-brand-teal">Manage your store, tracks, and content</p>
+          <p className="text-brand-green">Manage your store, tracks, and content</p>
         </div>
         
         {/* Admin Tabs */}
@@ -5575,7 +5575,7 @@ ${error.message}`;
               className={`flex items-center gap-2 px-6 py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors whitespace-nowrap ${
                 adminTab === tab.id
                   ? 'text-brand-green border-brand-green'
-                  : 'text-brand-teal border-transparent hover:text-white'
+                  : 'text-brand-green border-transparent hover:text-white'
               }`}
             >
               <tab.icon size={16} />
@@ -5628,7 +5628,7 @@ ${error.message}`;
                   <form onSubmit={handleUploadSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label htmlFor="inventory-upload-title" className="block text-xs font-bold uppercase text-brand-teal mb-2">Title *</label>
+                        <label htmlFor="inventory-upload-title" className="block text-xs font-bold uppercase text-brand-green mb-2">Title *</label>
                         <input
                           id="inventory-upload-title"
                           name="inventory-upload-title"
@@ -5641,7 +5641,7 @@ ${error.message}`;
                         />
                       </div>
                       <div>
-                        <label htmlFor="inventory-upload-bpm" className="block text-xs font-bold uppercase text-brand-teal mb-2">BPM</label>
+                        <label htmlFor="inventory-upload-bpm" className="block text-xs font-bold uppercase text-brand-green mb-2">BPM</label>
                         <input
                           id="inventory-upload-bpm"
                           name="inventory-upload-bpm"
@@ -5653,7 +5653,7 @@ ${error.message}`;
                         />
                       </div>
                       <div>
-                        <label htmlFor="inventory-upload-key" className="block text-xs font-bold uppercase text-brand-teal mb-2">Key</label>
+                        <label htmlFor="inventory-upload-key" className="block text-xs font-bold uppercase text-brand-green mb-2">Key</label>
                         <input
                           id="inventory-upload-key"
                           name="inventory-upload-key"
@@ -5665,7 +5665,7 @@ ${error.message}`;
                         />
                       </div>
                       <div>
-                        <label htmlFor="inventory-upload-price" className="block text-xs font-bold uppercase text-brand-teal mb-2">Price</label>
+                        <label htmlFor="inventory-upload-price" className="block text-xs font-bold uppercase text-brand-green mb-2">Price</label>
                         <input
                           id="inventory-upload-price"
                           name="inventory-upload-price"
@@ -5678,7 +5678,7 @@ ${error.message}`;
                         />
                       </div>
                       <div>
-                        <label htmlFor="inventory-upload-mood" className="block text-xs font-bold uppercase text-brand-teal mb-2">Mood</label>
+                        <label htmlFor="inventory-upload-mood" className="block text-xs font-bold uppercase text-brand-green mb-2">Mood</label>
                         <select
                           id="inventory-upload-mood"
                           name="inventory-upload-mood"
@@ -5691,7 +5691,7 @@ ${error.message}`;
                         </select>
                       </div>
                       <div>
-                        <label htmlFor="inventory-upload-category" className="block text-xs font-bold uppercase text-brand-teal mb-2">Category</label>
+                        <label htmlFor="inventory-upload-category" className="block text-xs font-bold uppercase text-brand-green mb-2">Category</label>
                         <select
                           id="inventory-upload-category"
                           name="inventory-upload-category"
@@ -5713,7 +5713,7 @@ ${error.message}`;
                       </div>
                     </div>
                     <div>
-                      <label htmlFor="inventory-upload-description" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label htmlFor="inventory-upload-description" className="block text-xs font-bold uppercase text-brand-green mb-2">
                         Description {uploadForm.category === 'merch' && <span className="text-yellow-400">* (Required for Merch)</span>}
                       </label>
                       <textarea
@@ -5730,7 +5730,7 @@ ${error.message}`;
                       )}
                     </div>
                     <div>
-                      <label htmlFor="inventory-upload-youtube" className="block text-xs font-bold uppercase text-brand-teal mb-2">YouTube URL</label>
+                      <label htmlFor="inventory-upload-youtube" className="block text-xs font-bold uppercase text-brand-green mb-2">YouTube URL</label>
                       <input
                         id="inventory-upload-youtube"
                         name="inventory-upload-youtube"
@@ -5744,7 +5744,7 @@ ${error.message}`;
                     {uploadForm.category === 'album' && (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
-                          <label htmlFor="inventory-upload-spotify" className="block text-xs font-bold uppercase text-brand-teal mb-2">Spotify URL</label>
+                          <label htmlFor="inventory-upload-spotify" className="block text-xs font-bold uppercase text-brand-green mb-2">Spotify URL</label>
                           <input
                             id="inventory-upload-spotify"
                             name="inventory-upload-spotify"
@@ -5757,7 +5757,7 @@ ${error.message}`;
                           />
                         </div>
                         <div>
-                          <label htmlFor="inventory-upload-apple-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Apple Music URL</label>
+                          <label htmlFor="inventory-upload-apple-music" className="block text-xs font-bold uppercase text-brand-green mb-2">Apple Music URL</label>
                           <input
                             id="inventory-upload-apple-music"
                             name="inventory-upload-apple-music"
@@ -5770,7 +5770,7 @@ ${error.message}`;
                           />
                         </div>
                         <div>
-                          <label htmlFor="inventory-upload-amazon-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Amazon Music URL</label>
+                          <label htmlFor="inventory-upload-amazon-music" className="block text-xs font-bold uppercase text-brand-green mb-2">Amazon Music URL</label>
                           <input
                             id="inventory-upload-amazon-music"
                             name="inventory-upload-amazon-music"
@@ -5816,7 +5816,7 @@ ${error.message}`;
                             className="w-full bg-brand-slate/70 border-4 border-brand-green p-4 text-white rounded-lg focus:border-brand-green outline-none cursor-pointer hover:bg-brand-slate/90 transition-colors text-base"
                             aria-label="Upload multiple product images"
                           />
-                          <p className="text-sm text-brand-teal mt-3 font-bold">
+                          <p className="text-sm text-brand-green mt-3 font-bold">
                             💡 <strong>Tip:</strong> Select multiple images (hold Ctrl on Windows/Linux or Cmd on Mac) to show different angles, colors, or details. The first image will be used as the cover/thumbnail.
                           </p>
                         </div>
@@ -5845,7 +5845,7 @@ ${error.message}`;
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {uploadForm.category !== 'merch' && uploadForm.category?.toLowerCase() !== 'merch' && (
                         <div>
-                          <label htmlFor="inventory-upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
+                          <label htmlFor="inventory-upload-cover" className="block text-xs font-bold uppercase text-brand-green mb-2">Cover Image *</label>
                           <input
                             id="inventory-upload-cover"
                             name="inventory-upload-cover"
@@ -5858,7 +5858,7 @@ ${error.message}`;
                             <div className="mt-3">
                               <img src={uploadForm.coverPreview} alt="Preview" className="w-full h-32 object-cover rounded border border-brand-slate" />
                               {uploadForm.cover && (
-                                <p className="mt-2 text-xs text-brand-teal">
+                                <p className="mt-2 text-xs text-brand-green">
                                   File: {uploadForm.cover.name} ({(uploadForm.cover.size / 1024 / 1024).toFixed(2)} MB)
                                 </p>
                               )}
@@ -5867,8 +5867,8 @@ ${error.message}`;
                         </div>
                       )}
                       <div>
-                        <label htmlFor="inventory-upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">
-                          Audio File {uploadForm.category === 'merch' && <span className="text-brand-teal text-xs font-normal">(Optional for Merch)</span>}
+                        <label htmlFor="inventory-upload-audio" className="block text-xs font-bold uppercase text-brand-green mb-2">
+                          Audio File {uploadForm.category === 'merch' && <span className="text-brand-green text-xs font-normal">(Optional for Merch)</span>}
                         </label>
                     {uploadForm.category !== 'merch' ? (
                       user?.id ? (
@@ -5917,13 +5917,13 @@ ${error.message}`;
                           />
                         )}
                         {uploadForm.category === 'merch' && (
-                          <p className="text-xs text-brand-teal mt-1">ℹ️ Audio files are not required for merchandise items.</p>
+                          <p className="text-xs text-brand-green mt-1">ℹ️ Audio files are not required for merchandise items.</p>
                         )}
                         {uploadForm.audioName && (
                           <div className="mt-3">
-                            <p className="text-xs text-brand-teal font-bold">{uploadForm.audioName}</p>
+                            <p className="text-xs text-brand-green font-bold">{uploadForm.audioName}</p>
                             {uploadForm.audio instanceof File && (
-                              <p className="text-xs text-brand-teal mt-1">
+                              <p className="text-xs text-brand-green mt-1">
                                 Size: {(uploadForm.audio.size / 1024 / 1024).toFixed(2)} MB
                               </p>
                             )}
@@ -5931,7 +5931,7 @@ ${error.message}`;
                         )}
                       </div>
                       <div>
-                        <label htmlFor="inventory-upload-stems" className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
+                        <label htmlFor="inventory-upload-stems" className="block text-xs font-bold uppercase text-brand-green mb-2">Stems (ZIP File) - Optional</label>
                         <input
                           id="inventory-upload-stems"
                           name="inventory-upload-stems"
@@ -5942,9 +5942,9 @@ ${error.message}`;
                         />
                         {uploadForm.stemsName && (
                           <div className="mt-3">
-                            <p className="text-xs text-brand-teal font-bold">Selected: {uploadForm.stemsName}</p>
+                            <p className="text-xs text-brand-green font-bold">Selected: {uploadForm.stemsName}</p>
                             {uploadForm.stems instanceof File && (
-                              <p className="text-xs text-brand-teal mt-1">
+                              <p className="text-xs text-brand-green mt-1">
                                 Size: {(uploadForm.stems.size / 1024 / 1024).toFixed(2)} MB
                               </p>
                             )}
@@ -5999,7 +5999,7 @@ ${error.message}`;
                   <div key={beat.id} className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4">
                     <img src={beat.cover} alt={beat.title} className="w-full h-32 object-cover rounded mb-3" />
                     <h3 className="font-bold text-white text-sm mb-1">{beat.title}</h3>
-                    <p className="text-xs text-brand-teal mb-3">{beat.category} • {beat.mood}</p>
+                    <p className="text-xs text-brand-green mb-3">{beat.category} • {beat.mood}</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
@@ -6051,10 +6051,10 @@ ${error.message}`;
             <div>
               <h2 className="text-2xl font-black text-white mb-6">{editingTrackId ? 'Edit Track' : 'Upload New Track or Merchandise'}</h2>
               <div className="mb-6 p-4 bg-brand-green/10 border border-brand-green/30 rounded-lg">
-                <p className="text-brand-teal text-sm mb-2">
+                <p className="text-brand-green text-sm mb-2">
                   <strong className="text-white">💡 Tip:</strong> Use the <strong>Category</strong> dropdown below to select:
                 </p>
-                <ul className="text-brand-teal text-sm space-y-1 list-disc list-inside ml-2">
+                <ul className="text-brand-green text-sm space-y-1 list-disc list-inside ml-2">
                   <li><strong>Beat</strong> - For music tracks/beats</li>
                   <li><strong>Sample Pack</strong> - For sample collections</li>
                   <li><strong>Album</strong> - For full albums</li>
@@ -6065,7 +6065,7 @@ ${error.message}`;
               <form onSubmit={handleUploadSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="upload-title" className="block text-xs font-bold uppercase text-brand-teal mb-2">Title *</label>
+                    <label htmlFor="upload-title" className="block text-xs font-bold uppercase text-brand-green mb-2">Title *</label>
                     <input
                       id="upload-title"
                       name="upload-title"
@@ -6078,7 +6078,7 @@ ${error.message}`;
                     />
                   </div>
                   <div>
-                    <label htmlFor="upload-bpm" className="block text-xs font-bold uppercase text-brand-teal mb-2">BPM</label>
+                    <label htmlFor="upload-bpm" className="block text-xs font-bold uppercase text-brand-green mb-2">BPM</label>
                     <input
                       id="upload-bpm"
                       name="upload-bpm"
@@ -6090,7 +6090,7 @@ ${error.message}`;
                     />
                   </div>
                   <div>
-                    <label htmlFor="upload-key" className="block text-xs font-bold uppercase text-brand-teal mb-2">Key</label>
+                    <label htmlFor="upload-key" className="block text-xs font-bold uppercase text-brand-green mb-2">Key</label>
                     <input
                       id="upload-key"
                       name="upload-key"
@@ -6102,7 +6102,7 @@ ${error.message}`;
                     />
                   </div>
                   <div>
-                    <label htmlFor="upload-price" className="block text-xs font-bold uppercase text-brand-teal mb-2">Price</label>
+                    <label htmlFor="upload-price" className="block text-xs font-bold uppercase text-brand-green mb-2">Price</label>
                     <input
                       id="upload-price"
                       name="upload-price"
@@ -6115,7 +6115,7 @@ ${error.message}`;
                     />
                   </div>
                   <div>
-                    <label htmlFor="upload-mood" className="block text-xs font-bold uppercase text-brand-teal mb-2">Mood</label>
+                    <label htmlFor="upload-mood" className="block text-xs font-bold uppercase text-brand-green mb-2">Mood</label>
                     <select
                       id="upload-mood"
                       name="upload-mood"
@@ -6128,7 +6128,7 @@ ${error.message}`;
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="upload-category" className="block text-xs font-bold uppercase text-brand-teal mb-2">Category</label>
+                    <label htmlFor="upload-category" className="block text-xs font-bold uppercase text-brand-green mb-2">Category</label>
                         <select
                           id="upload-category"
                           name="upload-category"
@@ -6150,7 +6150,7 @@ ${error.message}`;
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="upload-description" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                  <label htmlFor="upload-description" className="block text-xs font-bold uppercase text-brand-green mb-2">
                     Description {uploadForm.category === 'merch' && <span className="text-yellow-400">* (Required for Merch)</span>}
                   </label>
                   <textarea
@@ -6167,7 +6167,7 @@ ${error.message}`;
                   )}
                 </div>
                 <div>
-                  <label htmlFor="upload-youtube" className="block text-xs font-bold uppercase text-brand-teal mb-2">YouTube URL</label>
+                  <label htmlFor="upload-youtube" className="block text-xs font-bold uppercase text-brand-green mb-2">YouTube URL</label>
                     <input
                       id="upload-youtube"
                       name="upload-youtube"
@@ -6181,7 +6181,7 @@ ${error.message}`;
                 {uploadForm.category === 'album' && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <label htmlFor="upload-spotify" className="block text-xs font-bold uppercase text-brand-teal mb-2">Spotify URL</label>
+                      <label htmlFor="upload-spotify" className="block text-xs font-bold uppercase text-brand-green mb-2">Spotify URL</label>
                       <input
                         id="upload-spotify"
                         name="upload-spotify"
@@ -6194,7 +6194,7 @@ ${error.message}`;
                       />
                     </div>
                     <div>
-                      <label htmlFor="upload-apple-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Apple Music URL</label>
+                      <label htmlFor="upload-apple-music" className="block text-xs font-bold uppercase text-brand-green mb-2">Apple Music URL</label>
                       <input
                         id="upload-apple-music"
                         name="upload-apple-music"
@@ -6207,7 +6207,7 @@ ${error.message}`;
                       />
                     </div>
                     <div>
-                      <label htmlFor="upload-amazon-music" className="block text-xs font-bold uppercase text-brand-teal mb-2">Amazon Music URL</label>
+                      <label htmlFor="upload-amazon-music" className="block text-xs font-bold uppercase text-brand-green mb-2">Amazon Music URL</label>
                       <input
                         id="upload-amazon-music"
                         name="upload-amazon-music"
@@ -6240,7 +6240,7 @@ ${error.message}`;
                           className="w-full bg-brand-slate/70 border-4 border-brand-green p-4 text-white rounded-lg focus:border-brand-green outline-none cursor-pointer hover:bg-brand-slate/90 transition-colors text-base"
                           aria-label="Upload multiple product images"
                         />
-                        <p className="text-sm text-brand-teal mt-3 font-bold">
+                        <p className="text-sm text-brand-green mt-3 font-bold">
                           💡 <strong>Tip:</strong> Select multiple images (hold Ctrl on Windows/Linux or Cmd on Mac) to show different angles, colors, or details. The first image will be used as the cover/thumbnail.
                         </p>
                       </div>
@@ -6269,7 +6269,7 @@ ${error.message}`;
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {uploadForm.category !== 'merch' && uploadForm.category?.toLowerCase() !== 'merch' && (
                     <div>
-                      <label htmlFor="upload-cover" className="block text-xs font-bold uppercase text-brand-teal mb-2">Cover Image *</label>
+                      <label htmlFor="upload-cover" className="block text-xs font-bold uppercase text-brand-green mb-2">Cover Image *</label>
                       <input
                         id="upload-cover"
                         name="upload-cover"
@@ -6280,7 +6280,7 @@ ${error.message}`;
                       />
                       <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
                         <p className="text-brand-green font-bold mb-1">📐 Optimal Image Specifications:</p>
-                        <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
+                        <ul className="text-brand-green space-y-1 list-disc list-inside ml-2">
                           <li><strong>Dimensions:</strong> 1200x1200px (square) or 1200x800px</li>
                           <li><strong>Format:</strong> JPG, PNG, or WebP</li>
                           <li><strong>File Size:</strong> Under 2MB (recommended: 500KB - 1MB)</li>
@@ -6292,7 +6292,7 @@ ${error.message}`;
                         <div className="mt-3">
                           <img src={uploadForm.coverPreview} alt="Preview" className="w-full h-32 object-cover rounded border border-brand-slate" />
                           {uploadForm.cover && (
-                            <p className="mt-2 text-xs text-brand-teal">
+                            <p className="mt-2 text-xs text-brand-green">
                               File: {uploadForm.cover.name} ({(uploadForm.cover.size / 1024 / 1024).toFixed(2)} MB)
                             </p>
                           )}
@@ -6301,8 +6301,8 @@ ${error.message}`;
                     </div>
                   )}
                   <div>
-                    <label htmlFor="upload-audio" className="block text-xs font-bold uppercase text-brand-teal mb-2">
-                      Audio File {uploadForm.category === 'merch' && <span className="text-brand-teal text-xs font-normal">(Optional for Merch)</span>}
+                    <label htmlFor="upload-audio" className="block text-xs font-bold uppercase text-brand-green mb-2">
+                      Audio File {uploadForm.category === 'merch' && <span className="text-brand-green text-xs font-normal">(Optional for Merch)</span>}
                     </label>
                     {uploadForm.category !== 'merch' ? (
                       user?.id ? (
@@ -6351,14 +6351,14 @@ ${error.message}`;
                       />
                     )}
                     {uploadForm.category === 'merch' && (
-                      <p className="text-xs text-brand-teal mt-1">ℹ️ Audio files are not required for merchandise items.</p>
+                      <p className="text-xs text-brand-green mt-1">ℹ️ Audio files are not required for merchandise items.</p>
                     )}
                     {uploadForm.audioName && (
                       <p className="text-xs text-brand-green mt-2">✅ {uploadForm.audioName}</p>
                     )}
                     <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
                       <p className="text-brand-green font-bold mb-1">🎵 Optimal Audio Specifications:</p>
-                      <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
+                      <ul className="text-brand-green space-y-1 list-disc list-inside ml-2">
                         <li><strong>Format:</strong> MP3 (recommended) or WAV</li>
                         <li><strong>Bitrate:</strong> 192-320 kbps (MP3) or 16-bit/44.1kHz (WAV)</li>
                         <li><strong>File Size:</strong> Under 10MB (recommended: 3-5MB for preview)</li>
@@ -6368,9 +6368,9 @@ ${error.message}`;
                     </div>
                     {uploadForm.audioName && (
                       <div className="mt-3">
-                        <p className="text-xs text-brand-teal font-bold">{uploadForm.audioName}</p>
+                        <p className="text-xs text-brand-green font-bold">{uploadForm.audioName}</p>
                         {uploadForm.audio instanceof File && (
-                          <p className="text-xs text-brand-teal mt-1">
+                          <p className="text-xs text-brand-green mt-1">
                             Size: {(uploadForm.audio.size / 1024 / 1024).toFixed(2)} MB
                             {uploadForm.audio.size > 10 * 1024 * 1024 && (
                               <span className="text-yellow-400 ml-2">⚠️ File is larger than recommended (10MB)</span>
@@ -6381,7 +6381,7 @@ ${error.message}`;
                     )}
                   </div>
                   <div>
-                    <label htmlFor="upload-stems" className="block text-xs font-bold uppercase text-brand-teal mb-2">Stems (ZIP File) - Optional</label>
+                    <label htmlFor="upload-stems" className="block text-xs font-bold uppercase text-brand-green mb-2">Stems (ZIP File) - Optional</label>
                     <input
                       id="upload-stems"
                       name="upload-stems"
@@ -6392,7 +6392,7 @@ ${error.message}`;
                     />
                     <div className="mt-2 p-3 bg-brand-black/50 border border-brand-slate rounded text-xs">
                       <p className="text-brand-green font-bold mb-1">📦 Stems File Specifications:</p>
-                      <ul className="text-brand-teal space-y-1 list-disc list-inside ml-2">
+                      <ul className="text-brand-green space-y-1 list-disc list-inside ml-2">
                         <li><strong>Format:</strong> ZIP file containing individual stem files</li>
                         <li><strong>Stem Files:</strong> WAV or MP3 format (one file per instrument/element)</li>
                         <li><strong>File Size:</strong> Under 100MB (recommended: 20-50MB)</li>
@@ -6402,9 +6402,9 @@ ${error.message}`;
                     </div>
                     {uploadForm.stemsName && (
                       <div className="mt-3">
-                        <p className="text-xs text-brand-teal font-bold">Selected: {uploadForm.stemsName}</p>
+                        <p className="text-xs text-brand-green font-bold">Selected: {uploadForm.stemsName}</p>
                         {uploadForm.stems instanceof File && (
-                          <p className="text-xs text-brand-teal mt-1">
+                          <p className="text-xs text-brand-green mt-1">
                             Size: {(uploadForm.stems.size / 1024 / 1024).toFixed(2)} MB
                             {uploadForm.stems.size > 100 * 1024 * 1024 && (
                               <span className="text-yellow-400 ml-2">⚠️ File is larger than recommended (100MB)</span>
@@ -6464,7 +6464,7 @@ ${error.message}`;
               <h2 className="text-2xl font-black text-white mb-6">Content Management</h2>
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Page</label>
+                  <label className="block text-xs font-bold uppercase text-brand-green mb-2">Page</label>
                   <select
                     value={cmsPage}
                     onChange={e => setCmsPage(e.target.value as keyof SiteContent)}
@@ -6479,7 +6479,7 @@ ${error.message}`;
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="cms-headline" className="block text-xs font-bold uppercase text-brand-teal">Headline</label>
+                    <label htmlFor="cms-headline" className="block text-xs font-bold uppercase text-brand-green">Headline</label>
                     <button
                       type="button"
                       onClick={() => saveCmsField('headline')}
@@ -6510,7 +6510,7 @@ ${error.message}`;
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="cms-subheadline" className="block text-xs font-bold uppercase text-brand-teal">Subheadline</label>
+                    <label htmlFor="cms-subheadline" className="block text-xs font-bold uppercase text-brand-green">Subheadline</label>
                     <button
                       type="button"
                       onClick={() => saveCmsField('subheadline')}
@@ -6540,7 +6540,7 @@ ${error.message}`;
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="cms-hero-image-url" className="block text-xs font-bold uppercase text-brand-teal">Hero Image URL</label>
+                    <label htmlFor="cms-hero-image-url" className="block text-xs font-bold uppercase text-brand-green">Hero Image URL</label>
                     <button
                       type="button"
                       onClick={() => saveCmsField('heroImage')}
@@ -6569,7 +6569,7 @@ ${error.message}`;
                       autoComplete="url"
                     />
                     <div className="mt-4">
-                      <label htmlFor="cms-hero-image-upload" className="block text-xs font-bold uppercase text-brand-teal mb-2">Or Upload Image</label>
+                      <label htmlFor="cms-hero-image-upload" className="block text-xs font-bold uppercase text-brand-green mb-2">Or Upload Image</label>
                       <input
                         id="cms-hero-image-upload"
                         name="cms-hero-image-upload"
@@ -6611,7 +6611,7 @@ ${error.message}`;
                 {siteContent[cmsPage].buttonText !== undefined && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <label htmlFor="cms-button-text" className="block text-xs font-bold uppercase text-brand-teal">Button Text</label>
+                      <label htmlFor="cms-button-text" className="block text-xs font-bold uppercase text-brand-green">Button Text</label>
                       <button
                         type="button"
                         onClick={() => saveCmsField('buttonText')}
@@ -6700,7 +6700,7 @@ ${error.message}`;
               {editingPostId ? (
                 <form onSubmit={handleBlogSubmit} className="space-y-6">
                     <div>
-                      <label htmlFor="blog-form-title" className="block text-xs font-bold uppercase text-brand-teal mb-2">Title</label>
+                      <label htmlFor="blog-form-title" className="block text-xs font-bold uppercase text-brand-green mb-2">Title</label>
                       <input
                         id="blog-form-title"
                         name="blog-form-title"
@@ -6714,7 +6714,7 @@ ${error.message}`;
                       />
                     </div>
                     <div>
-                      <label htmlFor="blog-form-excerpt" className="block text-xs font-bold uppercase text-brand-teal mb-2">Excerpt (Short Summary)</label>
+                      <label htmlFor="blog-form-excerpt" className="block text-xs font-bold uppercase text-brand-green mb-2">Excerpt (Short Summary)</label>
                       <textarea
                         id="blog-form-excerpt"
                         name="blog-form-excerpt"
@@ -6725,10 +6725,10 @@ ${error.message}`;
                         style={{ color: '#000000', caretColor: '#0D5F11' }}
                         autoComplete="off"
                       />
-                      <p className="text-xs text-brand-teal mt-1">Leave empty to auto-generate from content</p>
+                      <p className="text-xs text-brand-green mt-1">Leave empty to auto-generate from content</p>
                     </div>
                     <div>
-                      <label htmlFor="blog-form-content" className="block text-xs font-bold uppercase text-brand-teal mb-2">Full Content (Markdown)</label>
+                      <label htmlFor="blog-form-content" className="block text-xs font-bold uppercase text-brand-green mb-2">Full Content (Markdown)</label>
                       <textarea
                         id="blog-form-content"
                         name="blog-form-content"
@@ -6740,10 +6740,10 @@ ${error.message}`;
                         required
                         autoComplete="off"
                       />
-                      <p className="text-xs text-brand-teal mt-1">Supports Markdown: # Headers, **bold**, *italic*, - lists, [links](url)</p>
+                      <p className="text-xs text-brand-green mt-1">Supports Markdown: # Headers, **bold**, *italic*, - lists, [links](url)</p>
                     </div>
                     <div>
-                      <label htmlFor="blog-form-image-url" className="block text-xs font-bold uppercase text-brand-teal mb-2">Image URL</label>
+                      <label htmlFor="blog-form-image-url" className="block text-xs font-bold uppercase text-brand-green mb-2">Image URL</label>
                       <input
                         id="blog-form-image-url"
                         name="blog-form-image-url"
@@ -6755,7 +6755,7 @@ ${error.message}`;
                         autoComplete="url"
                       />
                       <div className="mt-4">
-                        <label htmlFor="blog-form-image-upload" className="block text-xs font-bold uppercase text-brand-teal mb-2">Or Upload Image</label>
+                        <label htmlFor="blog-form-image-upload" className="block text-xs font-bold uppercase text-brand-green mb-2">Or Upload Image</label>
                         <input
                           id="blog-form-image-upload"
                           name="blog-form-image-upload"
@@ -6833,7 +6833,7 @@ ${error.message}`;
                       <div key={post.id} className="bg-brand-slate/20 border border-brand-slate rounded-lg p-4 flex items-center justify-between">
                         <div>
                           <h3 className="font-bold text-white">{post.title}</h3>
-                          <p className="text-xs text-brand-teal">{post.date} • {post.isAiGenerated ? 'AI Generated' : 'Manual'}</p>
+                          <p className="text-xs text-brand-green">{post.date} • {post.isAiGenerated ? 'AI Generated' : 'Manual'}</p>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -6863,13 +6863,13 @@ ${error.message}`;
               <div className="mb-4 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-brand-teal text-sm">Total Active Subscribers</p>
+                    <p className="text-brand-green text-sm">Total Active Subscribers</p>
                     <p className="text-3xl font-black text-brand-green">
                       {subscribers.filter(s => s.is_active).length}
                     </p>
                   </div>
                   <div>
-                    <p className="text-brand-teal text-sm">Total Subscribers</p>
+                    <p className="text-brand-green text-sm">Total Subscribers</p>
                     <p className="text-3xl font-black text-white">
                       {subscribers.length}
                     </p>
@@ -6884,7 +6884,7 @@ ${error.message}`;
               )}
               
               {subscribersLoaded && subscribers.length === 0 && (
-                <div className="text-center py-8 text-brand-teal">
+                <div className="text-center py-8 text-brand-green">
                   <Mail size={48} className="mx-auto mb-4 opacity-50" />
                   <p>No subscribers yet.</p>
                 </div>
@@ -6895,20 +6895,20 @@ ${error.message}`;
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-brand-slate">
-                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Email</th>
-                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Name</th>
-                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Subscribed</th>
-                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Status</th>
-                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Source</th>
-                        <th className="p-3 text-xs font-bold uppercase text-brand-teal">Actions</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-green">Email</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-green">Name</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-green">Subscribed</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-green">Status</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-green">Source</th>
+                        <th className="p-3 text-xs font-bold uppercase text-brand-green">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {subscribers.map((sub) => (
                         <tr key={sub.id} className="border-b border-brand-slate/50 hover:bg-brand-slate/10">
                           <td className="p-3 text-sm text-white">{sub.email}</td>
-                          <td className="p-3 text-sm text-brand-teal">{sub.name || '-'}</td>
-                          <td className="p-3 text-xs text-brand-teal">
+                          <td className="p-3 text-sm text-brand-green">{sub.name || '-'}</td>
+                          <td className="p-3 text-xs text-brand-green">
                             {new Date(sub.subscribed_at).toLocaleDateString()}
                           </td>
                           <td className="p-3">
@@ -6920,7 +6920,7 @@ ${error.message}`;
                               {sub.is_active ? 'Active' : 'Unsubscribed'}
                             </span>
                           </td>
-                          <td className="p-3 text-xs text-brand-teal">{sub.source || 'website'}</td>
+                          <td className="p-3 text-xs text-brand-green">{sub.source || 'website'}</td>
                           <td className="p-3">
                             <button
                               onClick={async () => {
@@ -6965,7 +6965,7 @@ ${error.message}`;
               {subscribersLoaded && subscribers.length > 0 && (
                 <div className="mt-6 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
                   <h3 className="font-bold text-white mb-2">Export Subscribers</h3>
-                  <p className="text-xs text-brand-teal mb-3">Download subscriber list as CSV</p>
+                  <p className="text-xs text-brand-green mb-3">Download subscriber list as CSV</p>
                   <button
                     onClick={() => {
                       const csv = [
@@ -7007,7 +7007,7 @@ ${error.message}`;
                       />
                       Send welcome email to new subscribers
                     </label>
-                    <p className="text-xs text-brand-teal ml-6">Automatically send a welcome email when someone subscribes</p>
+                    <p className="text-xs text-brand-green ml-6">Automatically send a welcome email when someone subscribes</p>
                   </div>
                   <div>
                     <label className="flex items-center gap-2 text-sm text-white mb-2">
@@ -7019,10 +7019,10 @@ ${error.message}`;
                       />
                       Require email confirmation (double opt-in)
                     </label>
-                    <p className="text-xs text-brand-teal ml-6">Subscribers must confirm their email before being added</p>
+                    <p className="text-xs text-brand-green ml-6">Subscribers must confirm their email before being added</p>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Newsletter Frequency</label>
+                    <label className="block text-xs font-bold uppercase text-brand-green mb-2">Newsletter Frequency</label>
                     <select 
                       value={newsletterSettings.newsletter_frequency}
                       onChange={(e) => setNewsletterSettings({ ...newsletterSettings, newsletter_frequency: e.target.value })}
@@ -7036,7 +7036,7 @@ ${error.message}`;
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Default Newsletter Template</label>
+                    <label className="block text-xs font-bold uppercase text-brand-green mb-2">Default Newsletter Template</label>
                     <textarea
                       value={newsletterSettings.newsletter_template}
                       onChange={(e) => setNewsletterSettings({ ...newsletterSettings, newsletter_template: e.target.value })}
@@ -7044,7 +7044,7 @@ ${error.message}`;
                       className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none h-32 placeholder:text-gray-500"
                       style={{ color: '#000000', caretColor: '#0D5F11' }}
                     />
-                    <p className="text-xs text-brand-teal mt-1">Use {`{{name}}`} for subscriber name, {`{{email}}`} for email address</p>
+                    <p className="text-xs text-brand-green mt-1">Use {`{{name}}`} for subscriber name, {`{{email}}`} for email address</p>
                   </div>
                   <button 
                     type="button"
@@ -7199,7 +7199,7 @@ ${error.message}`;
                   <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                     <ShieldCheck size={20} className="text-brand-green" /> API Keys & Credentials
                   </h3>
-                  <p className="text-xs text-brand-teal mb-4">
+                  <p className="text-xs text-brand-green mb-4">
                     Manage your API keys directly from the admin dashboard. Keys are stored securely in the database.
                   </p>
                   
@@ -7217,7 +7217,7 @@ ${error.message}`;
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">
                         Google Gemini API Key
                         <span className="text-gray-500 ml-2">(for AI features)</span>
                       </label>
@@ -7362,7 +7362,7 @@ ${error.message}`;
                           {savingKey === 'gemini' ? 'Saving...' : 'Save'}
                         </button>
                       </div>
-                      <p className="text-xs text-brand-teal mt-1">
+                      <p className="text-xs text-brand-green mt-1">
                         Status: {apiKeys.gemini || import.meta.env.VITE_API_KEY ? (
                           <span className="text-brand-green">✓ Configured</span>
                         ) : (
@@ -7375,7 +7375,7 @@ ${error.message}`;
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">
                         Stripe Publishable Key
                         <span className="text-gray-500 ml-2">(for payments)</span>
                       </label>
@@ -7520,7 +7520,7 @@ ${error.message}`;
                           {savingKey === 'stripe' ? 'Saving...' : 'Save'}
                         </button>
                       </div>
-                      <p className="text-xs text-brand-teal mt-1">
+                      <p className="text-xs text-brand-green mt-1">
                         Status: {apiKeys.stripe || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? (
                           <span className="text-brand-green">✓ Configured</span>
                         ) : (
@@ -7530,7 +7530,7 @@ ${error.message}`;
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">
                         PayPal Client ID
                         <span className="text-gray-500 ml-2">(for payments)</span>
                       </label>
@@ -7675,7 +7675,7 @@ ${error.message}`;
                           {savingKey === 'paypal' ? 'Saving...' : 'Save'}
                         </button>
                       </div>
-                      <p className="text-xs text-brand-teal mt-1">
+                      <p className="text-xs text-brand-green mt-1">
                         Status: {apiKeys.paypal || import.meta.env.VITE_PAYPAL_CLIENT_ID ? (
                           <span className="text-brand-green">✓ Configured</span>
                         ) : (
@@ -7687,7 +7687,7 @@ ${error.message}`;
                   
                   <div className="mt-6 p-4 bg-brand-black/50 border border-brand-slate rounded-lg">
                     <h4 className="text-sm font-bold text-white mb-2">How to Configure:</h4>
-                    <ol className="text-xs text-brand-teal space-y-1 list-decimal list-inside">
+                    <ol className="text-xs text-brand-green space-y-1 list-decimal list-inside">
                       <li>Create a <code className="bg-brand-slate/50 px-1 rounded">.env</code> file in the project root</li>
                       <li>Add your keys: <code className="bg-brand-slate/50 px-1 rounded">VITE_API_KEY=your-key-here</code></li>
                       <li>Restart the development server</li>
@@ -7699,7 +7699,7 @@ ${error.message}`;
                   <h3 className="font-bold text-white mb-4 flex items-center gap-2">
                     <Mail size={20} className="text-brand-green" /> Email/SMTP Configuration
                   </h3>
-                  <p className="text-xs text-brand-teal mb-4">
+                  <p className="text-xs text-brand-green mb-4">
                     Configure SMTP settings for sending transactional emails (order confirmations, newsletters, etc.)
                   </p>
                   
@@ -7722,7 +7722,7 @@ ${error.message}`;
                           Enable Order Confirmation Emails
                         </span>
                       </label>
-                      <p className="text-xs text-brand-teal mt-2 ml-8">
+                      <p className="text-xs text-brand-green mt-2 ml-8">
                         When enabled, customers will receive email confirmations after placing orders
                       </p>
                     </div>
@@ -7731,7 +7731,7 @@ ${error.message}`;
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="smtp-host" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="smtp-host" className="block text-xs font-bold uppercase text-brand-green mb-2">
                           SMTP Host
                         </label>
                         <input
@@ -7746,7 +7746,7 @@ ${error.message}`;
                         />
                       </div>
                       <div>
-                        <label htmlFor="smtp-port" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="smtp-port" className="block text-xs font-bold uppercase text-brand-green mb-2">
                           SMTP Port
                         </label>
                         <input
@@ -7763,7 +7763,7 @@ ${error.message}`;
                     </div>
                     
                     <div>
-                      <label htmlFor="smtp-username" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label htmlFor="smtp-username" className="block text-xs font-bold uppercase text-brand-green mb-2">
                         SMTP Username (Email)
                       </label>
                       <input
@@ -7780,7 +7780,7 @@ ${error.message}`;
                     </div>
                     
                     <div>
-                      <label htmlFor="smtp-password" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label htmlFor="smtp-password" className="block text-xs font-bold uppercase text-brand-green mb-2">
                         SMTP Password (App Password)
                       </label>
                       <input
@@ -7799,7 +7799,7 @@ ${error.message}`;
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="from-email" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="from-email" className="block text-xs font-bold uppercase text-brand-green mb-2">
                           From Email
                         </label>
                         <input
@@ -7814,7 +7814,7 @@ ${error.message}`;
                         />
                       </div>
                       <div>
-                        <label htmlFor="from-name" className="block text-xs font-bold uppercase text-brand-teal mb-2">
+                        <label htmlFor="from-name" className="block text-xs font-bold uppercase text-brand-green mb-2">
                           From Name
                         </label>
                         <input
@@ -7831,7 +7831,7 @@ ${error.message}`;
                     </div>
                     
                     <div>
-                      <label className="flex items-center gap-2 text-xs font-bold uppercase text-brand-teal mb-2">
+                      <label className="flex items-center gap-2 text-xs font-bold uppercase text-brand-green mb-2">
                         <input
                           type="checkbox"
                           checked={emailSettings.use_tls === 'true'}
@@ -8034,7 +8034,7 @@ ${error.message}`;
                     
                     <div className="mt-4 p-3 bg-brand-black/50 border border-brand-slate rounded-lg">
                       <h4 className="text-sm font-bold text-white mb-2">Common SMTP Providers:</h4>
-                      <ul className="text-xs text-brand-teal space-y-1">
+                      <ul className="text-xs text-brand-green space-y-1">
                         <li><strong>Zoho:</strong> smtp.zoho.com, Port 587 (TLS)</li>
                         <li><strong>Gmail:</strong> smtp.gmail.com, Port 587 (TLS)</li>
                         <li><strong>Outlook:</strong> smtp-mail.outlook.com, Port 587 (TLS)</li>
@@ -8049,7 +8049,7 @@ ${error.message}`;
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Site Name</label>
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">Site Name</label>
                       <input
                         type="text"
                         defaultValue="Weedhead Beats"
@@ -8058,7 +8058,7 @@ ${error.message}`;
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Site URL</label>
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">Site URL</label>
                       <input
                         type="url"
                         placeholder="https://weedheadbeats.com"
@@ -8067,7 +8067,7 @@ ${error.message}`;
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Contact Email</label>
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">Contact Email</label>
                       <input
                         type="email"
                         placeholder="info@weedheadbeats.com"
@@ -8076,7 +8076,7 @@ ${error.message}`;
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Default Currency</label>
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">Default Currency</label>
                       <select className="w-full bg-white/90 border border-gray-300 p-3 rounded focus:border-brand-green outline-none" style={{ color: '#000000', caretColor: '#0D5F11' }}>
                         <option>USD ($)</option>
                         <option>EUR (€)</option>
@@ -8125,7 +8125,7 @@ ${error.message}`;
                       </label>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold uppercase text-brand-teal mb-2">Tax Rate (%)</label>
+                      <label className="block text-xs font-bold uppercase text-brand-green mb-2">Tax Rate (%)</label>
                       <input
                         type="number"
                         placeholder="0"
@@ -8146,29 +8146,29 @@ ${error.message}`;
                   <h3 className="font-bold text-white mb-2">Environment Status</h3>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-brand-teal">Supabase:</p>
+                      <p className="text-xs text-brand-green">Supabase:</p>
                       <span className="text-xs text-brand-green font-bold">✓ Connected</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-brand-teal">Gemini API:</p>
+                      <p className="text-xs text-brand-green">Gemini API:</p>
                       <span className={`text-xs font-bold ${chatSession ? 'text-brand-green' : 'text-red-400'}`}>
                         {chatSession ? '✓ Ready' : '✗ Not Configured'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-brand-teal">Email/SMTP:</p>
+                      <p className="text-xs text-brand-green">Email/SMTP:</p>
                       <span className={`text-xs font-bold ${emailSettings.smtp_host ? 'text-brand-green' : 'text-red-400'}`}>
                         {emailSettings.smtp_host ? '✓ Configured' : '✗ Not Set'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-brand-teal">Stripe:</p>
+                      <p className="text-xs text-brand-green">Stripe:</p>
                       <span className={`text-xs font-bold ${apiKeys.stripe || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? 'text-brand-green' : 'text-red-400'}`}>
                         {apiKeys.stripe || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ? '✓ Configured' : '✗ Not Set'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-brand-teal">PayPal:</p>
+                      <p className="text-xs text-brand-green">PayPal:</p>
                       <span className={`text-xs font-bold ${apiKeys.paypal || import.meta.env.VITE_PAYPAL_CLIENT_ID ? 'text-brand-green' : 'text-red-400'}`}>
                         {apiKeys.paypal || import.meta.env.VITE_PAYPAL_CLIENT_ID ? '✓ Configured' : '✗ Not Set'}
                       </span>
@@ -8201,7 +8201,7 @@ ${error.message}`;
                 <h1 className="text-5xl sm:text-7xl font-black text-white mb-6 leading-[0.9] tracking-tighter whitespace-pre-line">
                   {siteContent.store.headline}
                 </h1>
-                <p className="text-lg text-brand-teal mb-8 max-w-lg border-l-2 border-brand-green pl-6">
+                <p className="text-lg text-brand-green mb-8 max-w-lg border-l-2 border-brand-green pl-6">
                   {siteContent.store.subheadline}
                 </p>
                 <div className="flex flex-wrap items-center gap-4">
@@ -8234,7 +8234,7 @@ ${error.message}`;
                  <button 
                     key={section.id}
                     onClick={() => setStoreSection(section.id as any)}
-                    className={`text-sm font-bold uppercase tracking-widest pb-4 transition-colors whitespace-nowrap ${storeSection === section.id ? 'text-brand-green border-b-2 border-brand-green' : 'text-brand-teal hover:text-white'}`}
+                    className={`text-sm font-bold uppercase tracking-widest pb-4 transition-colors whitespace-nowrap ${storeSection === section.id ? 'text-brand-green border-b-2 border-brand-green' : 'text-brand-green hover:text-white'}`}
                  >
                      {section.label}
                  </button>
@@ -8247,7 +8247,7 @@ ${error.message}`;
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsSearchModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-transparent border border-white/10 rounded-lg hover:bg-white/5 transition-colors text-brand-teal hover:text-white"
+            className="flex items-center gap-2 px-4 py-2 bg-transparent border border-white/10 rounded-lg hover:bg-white/5 transition-colors text-brand-green hover:text-white"
           >
             <Search size={18} />
             <span className="text-sm font-medium">Search & Filter</span>
@@ -8266,7 +8266,7 @@ ${error.message}`;
               <option value="bpm-high" style={{ background: '#000', color: '#fff' }}>BPM: High to Low</option>
               <option value="popularity" style={{ background: '#000', color: '#fff' }}>Most Popular</option>
             </select>
-            <ArrowUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-teal pointer-events-none" size={14} />
+            <ArrowUpDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-brand-green pointer-events-none" size={14} />
           </div>
         </div>
       </section>
@@ -8287,7 +8287,7 @@ ${error.message}`;
                   <img src={currentTrack.cover} alt={currentTrack.title} className="w-12 h-12 rounded object-cover" />
                   <div>
                     <div className="text-white font-medium">{currentTrack.title}</div>
-                    <div className="text-brand-teal text-xs">{currentTrack.producer}</div>
+                    <div className="text-brand-green text-xs">{currentTrack.producer}</div>
                   </div>
                 </div>
               )}
@@ -8295,7 +8295,7 @@ ${error.message}`;
                 onClick={() => setIsSearchModalOpen(false)}
                 className="p-2 hover:bg-brand-slate/20 rounded-lg transition-colors"
               >
-                <X size={20} className="text-brand-teal" />
+                <X size={20} className="text-brand-green" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
@@ -8321,7 +8321,7 @@ ${error.message}`;
             <TrendingUp className="text-brand-green" /> 
             {storeSection === 'beat' ? 'Latest Beats' : storeSection === 'sample_pack' ? 'Sample Packs' : storeSection === 'album' ? 'Albums' : 'Merchandise'}
             {displayedBeats.length !== beats.length && (
-              <span className="text-brand-teal text-sm font-normal">
+              <span className="text-brand-green text-sm font-normal">
                 ({displayedBeats.length} of {beats.length})
               </span>
             )}
@@ -8334,7 +8334,7 @@ ${error.message}`;
                 className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all border ${
                   activeFilter === filter 
                     ? 'bg-white text-black border-white' 
-                    : 'bg-transparent text-brand-teal border-brand-slate hover:border-brand-teal hover:text-white'
+                    : 'bg-transparent text-brand-green border-brand-slate hover:border-brand-green hover:text-white'
                 }`}
               >
                 {filter}
@@ -8368,10 +8368,10 @@ ${error.message}`;
         {!tracksLoaded ? (
           <div className="flex flex-col items-center justify-center py-24">
             <div className="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p className="text-brand-teal">Loading tracks...</p>
+            <p className="text-brand-green">Loading tracks...</p>
           </div>
         ) : displayedBeats.length === 0 ? (
-            <div className="text-center py-20 text-brand-teal">
+            <div className="text-center py-20 text-brand-green">
                 <p>No items found in this section.</p>
             </div>
         ) : (
@@ -8398,7 +8398,7 @@ ${error.message}`;
       <section className="max-w-7xl mx-auto px-4 sm:px-6 mb-12 mt-16">
         <div className="bg-brand-slate/20 border border-brand-slate rounded-xl p-8">
           <h2 className="text-2xl font-bold text-white mb-4">Stay Updated</h2>
-          <p className="text-brand-teal mb-6">Get the latest beats and exclusive offers</p>
+          <p className="text-brand-green mb-6">Get the latest beats and exclusive offers</p>
           <NewsletterForm />
         </div>
       </section>
@@ -8414,7 +8414,7 @@ ${error.message}`;
            <div className="text-center relative z-10 p-6">
                 <span className="text-brand-green font-bold uppercase tracking-widest text-xs">Work With Me</span>
                 <h1 className="text-4xl md:text-6xl font-black text-white mt-2 mb-6 whitespace-pre-line">{siteContent.collabs.headline}</h1>
-                <p className="text-brand-teal max-w-2xl mx-auto text-lg">
+                <p className="text-brand-green max-w-2xl mx-auto text-lg">
                     {siteContent.collabs.subheadline}
                 </p>
            </div>
@@ -8422,7 +8422,7 @@ ${error.message}`;
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-24">
            {displayedBeats.length === 0 ? (
-             <div className="text-center py-20 text-brand-teal">
+             <div className="text-center py-20 text-brand-green">
                <p className="text-lg mb-4">No collab projects yet.</p>
                {user?.isAdmin && (
                  <div className="space-y-4">
@@ -8527,7 +8527,7 @@ ${error.message}`;
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
           <Receipt size={64} className="mx-auto mb-6 text-brand-green" />
           <h2 className="text-3xl font-black text-white mb-4">Sign In to View Purchase History</h2>
-          <p className="text-brand-teal mb-8">Sign in to view your past purchases and download your tracks.</p>
+          <p className="text-brand-green mb-8">Sign in to view your past purchases and download your tracks.</p>
           <button
             onClick={() => setIsAuthModalOpen(true)}
             className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -8542,7 +8542,7 @@ ${error.message}`;
       return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
           <div className="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-brand-teal">Loading purchase history...</p>
+          <p className="text-brand-green">Loading purchase history...</p>
         </div>
       );
     }
@@ -8570,7 +8570,7 @@ ${error.message}`;
           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
             <Receipt size={64} className="mx-auto mb-6 text-brand-green" />
             <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">PURCHASE HISTORY</h1>
-            <p className="text-lg text-brand-teal">
+            <p className="text-lg text-brand-green">
               {orders.length === 0 
                 ? "You haven't made any purchases yet."
                 : `${orders.length} ${orders.length === 1 ? 'order' : 'orders'} total`}
@@ -8580,7 +8580,7 @@ ${error.message}`;
 
         {orders.length === 0 ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
-            <p className="text-brand-teal text-lg mb-8">No purchases yet. Start shopping to build your collection!</p>
+            <p className="text-brand-green text-lg mb-8">No purchases yet. Start shopping to build your collection!</p>
             <button
               onClick={() => setActiveTab('store')}
               className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -8596,7 +8596,7 @@ ${error.message}`;
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 pb-4 border-b border-brand-slate">
                     <div>
                       <h3 className="text-xl font-black text-white mb-1">Order #{order.id.slice(0, 8).toUpperCase()}</h3>
-                      <div className="flex items-center gap-4 text-sm text-brand-teal">
+                      <div className="flex items-center gap-4 text-sm text-brand-green">
                         <span className="flex items-center gap-1">
                           <Calendar size={14} />
                           {new Date(order.created_at).toLocaleDateString('en-US', { 
@@ -8631,8 +8631,8 @@ ${error.message}`;
                             />
                             <div className="flex-1">
                               <h4 className="text-lg font-bold text-white mb-1">{item.track.title}</h4>
-                              <p className="text-sm text-brand-teal mb-2">{item.track.producer}</p>
-                              <div className="flex flex-wrap items-center gap-3 text-xs text-brand-teal">
+                              <p className="text-sm text-brand-green mb-2">{item.track.producer}</p>
+                              <div className="flex flex-wrap items-center gap-3 text-xs text-brand-green">
                                 <span>{item.track.bpm} BPM</span>
                                 <span>•</span>
                                 <span>{item.track.key}</span>
@@ -8692,7 +8692,7 @@ ${error.message}`;
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
           <BarChart3 size={64} className="mx-auto mb-6 text-brand-green" />
           <h2 className="text-3xl font-black text-white mb-4">Sign In to View Listening History</h2>
-          <p className="text-brand-teal mb-8">Sign in to track your listening history and get personalized recommendations.</p>
+          <p className="text-brand-green mb-8">Sign in to track your listening history and get personalized recommendations.</p>
           <button
             onClick={() => setIsAuthModalOpen(true)}
             className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -8715,7 +8715,7 @@ ${error.message}`;
           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
             <BarChart3 size={64} className="mx-auto mb-6 text-brand-green" />
             <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">LISTENING HISTORY</h1>
-            <p className="text-lg text-brand-teal">
+            <p className="text-lg text-brand-green">
               {listeningStats.totalPlays === 0 
                 ? "Start listening to tracks to build your history!"
                 : `${listeningStats.totalPlays} plays • ${listeningStats.uniqueTracks} unique tracks`}
@@ -8725,7 +8725,7 @@ ${error.message}`;
 
         {listeningStats.totalPlays === 0 ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
-            <p className="text-brand-teal text-lg mb-8">No listening history yet. Play some tracks to get started!</p>
+            <p className="text-brand-green text-lg mb-8">No listening history yet. Play some tracks to get started!</p>
             <button
               onClick={() => setActiveTab('store')}
               className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -8746,10 +8746,10 @@ ${error.message}`;
               </div>
               <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <TrendingUp size={24} className="text-brand-teal" />
+                  <TrendingUp size={24} className="text-brand-green" />
                   <h3 className="text-lg font-bold text-white">Unique Tracks</h3>
                 </div>
-                <p className="text-3xl font-black text-brand-teal">{listeningStats.uniqueTracks}</p>
+                <p className="text-3xl font-black text-brand-green">{listeningStats.uniqueTracks}</p>
               </div>
               <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-2">
@@ -8793,7 +8793,7 @@ ${error.message}`;
             {/* Recent History */}
             <div>
               <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-2">
-                <Clock size={24} className="text-brand-teal" />
+                <Clock size={24} className="text-brand-green" />
                 Recent Listening
               </h2>
               <div className="space-y-3">
@@ -8807,11 +8807,11 @@ ${error.message}`;
                     }}
                   >
                     <div className="w-12 h-12 bg-brand-black rounded flex items-center justify-center">
-                      <Music size={20} className="text-brand-teal" />
+                      <Music size={20} className="text-brand-green" />
                     </div>
                     <div className="flex-1">
                       <h4 className="font-bold text-white">{item.track_title}</h4>
-                      <p className="text-sm text-brand-teal">
+                      <p className="text-sm text-brand-green">
                         {new Date(item.listened_at).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric', 
@@ -8837,7 +8837,7 @@ ${error.message}`;
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
           <Download size={64} className="mx-auto mb-6 text-brand-green" />
           <h2 className="text-3xl font-black text-white mb-4">Sign In to View Downloads</h2>
-          <p className="text-brand-teal mb-8">Sign in to view your download history and manage your files.</p>
+          <p className="text-brand-green mb-8">Sign in to view your download history and manage your files.</p>
           <button
             onClick={() => setIsAuthModalOpen(true)}
             className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -8866,7 +8866,7 @@ ${error.message}`;
           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
             <Download size={64} className="mx-auto mb-6 text-brand-green" />
             <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">MY DOWNLOADS</h1>
-            <p className="text-lg text-brand-teal">
+            <p className="text-lg text-brand-green">
               {downloadStats.totalDownloads === 0 
                 ? "No downloads yet. Purchase tracks to download them!"
                 : `${downloadStats.totalDownloads} downloads • ${downloadStats.uniqueTracks} tracks`}
@@ -8876,7 +8876,7 @@ ${error.message}`;
 
         {downloadStats.totalDownloads === 0 ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
-            <p className="text-brand-teal text-lg mb-8">No downloads yet. Purchase tracks to download them!</p>
+            <p className="text-brand-green text-lg mb-8">No downloads yet. Purchase tracks to download them!</p>
             <button
               onClick={() => setActiveTab('store')}
               className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -8897,10 +8897,10 @@ ${error.message}`;
               </div>
               <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-2">
-                  <Music size={24} className="text-brand-teal" />
+                  <Music size={24} className="text-brand-green" />
                   <h3 className="text-lg font-bold text-white">Unique Tracks</h3>
                 </div>
-                <p className="text-3xl font-black text-brand-teal">{downloadStats.uniqueTracks}</p>
+                <p className="text-3xl font-black text-brand-green">{downloadStats.uniqueTracks}</p>
               </div>
               <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
                 <div className="flex items-center gap-3 mb-2">
@@ -8916,7 +8916,7 @@ ${error.message}`;
             {/* Download History */}
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-2xl font-black text-white flex items-center gap-2">
-                <Clock size={24} className="text-brand-teal" />
+                <Clock size={24} className="text-brand-green" />
                 Recent Downloads
               </h2>
               {downloadHistory.length > 0 && (
@@ -8950,7 +8950,7 @@ ${error.message}`;
                     <div className="flex items-center gap-4 flex-1">
                       <div className="w-12 h-12 bg-brand-black rounded flex items-center justify-center">
                         {download.file_type === 'audio' ? (
-                          <FileAudio size={20} className="text-brand-teal" />
+                          <FileAudio size={20} className="text-brand-green" />
                         ) : download.file_type === 'stems' ? (
                           <Layers size={20} className="text-brand-green" />
                         ) : (
@@ -8959,7 +8959,7 @@ ${error.message}`;
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-white truncate">{download.track_title}</h4>
-                        <div className="flex items-center gap-3 text-sm text-brand-teal mt-1">
+                        <div className="flex items-center gap-3 text-sm text-brand-green mt-1">
                           <span className="capitalize">{download.file_type}</span>
                           <span>•</span>
                           <span className="capitalize">{download.license_type} License</span>
@@ -8970,7 +8970,7 @@ ${error.message}`;
                             </>
                           )}
                         </div>
-                        <p className="text-xs text-brand-teal/70 mt-1">
+                        <p className="text-xs text-brand-green/70 mt-1">
                           {new Date(download.downloaded_at).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric', 
@@ -9007,7 +9007,7 @@ ${error.message}`;
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
           <Music size={64} className="mx-auto mb-6 text-brand-green" />
           <h2 className="text-3xl font-black text-white mb-4">Sign In to Manage Playlists</h2>
-          <p className="text-brand-teal mb-8">Sign in to create and manage your playlists.</p>
+          <p className="text-brand-green mb-8">Sign in to create and manage your playlists.</p>
           <button
             onClick={() => setIsAuthModalOpen(true)}
             className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -9027,7 +9027,7 @@ ${error.message}`;
           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
             <Music size={64} className="mx-auto mb-6 text-brand-green" />
             <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">MY PLAYLISTS</h1>
-            <p className="text-lg text-brand-teal mb-6">
+            <p className="text-lg text-brand-green mb-6">
               {playlists.length === 0 
                 ? "You don't have any playlists yet."
                 : `${playlists.length} ${playlists.length === 1 ? 'playlist' : 'playlists'}`}
@@ -9044,7 +9044,7 @@ ${error.message}`;
 
         {playlists.length === 0 ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
-            <p className="text-brand-teal text-lg mb-8">Create your first playlist to organize your favorite tracks!</p>
+            <p className="text-brand-green text-lg mb-8">Create your first playlist to organize your favorite tracks!</p>
             <button
               onClick={() => setIsCreatePlaylistModalOpen(true)}
               className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -9057,7 +9057,7 @@ ${error.message}`;
             <div className="mb-6 flex items-center gap-4">
               <button
                 onClick={() => setCurrentPlaylist(null)}
-                className="p-2 text-brand-teal hover:text-white hover:bg-brand-slate/20 rounded transition-colors"
+                className="p-2 text-brand-green hover:text-white hover:bg-brand-slate/20 rounded transition-colors"
                 title="Back to Playlists"
               >
                 <ChevronRight size={20} className="rotate-180" />
@@ -9065,9 +9065,9 @@ ${error.message}`;
               <div className="flex-1">
                 <h2 className="text-3xl font-black text-white mb-2">{currentPlaylist.name}</h2>
                 {currentPlaylist.description && (
-                  <p className="text-brand-teal">{currentPlaylist.description}</p>
+                  <p className="text-brand-green">{currentPlaylist.description}</p>
                 )}
-                <p className="text-sm text-brand-teal mt-2">
+                <p className="text-sm text-brand-green mt-2">
                   {playlistTracks.length} {playlistTracks.length === 1 ? 'track' : 'tracks'}
                 </p>
               </div>
@@ -9092,8 +9092,8 @@ ${error.message}`;
 
             {playlistTracks.length === 0 ? (
               <div className="text-center py-24">
-                <Music size={64} className="mx-auto mb-6 text-brand-teal opacity-50" />
-                <p className="text-brand-teal text-lg mb-8">This playlist is empty. Add tracks from the store!</p>
+                <Music size={64} className="mx-auto mb-6 text-brand-green opacity-50" />
+                <p className="text-brand-green text-lg mb-8">This playlist is empty. Add tracks from the store!</p>
                 <button
                   onClick={() => setActiveTab('store')}
                   className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -9151,14 +9151,14 @@ ${error.message}`;
                   className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6 cursor-pointer hover:border-brand-green transition-colors group"
                 >
                   <div className="aspect-square bg-brand-black rounded-lg mb-4 flex items-center justify-center group-hover:bg-brand-green/10 transition-colors">
-                    <Music className="text-brand-teal group-hover:text-brand-green" size={48} />
+                    <Music className="text-brand-green group-hover:text-brand-green" size={48} />
                   </div>
                   <h3 className="text-lg font-bold text-white mb-1 truncate">{playlist.name}</h3>
                   {playlist.description && (
-                    <p className="text-sm text-brand-teal line-clamp-2 mb-3">{playlist.description}</p>
+                    <p className="text-sm text-brand-green line-clamp-2 mb-3">{playlist.description}</p>
                   )}
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-brand-teal">
+                    <span className="text-xs text-brand-green">
                       {playlist.isPublic ? 'Public' : 'Private'}
                     </span>
                     <div className="flex items-center gap-2">
@@ -9168,7 +9168,7 @@ ${error.message}`;
                           setCurrentPlaylist(playlist);
                           await loadPlaylistTracks(playlist.id);
                         }}
-                        className="p-2 text-brand-teal hover:text-brand-green hover:bg-brand-green/10 rounded transition-colors"
+                        className="p-2 text-brand-green hover:text-brand-green hover:bg-brand-green/10 rounded transition-colors"
                         title="View Playlist"
                       >
                         <ListMusic size={16} />
@@ -9207,7 +9207,7 @@ ${error.message}`;
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
           <Heart size={64} className="mx-auto mb-6 text-brand-green" />
           <h2 className="text-3xl font-black text-white mb-4">Sign In to View Favorites</h2>
-          <p className="text-brand-teal mb-8">Create an account or sign in to save and view your favorite tracks.</p>
+          <p className="text-brand-green mb-8">Create an account or sign in to save and view your favorite tracks.</p>
           <button
             onClick={() => setIsAuthModalOpen(true)}
             className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -9227,7 +9227,7 @@ ${error.message}`;
           <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 text-center">
             <Heart size={64} className="mx-auto mb-6 text-brand-green" fill="currentColor" />
             <h1 className="text-5xl sm:text-7xl font-black text-white mb-4 tracking-tighter">MY FAVORITES</h1>
-            <p className="text-lg text-brand-teal">
+            <p className="text-lg text-brand-green">
               {favorites.length === 0 
                 ? "You haven't saved any tracks yet. Start exploring!"
                 : `${favorites.length} ${favorites.length === 1 ? 'track' : 'tracks'} saved`}
@@ -9237,7 +9237,7 @@ ${error.message}`;
 
         {favorites.length === 0 ? (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
-            <p className="text-brand-teal text-lg mb-8">No favorites yet. Browse the store and click the heart icon to save tracks you love!</p>
+            <p className="text-brand-green text-lg mb-8">No favorites yet. Browse the store and click the heart icon to save tracks you love!</p>
             <button
               onClick={() => setActiveTab('store')}
               className="px-8 py-3 bg-brand-green text-white font-bold uppercase tracking-wider rounded hover:bg-brand-green/80 transition-colors"
@@ -9279,7 +9279,7 @@ ${error.message}`;
         </div>
         <div className="text-center relative z-10 p-6">
             <h1 className="text-5xl font-black text-white uppercase tracking-tighter mb-4">{siteContent.licenses.headline}</h1>
-            <p className="text-brand-teal max-w-2xl mx-auto">
+            <p className="text-brand-green max-w-2xl mx-auto">
                 {siteContent.licenses.subheadline}
             </p>
         </div>
@@ -9314,7 +9314,7 @@ ${error.message}`;
                 </div>
                 <div>
                   <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Standard Rights Agreement</h3>
-                  <p className="text-brand-teal text-xs">Summary of non-exclusive rights granted upon purchase.</p>
+                  <p className="text-brand-green text-xs">Summary of non-exclusive rights granted upon purchase.</p>
                 </div>
             </div>
             
@@ -9349,7 +9349,7 @@ ${error.message}`;
                 </div>
                 <div>
                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Common Questions</h3>
-                   <p className="text-brand-teal text-xs">Everything you need to know before buying.</p>
+                   <p className="text-brand-green text-xs">Everything you need to know before buying.</p>
                 </div>
             </div>
 
@@ -9364,7 +9364,7 @@ ${error.message}`;
                     <details key={i} className="group bg-brand-slate/20 rounded-lg border border-brand-slate overflow-hidden">
                         <summary className="flex items-center justify-between p-4 cursor-pointer hover:bg-brand-slate/30 transition-colors">
                             <h4 className="text-white font-bold text-sm group-hover:text-brand-green transition-colors">{faq.q}</h4>
-                            <ChevronDown size={16} className="text-brand-teal transform group-open:rotate-180 transition-transform" />
+                            <ChevronDown size={16} className="text-brand-green transform group-open:rotate-180 transition-transform" />
                         </summary>
                         <div className="px-4 pb-4 pt-0 text-zinc-400 text-sm leading-relaxed border-t border-brand-slate/30 mt-2 pt-2">
                            {faq.a}
@@ -9375,7 +9375,7 @@ ${error.message}`;
             
             <div className="mt-8 bg-brand-green/10 border border-brand-green/30 p-6 rounded-lg text-center">
                 <h4 className="text-white font-bold uppercase tracking-wider text-sm mb-2">Need Custom Usage?</h4>
-                <p className="text-brand-teal text-xs mb-4">Contact us for exclusive rights or TV/Film sync licensing.</p>
+                <p className="text-brand-green text-xs mb-4">Contact us for exclusive rights or TV/Film sync licensing.</p>
                 <button className="text-brand-green text-xs font-bold uppercase tracking-wider hover:text-white transition-colors underline">Contact Support</button>
             </div>
         </div>
@@ -9393,7 +9393,7 @@ ${error.message}`;
            <div className="text-center relative z-10 p-6">
                 <span className="text-brand-green font-bold uppercase tracking-widest text-xs">Knowledge Base</span>
                 <h1 className="text-4xl md:text-6xl font-black text-white mt-2 mb-6 whitespace-pre-line">{siteContent.blog.headline}</h1>
-                <p className="text-brand-teal max-w-2xl mx-auto text-lg">
+                <p className="text-brand-green max-w-2xl mx-auto text-lg">
                     {siteContent.blog.subheadline}
                 </p>
            </div>
@@ -9425,7 +9425,7 @@ ${error.message}`;
         <div className="text-center mb-12">
           <HelpCircle className="w-16 h-16 text-brand-green mx-auto mb-4" />
           <h1 className="text-4xl font-black text-white mb-4">Help Center</h1>
-          <p className="text-brand-teal">Find answers to common questions</p>
+          <p className="text-brand-green">Find answers to common questions</p>
         </div>
         <div className="space-y-6 mb-12">
           {[
@@ -9438,13 +9438,13 @@ ${error.message}`;
           ].map((faq, i) => (
             <div key={i} className="bg-brand-slate/20 border border-brand-slate rounded-lg p-6">
               <h3 className="text-lg font-bold text-white mb-2">{faq.q}</h3>
-              <p className="text-brand-teal">{faq.a}</p>
+              <p className="text-brand-green">{faq.a}</p>
             </div>
           ))}
         </div>
         <div className="bg-brand-slate/20 border border-brand-slate rounded-lg p-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Still need help?</h2>
-          <p className="text-brand-teal mb-6">Contact our support team</p>
+          <p className="text-brand-green mb-6">Contact our support team</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button onClick={() => setActiveTab('contact')} className="flex items-center justify-center gap-2 px-6 py-3 bg-brand-green hover:bg-brand-green/80 text-white rounded-lg transition-colors">
               <Mail size={18} />
@@ -9507,23 +9507,23 @@ ${error.message}`;
         <div className="text-center mb-12">
           <Mail className="w-16 h-16 text-brand-green mx-auto mb-4" />
           <h1 className="text-4xl font-black text-white mb-4">Contact Us</h1>
-          <p className="text-brand-teal">We'd love to hear from you</p>
+          <p className="text-brand-green">We'd love to hear from you</p>
         </div>
         <form onSubmit={handleContactSubmit} className="space-y-6 bg-transparent">
           <div>
-            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Name</label>
+            <label className="block text-sm font-bold text-brand-green mb-2 uppercase">Name</label>
             <input type="text" value={contactFormData.name} onChange={(e) => setContactFormData({ ...contactFormData, name: e.target.value })} required className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green" placeholder="Your name" />
           </div>
           <div>
-            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Email</label>
+            <label className="block text-sm font-bold text-brand-green mb-2 uppercase">Email</label>
             <input type="email" value={contactFormData.email} onChange={(e) => setContactFormData({ ...contactFormData, email: e.target.value })} required className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green" placeholder="your@email.com" />
           </div>
           <div>
-            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Subject</label>
+            <label className="block text-sm font-bold text-brand-green mb-2 uppercase">Subject</label>
             <input type="text" value={contactFormData.subject} onChange={(e) => setContactFormData({ ...contactFormData, subject: e.target.value })} required className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green" placeholder="What's this about?" />
           </div>
           <div>
-            <label className="block text-sm font-bold text-brand-teal mb-2 uppercase">Message</label>
+            <label className="block text-sm font-bold text-brand-green mb-2 uppercase">Message</label>
             <textarea value={contactFormData.message} onChange={(e) => setContactFormData({ ...contactFormData, message: e.target.value })} required rows={6} className="w-full bg-transparent border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-green resize-none" placeholder="Tell us what you need..." />
           </div>
           <button type="submit" disabled={contactFormStatus === 'sending'} className="w-full py-4 bg-brand-green hover:bg-brand-green/80 text-white font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
@@ -9539,7 +9539,7 @@ ${error.message}`;
     <div className="min-h-screen bg-brand-black text-white p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-black text-white mb-8">Terms of Service</h1>
-        <div className="space-y-8 text-brand-teal">
+        <div className="space-y-8 text-brand-green">
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">1. License Agreement</h2>
             <p className="mb-4">By purchasing a beat from Weedhead Beats, you agree to the terms of the selected license type (Basic, Premium, or Exclusive).</p>
@@ -9565,7 +9565,7 @@ ${error.message}`;
     <div className="min-h-screen bg-brand-black text-white p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-black text-white mb-8">Privacy Policy</h1>
-        <div className="space-y-8 text-brand-teal">
+        <div className="space-y-8 text-brand-green">
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">1. Information We Collect</h2>
             <p className="mb-4">We collect information you provide when creating an account, making purchases, or subscribing to our newsletter.</p>
@@ -9640,7 +9640,7 @@ ${error.message}`;
             {user?.isAdmin && (
               <button 
                 onClick={() => setIsAiOpen(true)}
-                className="p-2 text-brand-teal hover:text-white transition-colors relative group"
+                className="p-2 text-brand-green hover:text-white transition-colors relative group"
                 title="AI Studio Concierge (Admin Only)"
               >
                 <Sparkles size={20} />
@@ -9650,7 +9650,7 @@ ${error.message}`;
             
             <button 
               onClick={() => setIsCartOpen(true)}
-              className="p-2 text-brand-teal hover:text-white transition-colors relative"
+              className="p-2 text-brand-green hover:text-white transition-colors relative"
             >
               <ShoppingBag size={20} />
               {cart.length > 0 && (
@@ -9673,20 +9673,20 @@ ${error.message}`;
                 {isUserMenuOpen && (
                   <div className="absolute top-full right-0 mt-2 w-48 bg-brand-black border border-brand-slate rounded-xl shadow-xl overflow-hidden py-1">
                     {user.isAdmin && (
-                         <button onClick={() => { setActiveTab('dashboard'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                         <button onClick={() => { setActiveTab('dashboard'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-green hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
                              <LayoutDashboard size={14} /> Dashboard
                          </button>
                     )}
-                    <button onClick={() => { setActiveTab('playlists'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                    <button onClick={() => { setActiveTab('playlists'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-green hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
                         <Music size={14} /> My Playlists
                     </button>
-                    <button onClick={() => { setActiveTab('purchases'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                    <button onClick={() => { setActiveTab('purchases'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-green hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
                         <Receipt size={14} /> Purchase History
                     </button>
-                    <button onClick={() => { setActiveTab('downloads'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                    <button onClick={() => { setActiveTab('downloads'); setIsUserMenuOpen(false); }} className="w-full text-left px-4 py-3 text-sm text-brand-green hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
                         <Download size={14} /> My Downloads
                     </button>
-                    <button onClick={handleOpenProfileModal} className="w-full text-left px-4 py-3 text-sm text-brand-teal hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
+                    <button onClick={handleOpenProfileModal} className="w-full text-left px-4 py-3 text-sm text-brand-green hover:bg-brand-slate/20 hover:text-white flex items-center gap-2">
                         <User size={14} /> Profile Settings
                     </button>
                     <button onClick={handleLogout} className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-900/10 hover:text-red-300 flex items-center gap-2">
@@ -9698,7 +9698,7 @@ ${error.message}`;
             ) : (
               <button 
                 onClick={() => setIsAuthModalOpen(true)}
-                className="px-5 py-2 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-brand-teal transition-colors"
+                className="px-5 py-2 bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-brand-green transition-colors"
               >
                 Login
               </button>
@@ -9749,7 +9749,7 @@ ${error.message}`;
         {activeTab === 'dashboard' && !user?.isAdmin && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center">
             <h2 className="text-2xl font-black text-white mb-4">Access Denied</h2>
-            <p className="text-brand-teal">You must be an admin to access the dashboard.</p>
+            <p className="text-brand-green">You must be an admin to access the dashboard.</p>
           </div>
         )}
         {activeTab === 'help' && renderHelpCenterView()}
@@ -9768,17 +9768,17 @@ ${error.message}`;
                 <div className="w-10 h-10 bg-brand-green rounded flex items-center justify-center font-black text-white italic text-xl">WH</div>
                 <span className="font-black text-xl tracking-tighter">WEEDHEADBEATS</span>
               </div>
-              <p className="text-brand-teal text-sm">Premium beats for your next hit.</p>
+              <p className="text-brand-green text-sm">Premium beats for your next hit.</p>
             </div>
             
             {/* Quick Links */}
             <div>
               <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Quick Links</h3>
               <ul className="space-y-2">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('store'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Store</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('licenses'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Licenses</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('blog'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Blog</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('collabs'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Collabs</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('store'); }} className="text-brand-green hover:text-white transition-colors text-sm">Store</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('licenses'); }} className="text-brand-green hover:text-white transition-colors text-sm">Licenses</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('blog'); }} className="text-brand-green hover:text-white transition-colors text-sm">Blog</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('collabs'); }} className="text-brand-green hover:text-white transition-colors text-sm">Collabs</a></li>
               </ul>
             </div>
             
@@ -9786,10 +9786,10 @@ ${error.message}`;
             <div>
               <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Support</h3>
               <ul className="space-y-2">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('help'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Help Center</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('contact'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Contact</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('terms'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Terms</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('privacy'); }} className="text-brand-teal hover:text-white transition-colors text-sm">Privacy</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('help'); }} className="text-brand-green hover:text-white transition-colors text-sm">Help Center</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('contact'); }} className="text-brand-green hover:text-white transition-colors text-sm">Contact</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('terms'); }} className="text-brand-green hover:text-white transition-colors text-sm">Terms</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setActiveTab('privacy'); }} className="text-brand-green hover:text-white transition-colors text-sm">Privacy</a></li>
               </ul>
             </div>
             
@@ -9797,13 +9797,13 @@ ${error.message}`;
             <div>
               <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Connect</h3>
               <div className="flex gap-4">
-                <a href="https://twitter.com/weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-teal hover:text-brand-green transition-colors">
+                <a href="https://twitter.com/weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-green hover:text-brand-green transition-colors">
                   <Twitter size={20} />
                 </a>
-                <a href="https://facebook.com/weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-teal hover:text-brand-green transition-colors">
+                <a href="https://facebook.com/weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-green hover:text-brand-green transition-colors">
                   <Facebook size={20} />
                 </a>
-                <a href="https://youtube.com/@weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-teal hover:text-brand-green transition-colors">
+                <a href="https://youtube.com/@weedheadbeats" target="_blank" rel="noopener noreferrer" className="text-brand-green hover:text-brand-green transition-colors">
                   <Youtube size={20} />
                 </a>
               </div>
@@ -9811,7 +9811,7 @@ ${error.message}`;
           </div>
           
           <div className="border-t border-brand-slate pt-8 text-center">
-            <p className="text-brand-teal text-sm">© {new Date().getFullYear()} Weedhead Beats. All rights reserved.</p>
+            <p className="text-brand-green text-sm">© {new Date().getFullYear()} Weedhead Beats. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -9928,7 +9928,7 @@ ${error.message}`;
             <div className="p-6 border-b border-brand-slate flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Comments & Ratings</h2>
-                <p className="text-sm text-brand-teal mt-1">{selectedTrackForComments.title}</p>
+                <p className="text-sm text-brand-green mt-1">{selectedTrackForComments.title}</p>
               </div>
               <button
                 onClick={() => {
@@ -9937,7 +9937,7 @@ ${error.message}`;
                   setCommentText("");
                   setCommentRating(null);
                 }}
-                className="text-brand-teal hover:text-white transition-colors"
+                className="text-brand-green hover:text-white transition-colors"
               >
                 <X size={20} />
               </button>
@@ -9947,7 +9947,7 @@ ${error.message}`;
               {/* Rating Input */}
               {user && (
                 <div className="mb-6 p-4 bg-brand-slate/20 border border-brand-slate rounded-lg">
-                  <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Your Rating</label>
+                  <label className="block text-sm font-bold text-brand-green mb-2 uppercase tracking-wider">Your Rating</label>
                   <div className="flex items-center gap-2 mb-4">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
@@ -9963,18 +9963,18 @@ ${error.message}`;
                       </button>
                     ))}
                     {getUserRating(String(selectedTrackForComments.id)) && (
-                      <span className="text-sm text-brand-teal ml-2">
+                      <span className="text-sm text-brand-green ml-2">
                         (Current: {getUserRating(String(selectedTrackForComments.id))}/5)
                       </span>
                     )}
                   </div>
                   
-                  <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Your Comment</label>
+                  <label className="block text-sm font-bold text-brand-green mb-2 uppercase tracking-wider">Your Comment</label>
                   <textarea
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Share your thoughts about this track..."
-                    className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green resize-none"
+                    className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-green/50 focus:outline-none focus:border-brand-green resize-none"
                     rows={3}
                   />
                   
@@ -9996,7 +9996,7 @@ ${error.message}`;
                       <Star size={20} className="text-yellow-400 fill-yellow-400" />
                       <span className="text-2xl font-black text-white">{getAverageRating(String(selectedTrackForComments.id)).toFixed(1)}</span>
                     </div>
-                    <span className="text-sm text-brand-teal">
+                    <span className="text-sm text-brand-green">
                       ({getCommentsForTrack(String(selectedTrackForComments.id)).filter(c => (c as any).rating).length} ratings)
                     </span>
                   </div>
@@ -10011,8 +10011,8 @@ ${error.message}`;
                 
                 {getCommentsForTrack(String(selectedTrackForComments.id)).length === 0 ? (
                   <div className="text-center py-12">
-                    <MessageSquare size={48} className="mx-auto mb-4 text-brand-teal opacity-50" />
-                    <p className="text-brand-teal">No comments yet. Be the first to share your thoughts!</p>
+                    <MessageSquare size={48} className="mx-auto mb-4 text-brand-green opacity-50" />
+                    <p className="text-brand-green">No comments yet. Be the first to share your thoughts!</p>
                   </div>
                 ) : (
                   getCommentsForTrack(String(selectedTrackForComments.id)).map((comment) => {
@@ -10022,11 +10022,11 @@ ${error.message}`;
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-brand-black flex items-center justify-center">
-                            <User size={16} className="text-brand-teal" />
+                            <User size={16} className="text-brand-green" />
                           </div>
                           <div>
                             <p className="font-bold text-white text-sm">{commentAny.user_name || 'Anonymous'}</p>
-                            <p className="text-xs text-brand-teal">
+                            <p className="text-xs text-brand-green">
                               {new Date(commentAny.createdAt || commentAny.created_at || '').toLocaleDateString('en-US', { 
                                 month: 'short', 
                                 day: 'numeric', 
@@ -10085,7 +10085,7 @@ ${error.message}`;
               <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Edit Profile</h2>
               <button
                 onClick={() => setIsProfileModalOpen(false)}
-                className="text-brand-teal hover:text-white transition-colors"
+                className="text-brand-green hover:text-white transition-colors"
               >
                 <X size={20} />
               </button>
@@ -10093,7 +10093,7 @@ ${error.message}`;
             
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Avatar URL</label>
+                <label className="block text-sm font-bold text-brand-green mb-2 uppercase tracking-wider">Avatar URL</label>
                 <div className="flex items-center gap-4 mb-4">
                   {profileAvatar && (
                     <img 
@@ -10110,31 +10110,31 @@ ${error.message}`;
                     value={profileAvatar}
                     onChange={(e) => setProfileAvatar(e.target.value)}
                     placeholder="https://example.com/avatar.jpg"
-                    className="flex-1 px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green"
+                    className="flex-1 px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-green/50 focus:outline-none focus:border-brand-green"
                   />
                 </div>
-                <p className="text-xs text-brand-teal/70">Leave empty to use auto-generated avatar</p>
+                <p className="text-xs text-brand-green/70">Leave empty to use auto-generated avatar</p>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Name</label>
+                <label className="block text-sm font-bold text-brand-green mb-2 uppercase tracking-wider">Name</label>
                 <input
                   type="text"
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green"
+                  className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-green/50 focus:outline-none focus:border-brand-green"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-brand-teal mb-2 uppercase tracking-wider">Email</label>
+                <label className="block text-sm font-bold text-brand-green mb-2 uppercase tracking-wider">Email</label>
                 <input
                   type="email"
                   value={profileEmail}
                   onChange={(e) => setProfileEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-teal/50 focus:outline-none focus:border-brand-green"
+                  className="w-full px-4 py-2 bg-brand-slate/20 border border-brand-slate rounded text-white placeholder-brand-green/50 focus:outline-none focus:border-brand-green"
                 />
               </div>
             </div>
@@ -10142,7 +10142,7 @@ ${error.message}`;
             <div className="p-6 border-t border-brand-slate flex gap-3">
               <button
                 onClick={() => setIsProfileModalOpen(false)}
-                className="flex-1 px-4 py-3 border border-brand-slate text-white font-bold uppercase text-sm tracking-wider rounded hover:border-brand-teal transition-colors"
+                className="flex-1 px-4 py-3 border border-brand-slate text-white font-bold uppercase text-sm tracking-wider rounded hover:border-brand-green transition-colors"
               >
                 Cancel
               </button>
@@ -10196,7 +10196,7 @@ ${error.message}`;
             ? 'bg-brand-green/90 border-brand-green text-white' 
             : toast.type === 'error'
             ? 'bg-red-500/90 border-red-500 text-white'
-            : 'bg-brand-teal/90 border-brand-teal text-white'
+            : 'bg-brand-green/90 border-brand-green text-white'
         }`}>
           {toast.type === 'success' && <CheckCircle size={20} />}
           {toast.type === 'error' && <X size={20} />}
