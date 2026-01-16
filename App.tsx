@@ -5505,27 +5505,33 @@ ${error.message}`;
                     throw new Error("DB Insert failed");
                 }
              } catch (e) {
-                 // Fallback Mock Add
-                 const newBeat: Track = {
-                    id: Date.now(),
-                    title: trackData.title,
-                    producer: "Weedhead",
-                    bpm: trackData.bpm,
-                    key: trackData.key,
-                    price: trackData.price,
-                    mood: trackData.mood,
-                    category: trackData.category as ProductCategory,
-                    description: trackData.description,
-                    youtubeUrl: trackData.youtube_url,
-                    spotifyUrl: trackData.spotify_url ?? undefined,
-                    appleMusicUrl: trackData.apple_music_url ?? undefined,
-                    amazonUrl: trackData.amazon_url ?? undefined,
-                    cover: trackData.cover || '',
-                    audio: trackData.audio as string,
-                    stats: { plays: 0, sales: 0, revenue: 0 }
-                 };
-                 setBeats([newBeat, ...beats]);
-                 alert("Item added (Local Mode - Audio Ready for Playback)");
+                 console.error('❌ Database insert failed, error details:', e);
+                 
+                 // Show detailed error message
+                 let errorMessage = 'Database save failed. ';
+                 if (e instanceof Error) {
+                   errorMessage += e.message;
+                   console.error('Error name:', e.name);
+                   console.error('Error stack:', e.stack);
+                 } else {
+                   errorMessage += 'Unknown error occurred.';
+                 }
+                 
+                 // Check for specific error types
+                 const errorStr = e instanceof Error ? e.message : String(e);
+                 if (errorStr.includes('RLS') || errorStr.includes('permission') || errorStr.includes('42501')) {
+                   errorMessage = 'Permission denied. Check Row Level Security (RLS) policies for the tracks table.';
+                 } else if (errorStr.includes('PGRST116') || errorStr.includes('does not exist')) {
+                   errorMessage = 'Tracks table does not exist. Please run the SQL from DATABASE-SETUP.md in Supabase SQL Editor.';
+                 } else if (errorStr.includes('JWT') || errorStr.includes('auth') || errorStr.includes('401')) {
+                   errorMessage = 'Authentication error. Check your Supabase configuration.';
+                 }
+                 
+                 alert(`❌ ${errorMessage}\n\n⚠️ File was uploaded to Storage Box, but database save failed.\n\nCheck browser console for details.`);
+                 
+                 // Don't add to local state - the upload succeeded but DB save failed
+                 // User should fix the DB issue and try again
+                 throw e; // Re-throw so user knows it failed
              }
         }
         
