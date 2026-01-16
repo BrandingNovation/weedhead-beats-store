@@ -5337,6 +5337,7 @@ Message: ${error.message}`;
             cover: coverUrl,
             audio: audioUrl as string,
             stems_url: stemsUrl || null,
+            user_id: user?.id || null, // Add user_id for RLS policy
         };
         
         // Add product_images for merch items
