@@ -3480,10 +3480,22 @@ Message: ${error.message}`;
                   audioRef.current.addEventListener('canplay', () => {
                     if (isPlaying && audioRef.current) {
                       audioRef.current.playbackRate = playbackRate;
-                      audioRef.current.play().catch(() => {
+                      audioRef.current.play().catch((err) => {
+                        console.error('Audio play error:', err);
                         setIsPlaying(false);
                       });
                     }
+                  }, { once: true });
+                  
+                  // Add error handler
+                  audioRef.current.addEventListener('error', (e) => {
+                    console.error('Audio load error:', {
+                      error: e,
+                      code: audioRef.current?.error?.code,
+                      message: audioRef.current?.error?.message,
+                      src: currentTrack.audio
+                    });
+                    setIsPlaying(false);
                   }, { once: true });
                 }
               }
