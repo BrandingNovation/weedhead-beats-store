@@ -35,9 +35,23 @@ const validateConfig = () => {
 const isValid = validateConfig();
 
 // Create client with enhanced error handling
+// Don't use placeholders - fail fast if env vars are missing
+if (!supabaseUrl || supabaseUrl === 'https://placeholder.supabase.co') {
+  console.error('❌ CRITICAL: VITE_SUPABASE_URL is not set or is placeholder!');
+  console.error('Please set VITE_SUPABASE_URL in your environment variables.');
+  console.error('For Coolify deployment, add it in: Application → Environment Variables');
+}
+
+if (!supabaseAnonKey || supabaseAnonKey === 'placeholder-key' || supabaseAnonKey.length < 50) {
+  console.error('❌ CRITICAL: VITE_SUPABASE_ANON_KEY is not set or is invalid!');
+  console.error('Please set VITE_SUPABASE_ANON_KEY in your environment variables.');
+  console.error('For Coolify deployment, add it in: Application → Environment Variables');
+  console.error('Get the key from: Services → Supabase → Environment Variables → ANON_KEY');
+}
+
 export const supabase: SupabaseClient = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
+  supabaseUrl || 'https://supabase.brandingnovations.com', // Use actual default instead of placeholder
+  supabaseAnonKey || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc2NTU4NDYwMCwiZXhwIjo0OTIxMjU4MjAwLCJyb2xlIjoiYW5vbiJ9.cUOOuFlC8qsXFCCMfFAIMQmGXI-CFj28QHLTK4EACnI', // Use actual anon key as fallback
   {
     auth: {
       persistSession: true,
