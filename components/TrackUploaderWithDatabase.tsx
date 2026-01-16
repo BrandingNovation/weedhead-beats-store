@@ -51,7 +51,7 @@ export const TrackUploaderWithDatabase: React.FC<TrackUploaderWithDatabaseProps>
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Check database connection on mount
+  // Check database connection on mount (non-blocking - don't prevent uploads)
   useEffect(() => {
     const checkConnection = async () => {
       if (!supabaseClient) {
@@ -67,11 +67,13 @@ export const TrackUploaderWithDatabase: React.FC<TrackUploaderWithDatabaseProps>
           setError(null);
         } else {
           setConnectionStatus('error');
-          setError(`Database connection issue: ${result.error}`);
+          // Don't set error - just warn, uploads can still work without DB
+          console.warn('[TrackUploader] Database connection issue (non-blocking):', result.error);
         }
       } catch (err) {
         setConnectionStatus('error');
-        setError('Failed to check database connection');
+        // Don't set error - just warn, uploads can still work without DB
+        console.warn('[TrackUploader] Database check failed (non-blocking):', err);
       }
     };
 
@@ -318,18 +320,11 @@ export const TrackUploaderWithDatabase: React.FC<TrackUploaderWithDatabaseProps>
       )}
       
       {connectionStatus === 'error' && (
-        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-          <strong>⚠️ Database Connection Issue:</strong>
-          <div className="mt-1">{error}</div>
+        <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-700 text-sm">
+          <strong>ℹ️ Database Connection Issue (Non-blocking):</strong>
+          <div className="mt-1">File uploads will still work, but database save may fail. Check browser console for details.</div>
           <div className="mt-2 text-xs">
-            <strong>Debug steps:</strong>
-            <ol className="list-decimal list-inside mt-1 space-y-1">
-              <li>Check your environment variables have VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</li>
-              <li>Verify the tracks table exists in Supabase (run SQL from DATABASE-SETUP.md)</li>
-              <li>Check Row Level Security policies allow inserts</li>
-              <li>Open browser console for detailed error messages</li>
-              <li>Use the Debug DB tab in Admin Dashboard to test connection</li>
-            </ol>
+            <strong>Note:</strong> This won't prevent file uploads. Only database saving will be affected.
           </div>
         </div>
       )}
