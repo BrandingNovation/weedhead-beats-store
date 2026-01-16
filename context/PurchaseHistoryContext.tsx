@@ -173,7 +173,7 @@ export const PurchaseHistoryProvider: React.FC<{ children: React.ReactNode }> = 
               licenseType: (item.license_type || 'basic') as any,
               purchaseDate: order.created_at,
               price: item.price || 0,
-              downloadUrls: item.track.audio ? [item.track.audio] : undefined,
+              downloadUrl: item.track.audio || undefined,
             });
           }
         });

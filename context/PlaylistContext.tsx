@@ -77,7 +77,7 @@ export const PlaylistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           userId: p.user_id,
           name: p.name || 'Untitled Playlist',
           description: p.description || undefined,
-          coverImage: p.cover_image || undefined,
+          // coverImage removed - not in Playlist type
           isPublic: p.is_public || false,
           createdAt: p.created_at || new Date().toISOString(),
           updatedAt: p.updated_at || p.created_at || new Date().toISOString(),
@@ -132,7 +132,7 @@ export const PlaylistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         userId: data.user_id,
         name: data.name,
         description: data.description || undefined,
-        coverImage: data.cover_image || undefined,
+        // coverImage: // Removed - not in Playlist type data.cover_image || undefined,
         isPublic: data.is_public || false,
         createdAt: data.created_at,
         updatedAt: data.updated_at || data.created_at,
