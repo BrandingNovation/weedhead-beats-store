@@ -83,6 +83,7 @@ import MerchImageGallery from './components/MerchImageGallery';
 import { TrackUploaderWithDatabase } from './components/TrackUploaderWithDatabase';
 import AdminAnalytics from './components/AdminAnalytics';
 import AdminUserManagement from './components/AdminUserManagement';
+import { DatabaseConnectionDebug } from './components/DatabaseConnectionDebug';
 import Phase46TestPage from './components/Phase4-6TestPage';
 import AdvancedSearch from './components/AdvancedSearch';
 import Recommendations from './components/Recommendations';
@@ -3044,7 +3045,7 @@ const App = () => {
   const [isGeneratingNews, setIsGeneratingNews] = useState(false);
 
   // Dashboard Form State
-  const [adminTab, setAdminTab] = useState<'upload' | 'inventory' | 'cms' | 'blog' | 'settings' | 'newsletter' | 'analytics' | 'users'>('inventory');
+  const [adminTab, setAdminTab] = useState<'upload' | 'inventory' | 'cms' | 'blog' | 'settings' | 'newsletter' | 'analytics' | 'users' | 'debug'>('inventory');
   
   // Newsletter Subscribers State
   const [subscribers, setSubscribers] = useState<any[]>([]);
@@ -5565,7 +5566,8 @@ ${error.message}`;
             { id: 'newsletter', label: 'Newsletter', icon: Mail },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             { id: 'users', label: 'Users', icon: User },
-            { id: 'settings', label: 'Settings', icon: Settings }
+            { id: 'settings', label: 'Settings', icon: Settings },
+            { id: 'debug', label: 'Debug DB', icon: Database }
           ].map(tab => (
             <button
               key={tab.id}
@@ -7181,6 +7183,12 @@ ${error.message}`;
           
           {adminTab === 'users' && (
             <AdminUserManagement />
+          )}
+          
+          {adminTab === 'debug' && (
+            <div className="p-6">
+              <DatabaseConnectionDebug />
+            </div>
           )}
           
           {adminTab === 'settings' && (
