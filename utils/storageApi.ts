@@ -47,6 +47,16 @@ export const uploadTrack = async (file: File, path: string = 'weedheadbeats/trac
     const formData = new FormData();
     formData.append('file', file);
     
+    console.log('[Storage API] Uploading file:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      path: path,
+      apiEndpoint: `${STORAGE_API}/upload?path=${encodeURIComponent(path)}`,
+      hasApiKey: !!API_KEY,
+      apiKeyLength: API_KEY?.length || 0
+    });
+
     const response = await fetch(`${STORAGE_API}/upload?path=${encodeURIComponent(path)}`, {
       method: 'POST',
       headers: {
@@ -55,12 +65,35 @@ export const uploadTrack = async (file: File, path: string = 'weedheadbeats/trac
       body: formData
     });
     
+    console.log('[Storage API] Response status:', response.status, response.statusText);
+    
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Upload failed');
+      let errorMessage = 'Upload failed';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+        console.error('[Storage API] Error response:', errorData);
+      } catch (e) {
+        const errorText = await response.text();
+        errorMessage = `HTTP ${response.status}: ${response.statusText}${errorText ? ` - ${errorText}` : ''}`;
+        console.error('[Storage API] Error response (text):', errorText);
+      }
+      
+      // Provide specific error messages
+      if (response.status === 401 || response.status === 403) {
+        errorMessage = `Authentication failed (${response.status}). Please check your Storage API key.`;
+      } else if (response.status === 413) {
+        errorMessage = 'File too large. Maximum file size is 100MB.';
+      } else if (response.status === 500) {
+        errorMessage = 'Server error. Please try again later or contact support.';
+      }
+      
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
+    console.log('[Storage API] Upload successful:', data);
+    
     return {
       success: true,
       url: data.url,
