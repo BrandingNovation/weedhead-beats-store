@@ -206,7 +206,10 @@ export const TrackUploaderWithDatabase: React.FC<TrackUploaderWithDatabaseProps>
                 details: dbError?.details,
                 hint: dbError?.hint,
               });
-              throw new Error(errorMessage);
+              // Don't throw - log warning but continue with upload success
+              // File is already uploaded to Storage Box, so that part succeeded
+              console.warn('[TrackUploader] ⚠️ Database save failed, but file upload succeeded. File URL:', newTrack.url);
+              console.warn('[TrackUploader] Error:', errorMessage);
             } else {
               console.log('[TrackUploader] ✅ Track saved to database (audio column)');
             }
@@ -223,7 +226,10 @@ export const TrackUploaderWithDatabase: React.FC<TrackUploaderWithDatabaseProps>
             });
           }
           
-          throw dbErr;
+          // Don't throw - allow upload to succeed even if DB save fails
+          // The file is already uploaded to Storage Box, so that part succeeded
+          console.warn('[TrackUploader] ⚠️ Upload to Storage Box succeeded, but database save failed. File is available at:', newTrack.url);
+          // Continue with the upload completion - file is still uploaded
         }
       } else {
         console.log('[TrackUploader] ℹ️ Database save skipped (main form will handle track saving)');
@@ -231,7 +237,7 @@ export const TrackUploaderWithDatabase: React.FC<TrackUploaderWithDatabaseProps>
 
       setUploadProgress(100);
 
-      // Call completion callback
+      // Call completion callback - file upload succeeded even if DB save failed
       if (onUploadComplete) {
         onUploadComplete(savedTrack);
       }
